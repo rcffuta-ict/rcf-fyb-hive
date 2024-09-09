@@ -4,8 +4,8 @@ import Link from "next/link";
 
 
 export const metadata: Metadata = {
-  title: "RCF",
-  description: "A place where good things never cease",
+  title: "FYB Hive| Reddemed Christian Fellowship FUTA",
+  description: "FYB Hive Feast: Splendor Of His Love",
 };
 
 export default function RootLayout({
