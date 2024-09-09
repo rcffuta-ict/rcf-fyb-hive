@@ -315,7 +315,7 @@ export default function FinalistForm(){
                     type='submit'
                     disabled={loading}
                 >
-                    Submit
+                    {loading ? 'Loading...': 'Submit'}
                 </button>
             </div>
         </Form>

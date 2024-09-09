@@ -330,7 +330,7 @@ export default function AssociateForm(){
                     disabled={loading}
                     data-hide={!Boolean(guest)}
                 >
-                    Submit
+                    {loading ? 'Loading...': 'Submit'}
                 </button>
 
                 <button
