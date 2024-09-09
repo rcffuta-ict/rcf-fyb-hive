@@ -16,13 +16,16 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body>
-                <main>
-                    <section className="main-wrapper">
-                        <div className="logo-wrapper sticky">
+                <header className="logo-wrapper sticky">
                             <Link href='/' className="img-wrapper logo">
                                 RCF FUTA
                             </Link>
-                        </div>
+
+                </header>
+                <main>
+                    <section className="main-wrapper">
+                        {/* <div >
+                        </div> */}
                         
 
                         <div className="main-content">

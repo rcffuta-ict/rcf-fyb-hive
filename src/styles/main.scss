@@ -32,11 +32,11 @@
     z-index: 2;
 
     // height: 5rem;
+    // background-color: green;
     
     .logo {
         display: block;
         height: 100%;
-        // background-color: green;
     }
 }
 
@@ -47,7 +47,7 @@
 }
 
 section.main-wrapper {
-    width: 40.875rem;
+    width: 50.875rem;
     max-width: 100%;
     margin-inline: auto;
 
@@ -112,6 +112,11 @@ form {
     @include mixins.least-small-screen(){
         flex-direction: column;
     }
+}
+
+
+.py-2 {
+    padding-block: 2rem;
 }
 
 
@@ -302,21 +307,9 @@ form {
 .rest-form{
     
     
-    // & ~ .steps-action .btn {
-    //     display: block;
-
-    // }
-    // & ~ .steps-action .btn-verify {
-    //     display: none;
-    // }
-
     &[data-disabled="true"] {
         height: 0;
         overflow: hidden;
-
-        // & ~ .steps-action .btn-verify {
-        //     display: block;
-        // }
     }
 }
 
@@ -369,27 +362,21 @@ form {
 
     color: #D32F2F;
 
-    // background-color: red;
     height: 1rem;
-
-
-    // &:empty {
-    //     content: 'empty';
-
-    //     width: 100%;
-    // }
 }
 
 .registration-container {
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    // max-width: 600px;
+    // margin: 0 auto;
+    // border: 1px solid #ddd;
+    border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    // padding-inline: .5rem;
 
     .tabs {
         display: flex;
@@ -405,6 +392,16 @@ form {
         transition: background-color 0.3s ease;
         border-bottom: 2px solid transparent;
         outline: none;
+
+        padding: 2rem 0rem;
+
+        text-transform: capitalize;
+
+        font-size: .9rem;
+        
+        @include mixins.least-large-screen {
+            font-size: 1rem;
+        }
 
         &:hover {
             background-color: #e0e0e0;

@@ -119,7 +119,7 @@ export default function FinalistForm(){
                     disable={loading}
                 />
 
-                <div className="form-group group-col">
+                <div className="form-group group-col py-2">
 
                     <CheckInput
                         label="Select your gender"
