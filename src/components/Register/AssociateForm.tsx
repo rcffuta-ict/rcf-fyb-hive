@@ -23,6 +23,8 @@ const dummyData:any = {
 }
 
 
+const parseConsent = (associateId:string)=>associateId.replaceAll('FYB-', '').toLocaleLowerCase()
+
 export default function AssociateForm(){
     const [form] = Form.useForm();
 
@@ -77,7 +79,7 @@ export default function AssociateForm(){
 
         setVerifying(true);
 
-        const consent = (associateId as string).replaceAll('FYB-', '').toLocaleLowerCase();
+        const consent = parseConsent(associateId);
 
         // console.log(consent);
 
@@ -128,6 +130,16 @@ export default function AssociateForm(){
 
         if (guest.gender === gender) {
             openNotificationWithIcon('error', 'Match error', 'Gender match error');
+
+            setVerifying(false);
+            return;
+        }
+
+        console.log(associateId)
+        const otherAssociate = await GuestModel.findOne({associateId: associateId});
+
+        if (otherAssociate) {
+            openNotificationWithIcon('error', 'Consent error', 'Cannot register with given consent');
 
             setVerifying(false);
             return;
