@@ -175,7 +175,8 @@ form {
 
 .form-checks {
     border: 0;
-    display: flex;
+    // display: flex;
+    // flex-direction: column;
 
     gap: 1.5rem;
 
@@ -188,7 +189,13 @@ form {
         color: colors.$primary;
 
         margin-bottom: 1rem;
-    }    
+    }
+
+    // background-color: red;
+
+    div {
+        display: flex;
+    }
 
 
     label {
@@ -199,6 +206,13 @@ form {
             height: 0;
             position: absolute;
             top: -5rem;
+        }
+
+
+        &:has(input:disabled) {
+            opacity: .6;
+
+            background-color: red;
         }
 
 
@@ -260,6 +274,12 @@ form {
             &.icon-greater-cirlce::before {
                 background-image: url('/icons/greater-cirlce.svg');
             }
+            &.icon-graduation-iv::before {
+                background-image: url('/icons/graduation-cap.svg');
+            }
+            &.icon-graduation-v::before {
+                background-image: url('/icons/graduation-cap-1.svg');
+            }
         }
     }
 }
@@ -278,8 +298,35 @@ form {
     }
 }
 
+.rest-form{
+    
+    
+    // & ~ .steps-action .btn {
+    //     display: block;
+
+    // }
+    // & ~ .steps-action .btn-verify {
+    //     display: none;
+    // }
+
+    &[data-disabled="true"] {
+        height: 0;
+        overflow: hidden;
+
+        // & ~ .steps-action .btn-verify {
+        //     display: block;
+        // }
+    }
+}
+
+
 .btn-submit {
     width: 100%;
+    height: 4rem;
+
+    &[data-hide="true"] {
+        display: none;
+    }
 }
 
 
@@ -308,6 +355,29 @@ form {
     }
 }
 
+
+.error-display {
+    display: block;
+
+    margin-top: .5rem;
+
+    line-height: 1rem;
+
+    font-size: .9rem;
+    font-weight: 400;
+
+    color: #D32F2F;
+
+    // background-color: red;
+    height: 1rem;
+
+
+    // &:empty {
+    //     content: 'empty';
+
+    //     width: 100%;
+    // }
+}
 
 .registration-container {
     display: flex;

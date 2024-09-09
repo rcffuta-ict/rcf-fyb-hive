@@ -1,28 +1,30 @@
-import { Space } from "nobox-client";
+import { ReturnObject, Space } from "nobox-client";
 import { createRowSchema } from "../config";
 
 
 type Gender = 'male' | 'female';
 
 interface GuestProp {
-    consentId: string;
+    consentId?: string;
     associateId?: string;
     relationsipWithAssociate?: string;
 }
 
-interface GuestAccount extends GuestProp{
+export interface GuestAccount extends GuestProp{
     firstname: string;
     lastname: string;
     picture: string;
     gender: Gender;
     contact: string;
     email: string;
-    partV: boolean;
-    worker: boolean;
+    partV?: boolean;
+    worker?: boolean;
     unit?: string;
-    exco: boolean;
+    exco?: boolean;
     portfolio?: string;
 }
+
+export type GuestObject = ReturnObject<GuestAccount>;
 
 export const GuestStructure: Space<GuestAccount> = {
     space: "Guest",
@@ -56,17 +58,17 @@ export const GuestStructure: Space<GuestAccount> = {
         email: {
             description: "Guest's Email",
             type: String,
-            required: true
+            required: true,
+            unique: true,
         },
         partV: {
             description: "Guest's level (partIV or Part V)",
-            required: true,
-            type: String,
-            hashed: true
+            // required: true,
+            type: Boolean,
         },
         worker: {
             description: "Is Guest a worker",
-            required: true,
+            // required: true,
             type: Boolean,
         },
         unit: {
@@ -75,7 +77,7 @@ export const GuestStructure: Space<GuestAccount> = {
         },
         exco: {
             description: "Is Guest an executive",
-            required: true,
+            // required: true,
             type: Boolean,
         },
         portfolio: {
@@ -86,8 +88,9 @@ export const GuestStructure: Space<GuestAccount> = {
 
         consentId: {
             description: 'Guest personal consent token',
-            required: true,
-            type: String
+            // required: true,
+            type: String,
+            unique: true,
         },
         associateId: {
             description: 'Guest-finalist associate consent token',

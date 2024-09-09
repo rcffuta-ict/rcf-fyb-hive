@@ -1,10 +1,10 @@
 'use client';
-import { Steps } from 'antd';
+
 import { useState } from 'react';
 import FinalistForm from './FinalistForm';
 import AssociateForm from './AssociateForm';
 
-const { Step } = Steps;
+
 
 export default function RegistrationForm() {
     const [currentTab, setCurrentTab] = useState(0);

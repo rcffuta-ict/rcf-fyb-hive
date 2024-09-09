@@ -8,7 +8,7 @@ export default function TestConnection() {
     useEffect(()=>{
         (async ()=>{
 
-            const guests = await GuestModel.find();
+            const guests = await GuestModel.find({});
 
             console.log(guests);
         })()

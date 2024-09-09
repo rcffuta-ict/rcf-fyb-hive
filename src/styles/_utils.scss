@@ -98,3 +98,10 @@
         flex-direction: row;
     }
 }
+
+
+.btn {
+    &:disabled {
+        opacity: .6;
+    }
+}

@@ -14,6 +14,16 @@ interface TextInputProps extends FormElement {
 
 export default function TextInput(props: TextInputProps) {
 
+    function revealError() {
+        // const errorMessage = props.error ? props.error[props.name] : null;
+
+        if (!props.error) return;
+
+        if (!props.error[props.name]) return;
+
+        return (props.error[props.name]) || ` `;
+    }
+
     let type = 'text';
     let addon;
 
@@ -41,7 +51,12 @@ export default function TextInput(props: TextInputProps) {
                 type={type}
                 addonBefore={props.tel ? '+234' : ''}
                 onChange={(e)=>props.onChange(props.name, e.target.value)}
+                disabled={props.disable}
+                value={props.getValue(props.name) as string}
             />
+
+
+            <b className="error-display">{revealError()}</b>
 
         </label>
     )
