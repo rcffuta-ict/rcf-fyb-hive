@@ -17,12 +17,13 @@ const getBase64 = (img: FileType, callback: (url: string) => void) => {
 
 const beforeUpload = (file: FileType) => {
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+  const max_mb = 5;
   if (!isJpgOrPng) {
     message.error('You can only upload JPG/PNG file!');
   }
-  const isLt2M = file.size / 1024 / 1024 < 2;
+  const isLt2M = file.size / 1024 / 1024 < max_mb;
   if (!isLt2M) {
-    message.error('Image must smaller than 2MB!');
+    message.error(`Image must smaller than ${max_mb}MB!`);
   }
   return isJpgOrPng && isLt2M;
 };
