@@ -37,7 +37,7 @@ export default function AssociateForm(){
     const [verifying, setVerifying] = useState(false);
 
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
         
         const _errors = validateAssociatetForm(formData);
 
@@ -47,7 +47,17 @@ export default function AssociateForm(){
         }
         
         setLoading(true);
-        console.log(formData)
+        const g = await GuestModel.find({email: formData.email});
+
+        if (g) {
+            setFormError((p)=>{
+                return {
+                    email: 'You cannot use this email address' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
+                }
+            });
+            setLoading(false);
+            return
+        }
 
 
         submitData(formData)

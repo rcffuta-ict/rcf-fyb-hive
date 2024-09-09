@@ -6,7 +6,7 @@ import { Form } from "antd";
 import { useState } from "react";
 import { openNotificationWithIcon } from "@/utils/notification";
 import { FormError } from "../Form/form.interface";
-import { GuestAccount } from "@/lib/nobox/record-structures/Guest";
+import { GuestAccount, GuestModel } from "@/lib/nobox/record-structures/Guest";
 import axios from "axios";
 import { validateFinalistForm } from "@/utils/validate-form";
 import submitData from "@/utils/submit";
@@ -33,7 +33,7 @@ export default function FinalistForm(){
     const [formerror, setFormError] = useState<FormError | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
         
         const _errors = validateFinalistForm(formData);
 
@@ -43,6 +43,18 @@ export default function FinalistForm(){
         }
 
         setLoading(true);
+
+        const g = await GuestModel.find({email: formData.email});
+
+        if (g) {
+            setFormError((p)=>{
+                return {
+                    email: 'You cannot use this email address' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
+                }
+            });
+            setLoading(false);
+            return
+        }
 
 
         submitData(formData, true)
