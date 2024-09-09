@@ -14,7 +14,7 @@ interface AssociateEmailTemplateProps extends FinalstEmailTemplateProps{
 
 export const FinalstConfirmationEmailTemplate: React.FC<Readonly<FinalstEmailTemplateProps>> = (props) => (
     <div>
-        <h1>Hello {props.guest.gender === 'male' ? 'Sir' : 'Ma'},</h1>
+        <h3>Hello {props.guest.gender === 'male' ? 'Sir' : 'Ma'},</h3>
 
         <p>
             Thank you for registering. This is to inform you that your registration was successful.
@@ -54,7 +54,7 @@ export const FinalstConfirmationEmailTemplate: React.FC<Readonly<FinalstEmailTem
 
 export const AssociateConfirmationEmailTemplate: React.FC<Readonly<AssociateEmailTemplateProps>> = (props) => (
     <div>
-        <h1>Hello {getNameByGender(props.guest)} and {getNameByGender(props.associate)},</h1>
+        <h3>Hello {getNameByGender(props.guest)} and {getNameByGender(props.associate)},</h3>
 
         <p>
             Thank you for registering. This is to inform you that your registration was successful.
