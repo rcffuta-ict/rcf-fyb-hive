@@ -90,11 +90,18 @@ const ImageUpload: React.FC<UplodProps> = (props) => {
             // toast.success(`${file.name} file uploaded successfully`);
             setLoading(false);
             message.success(`Uploaded your picture.`);
-        } catch (error) {
+        } catch (error: any) {
             onError(error);
             console.error(error); // ! Disable in production
             // toast.error(`${file.name} file upload failed.`);
-            message.error(`Failed to upload your picture.`);
+
+            if (error.code === "ERR_NETWORK") {
+
+                message.error(`Failed to upload your picture(Image may be too large).`);
+            } else {
+
+                message.error(`Failed to upload your picture.`);
+            }
 
             setLoading(false);
         }
