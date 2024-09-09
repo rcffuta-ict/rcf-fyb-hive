@@ -15,6 +15,10 @@ export default function Register() {
             <RegistrationForm/>
             <br/><br/>
             <TestConnection/>
+
+            <p className="attribution">
+                © 2024 Army of Light Family, RCF FUTA. All rights reserved.
+            </p>
         </>
     )   
 }

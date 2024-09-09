@@ -23,7 +23,7 @@ const dummyData:any = {
 }
 
 
-const parseConsent = (associateId:string)=>associateId.replaceAll('FYB-', '').toLocaleLowerCase()
+const parseConsent = (associateId:string)=>associateId.toLocaleLowerCase().replaceAll(' ','').replaceAll('fyb-', '')
 
 export default function AssociateForm(){
     const [form] = Form.useForm();
@@ -47,7 +47,9 @@ export default function AssociateForm(){
         }
         
         setLoading(true);
-        const g = await GuestModel.find({email: formData.email});
+        const g = await GuestModel.findOne({email: formData.email});
+
+        console.log(g)
 
         if (g) {
             setFormError((p)=>{
@@ -57,6 +59,13 @@ export default function AssociateForm(){
             });
             setLoading(false);
             return
+        }
+
+        if (guest && (guest.gender === formData.gender)) {
+            openNotificationWithIcon('error', 'Match error', 'Gender match error');
+
+            setLoading(false);
+            return;
         }
 
 
@@ -93,8 +102,6 @@ export default function AssociateForm(){
 
         // console.log(consent);
 
-        const guest = await GuestModel.findOne({consentId: consent});
-
 
         if (!associateId) {
 
@@ -122,6 +129,7 @@ export default function AssociateForm(){
             return;
         }
 
+        const guest = await GuestModel.findOne({consentId: consent});
 
         if (!guest) {
             openNotificationWithIcon('error', 'Unrecognized Consent', 'Consent not recognized');
@@ -211,11 +219,14 @@ export default function AssociateForm(){
                     <TextInput
                         name="associateId"
                         label="Finalist consent token"
+                        placeholder="FYB-XXXXXX"
+                        maxLength={10}
                         onChange={handleElemChange}
                         getValue={getValue}
                         required
                         error={formerror}
                         disable={loading}
+                        toUpperCase
                     />
                     
                     <CheckInput

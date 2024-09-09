@@ -66,7 +66,7 @@ export const AssociateConfirmationEmailTemplate: React.FC<Readonly<AssociateEmai
 
 
         <p>
-            <b>Your details includes:</b>
+            <b>The associate details includes:</b>
 
             <ul>
                 <li>
@@ -82,7 +82,7 @@ export const AssociateConfirmationEmailTemplate: React.FC<Readonly<AssociateEmai
         </p>
 
         <p>
-            <b>Your guest&apos;s details includes:</b>
+            <b>The guest&apos;s details includes:</b>
 
             <ul>
                 <li>

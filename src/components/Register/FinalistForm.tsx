@@ -44,7 +44,7 @@ export default function FinalistForm(){
 
         setLoading(true);
 
-        const g = await GuestModel.find({email: formData.email});
+        const g = await GuestModel.findOne({email: formData.email});
 
         if (g) {
             setFormError((p)=>{
