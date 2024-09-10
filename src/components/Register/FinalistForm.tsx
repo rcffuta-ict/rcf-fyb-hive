@@ -272,7 +272,7 @@ export default function FinalistForm(){
                         onChange={handleElemChange}
                         getValue={getValue}
                         error={formerror}
-                        disable={loading}
+                        disable={loading || getValue('worker') !== true}
                         options={[
                             {
                                 id:'executive-yes',

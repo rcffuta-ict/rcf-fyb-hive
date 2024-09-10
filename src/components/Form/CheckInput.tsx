@@ -25,6 +25,9 @@ export default function CheckInput(props: CheckInputProps) {
     }
 
 
+    console.log(props.name, props.disable)
+
+
     return (
         <fieldset
             className="form-checks"
@@ -54,10 +57,11 @@ export default function CheckInput(props: CheckInputProps) {
                                     name={props.name}
                                     id={item.id}
                                     value={item.value.toString()}
-                                    onChange={() => props.onChange(props.name, item.value)}
+                                    onChange={() => props.onChange(props.name, props.disable ? false: item.value)}
                                     readOnly={props.disable}
-                                    aria-checked={d_value === item.value}
-                                    checked={d_value === item.value}
+                                    aria-checked={props.disable ? false : (d_value === item.value)}
+                                    checked={props.disable ? false : (d_value === item.value)}
+                                    disabled={!props.disable ? false : (d_value === item.value)}
                                 />
                                 <span
                                     className={className}
