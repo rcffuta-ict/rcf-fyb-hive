@@ -2,13 +2,6 @@ import { GuestAccount, GuestModel } from "@/lib/nobox/record-structures/Guest";
 import { generateShortToken } from "./generate-token";
 
 export default async function submitData (formData: any, genToken: boolean = false) {
-    
-
-    const {worker, exco} =formData;
-
-    if (!worker) formData.unit = ''
-    if (!exco) formData.portfolio = ''
-
 
     const obj = await GuestModel.insertOne(formData as GuestAccount)
 

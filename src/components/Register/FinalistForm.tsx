@@ -44,6 +44,14 @@ export default function FinalistForm(){
 
         setLoading(true);
 
+
+
+        const {worker, exco} =formData;
+
+        if (!worker) formData.unit = ''
+        if (!exco) formData.portfolio = ''
+
+
         const g = await GuestModel.findOne({email: formData.email});
 
         if (g) {
