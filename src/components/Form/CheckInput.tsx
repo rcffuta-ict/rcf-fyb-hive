@@ -24,10 +24,6 @@ export default function CheckInput(props: CheckInputProps) {
         return (props.error[props.name]);
     }
 
-
-    console.log(props.name, props.disable)
-
-
     return (
         <fieldset
             className="form-checks"

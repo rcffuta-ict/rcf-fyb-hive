@@ -56,6 +56,18 @@ export default function FinalistForm(){
             return
         }
 
+        const e = await GuestModel.findOne({contact: formData.contact});
+
+        if (e) {
+            setFormError((p)=>{
+                return {
+                    contact: 'You cannot use this contact info' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
+                }
+            });
+            setLoading(false);
+            return
+        }
+
 
         submitData(formData, true)
         .then(async (guest: GuestAccount)=>{

@@ -53,7 +53,8 @@ export const GuestStructure: Space<GuestAccount> = {
         contact: {
             description: "Guest's contact",
             type: String,
-            required: true
+            required: true,
+            // unique: true,
         },
         email: {
             description: "Guest's Email",

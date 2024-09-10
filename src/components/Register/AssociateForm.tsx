@@ -49,8 +49,6 @@ export default function AssociateForm(){
         setLoading(true);
         const g = await GuestModel.findOne({email: formData.email});
 
-        console.log(g)
-
         if (g) {
             setFormError((p)=>{
                 return {
@@ -66,6 +64,19 @@ export default function AssociateForm(){
 
             setLoading(false);
             return;
+        }
+
+
+        const e = await GuestModel.findOne({contact: formData.contact});
+
+        if (e) {
+            setFormError((p)=>{
+                return {
+                    contact: 'You cannot use this contact info' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
+                }
+            });
+            setLoading(false);
+            return
         }
 
 
