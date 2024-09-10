@@ -21,13 +21,11 @@ export const FinalstConfirmationEmailTemplate: React.FC<Readonly<FinalstEmailTem
         </p>
 
         <p>
-            Here is your consent token
-
-            <b>FYB-{props.guest.consentId!.toUpperCase()}</b>
+            Here is your consent token <b>FYB-{props.guest.consentId!.toUpperCase()}</b>
         </p>
 
         <p>
-            Please becareful and intentional about your consent token. Only share with the right person/people as your token will be used for varification in further activities.
+            Please becareful and intentional about your consent token. Only share with the right person as your token will be used for varification in further activities.
         </p>
 
 
