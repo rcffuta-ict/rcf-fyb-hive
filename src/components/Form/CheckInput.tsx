@@ -52,7 +52,7 @@ export default function CheckInput(props: CheckInputProps) {
                                     type="radio"
                                     name={props.name}
                                     id={item.id}
-                                    value={item.value.toString()}
+                                    value={props.disable ? 'false': item.value.toString()}
                                     onChange={() => props.onChange(props.name, props.disable ? false: item.value)}
                                     readOnly={props.disable}
                                     aria-checked={props.disable ? false : (d_value === item.value)}

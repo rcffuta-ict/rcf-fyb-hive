@@ -270,7 +270,7 @@ export default function FinalistForm(){
                         onChange={handleElemChange}
                         getValue={getValue}
                         error={formerror}
-                        disable={loading}
+                        disable={loading || getValue('worker') !== true}
                     />
 
                 </div>
@@ -308,7 +308,7 @@ export default function FinalistForm(){
                         getValue={getValue}
                         error={formerror}
                         required
-                        disable={loading}
+                        disable={loading || getValue('exco') !== true || getValue('worker') !== true}
                     />
 
                 </div>

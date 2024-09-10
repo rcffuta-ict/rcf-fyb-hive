@@ -155,8 +155,9 @@ form {
             border: 0;
             box-shadow: none;
         }
-        
     }
+
+
 
 
     &:has(input[type="tel"]) {
@@ -164,6 +165,10 @@ form {
             outline: 1px solid colors.$primary;
             border-radius: 4px;
         }
+    }
+
+    &:has(input:disabled) {
+        opacity: .6;
     }
 
 
@@ -217,12 +222,6 @@ form {
 
         &:has(input:disabled) {
             opacity: .6;
-
-            // background-color: red;
-
-            // span {
-            //     background-color: transparent !important;
-            // }
         }
 
 
