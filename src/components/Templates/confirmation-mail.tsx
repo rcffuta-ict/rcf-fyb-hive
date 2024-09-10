@@ -25,7 +25,7 @@ export const FinalstConfirmationEmailTemplate: React.FC<Readonly<FinalstEmailTem
         </p>
 
         <p>
-            Please becareful and intentional about your consent token. Only share with the right person as your token will be used for varification in further activities.
+            Please be careful and intentional about your consent token. Only share with the right person as your token will be used for verification in further activities.
         </p>
 
 
@@ -43,6 +43,11 @@ export const FinalstConfirmationEmailTemplate: React.FC<Readonly<FinalstEmailTem
                     Phone number: +234 {props.guest.contact}
                 </li>
             </ul>
+        </p>
+
+
+        <p style={{color: '#bebdbd'}}>
+            © 2024 Army of Light Family, RCF FUTA. All rights reserved.
         </p>
 
     </div>
@@ -94,6 +99,12 @@ export const AssociateConfirmationEmailTemplate: React.FC<Readonly<AssociateEmai
                 </li>
             </ul>
         </p>
+
+
+        <p style={{color: '#bebdbd'}}>
+            © 2024 Army of Light Family, RCF FUTA. All rights reserved.
+        </p>
+
 
     </div>
 );
