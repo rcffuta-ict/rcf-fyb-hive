@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Done() {
     return (
@@ -22,20 +23,27 @@ export default function Done() {
 
             <br/><br/>
 
-            <div className="cta">
-                <button
-                    className="btn btn-primary btn-md text-uppercase mx-auto fs-18 fw-700"
+            <div className="home-cta">
+                <Link
+                    href={'/register'}
+                    className="btn btn-primary-outline text-uppercase"
                 >
-                    Apply for nomination
-                </button>
+                    Register
+                </Link>
 
-                <button
-                    className="btn btn-primary-outline btn-md text-uppercase mx-auto fs-18 fw-700"
+                <Link
+                    href={'#'}
+                    className="btn btn-primary-outline text-uppercase"
+                >
+                    Apply for Nomination
+                </Link>
+
+                <Link
+                    href={'#'}
+                    className="btn btn-primary-outline text-uppercase"
                 >
                     Pay for Dinner
-                </button>
-
-
+                </Link>
             </div>
         </>
     )   

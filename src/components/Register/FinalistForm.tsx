@@ -10,6 +10,7 @@ import { GuestAccount, GuestModel } from "@/lib/nobox/record-structures/Guest";
 import axios from "axios";
 import { validateFinalistForm } from "@/utils/validate-form";
 import submitData from "@/utils/submit";
+import { useRouter } from "next/navigation";
 
 const dummyData:any = {
     // "contact": "8122137834",
@@ -26,6 +27,8 @@ const dummyData:any = {
 
 export default function FinalistForm(){
     const [form] = Form.useForm();
+
+    const router = useRouter();
 
     const [formData, setFormData] = useState<any>(()=>{
         return {...dummyData}
@@ -48,7 +51,10 @@ export default function FinalistForm(){
 
         const {worker, exco} =formData;
 
-        if (!worker) formData.unit = ''
+        if (!worker) {
+            formData.unit = ''
+            formData.exco = false;
+        }
         if (!exco) formData.portfolio = ''
 
 
@@ -83,11 +89,12 @@ export default function FinalistForm(){
         })
         .then(()=>{
 
-            setFormData(()=>({}))
+            // setFormData(()=>({}))
             setFormError(()=>null);
             // Show a success notification
             openNotificationWithIcon('success', 'Form Submitted', 'Your form has been submitted successfully!');
             openNotificationWithIcon('success', 'Check your mail', `Please check your email address(${(formData as any).email})`, true);
+            router.replace('/register/done?e=' + formData.email);
         })
         .catch((err)=>{
             console.error(err);

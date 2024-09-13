@@ -42,6 +42,11 @@ export function validateFinalistForm(_data: any) {
     }
 
 
+    if (!worker && _formError.exco) {
+        delete _formError.exco;
+    }
+
+
     if (Object.keys(_formError).length < 1) {
         return null
     }

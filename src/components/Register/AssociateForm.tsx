@@ -11,6 +11,7 @@ import axios from "axios";
 import CheckInput from "../Form/CheckInput";
 import { getNameByGender } from "@/utils/process-details";
 import { validateAssociatetForm } from "@/utils/validate-form";
+import { useRouter } from "next/navigation";
 
 
 const dummyData:any = {
@@ -27,6 +28,7 @@ const parseConsent = (associateId:string)=>associateId.toLocaleLowerCase().repla
 
 export default function AssociateForm(){
     const [form] = Form.useForm();
+    const router = useRouter();
 
     const [formData, setFormData] = useState<any>(()=>{
         return {...dummyData}
@@ -86,15 +88,17 @@ export default function AssociateForm(){
         })
         .then(()=>{
 
-            setFormData(()=>({}))
-            setFormError(()=>null);
+            // setFormData(()=>({}))
             // Show a success notification
+            setFormError(()=>null);
             openNotificationWithIcon('success', 'Form Submitted', 'Your form has been submitted successfully!');
             openNotificationWithIcon('success', 'Check your mail', `Please check your email address(${(formData as any).email})`, true);
+            router.replace('/register/done?e=' + formData.email);
         })
         .catch((err)=>{
             console.error(err);
             openNotificationWithIcon('error', 'Unable to create account', 'Could not register!');
+
         })
         .finally(()=>{
             setLoading(false);
@@ -164,10 +168,13 @@ export default function AssociateForm(){
             return;
         }
 
-        console.log(associateId)
-        const otherAssociate = await GuestModel.findOne({associateId: associateId});
+        // console.log(associateId)
+        const otherAssociate = await GuestModel.search({
+            searchableFields: ['associateId'],
+            searchText: associateId
+        }) as unknown as GuestObject[];
 
-        if (otherAssociate) {
+        if (otherAssociate.length > 0) {
             openNotificationWithIcon('error', 'Consent error', 'Cannot register with given consent');
 
             setVerifying(false);
