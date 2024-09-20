@@ -2,7 +2,7 @@
 import ImageUpload from "../ImageUpload";
 import TextInput from "../Form/TextInput";
 import CheckInput from "../Form/CheckInput";
-import { Form } from "antd";
+import { Form, message } from "antd";
 import { useState } from "react";
 import { openNotificationWithIcon } from "@/utils/notification";
 import { FormError } from "../Form/form.interface";
@@ -33,6 +33,8 @@ export default function FinalistForm(){
     const [formData, setFormData] = useState<any>(()=>{
         return {...dummyData}
     });
+
+    const [messageApi, contextHolder] = message.useMessage();
     const [formerror, setFormError] = useState<FormError | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -41,13 +43,19 @@ export default function FinalistForm(){
         const _errors = validateFinalistForm(formData);
 
         if (_errors) {
-            setFormError(_errors);
+            setFormError(()=>_errors);
+            messageApi.error('There are issues with your information');
             return;
         }
 
         setLoading(true);
 
-
+        messageApi.open({
+            type: 'loading',
+            content: 'Verifying your details...',
+            duration: 0,
+            key: 'loader-1'
+        });
 
         const {worker, exco} =formData;
 
@@ -61,6 +69,8 @@ export default function FinalistForm(){
         const g = await GuestModel.findOne({email: formData.email});
 
         if (g) {
+            messageApi.destroy('loader-1');
+            messageApi.error('There is an issue with your information');
             setFormError((p)=>{
                 return {
                     email: 'You cannot use this email address' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
@@ -73,6 +83,8 @@ export default function FinalistForm(){
         const e = await GuestModel.findOne({contact: formData.contact});
 
         if (e) {
+            messageApi.destroy('loader-1');
+            messageApi.error('There is an issue with your information');
             setFormError((p)=>{
                 return {
                     contact: 'You cannot use this contact info' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
@@ -82,10 +94,24 @@ export default function FinalistForm(){
             return
         }
 
+        messageApi.destroy('loader-1');
+        messageApi.open({
+            type: 'loading',
+            content: 'Registering you...',
+            duration: 0,
+            key: 'loader-1'
+        });
+
 
         submitData(formData, true)
         .then(async (guest: GuestAccount)=>{
-            await axios.post('/api/mail-finalist', { guest });
+            try {
+
+                await axios.post('/api/mail-finalist', { guest });
+            } catch(error: any) {
+                messageApi.destroy('loader-1');
+                messageApi.error("We could not send you a mail. Contact the admin to help you.");
+            }
         })
         .then(()=>{
 
@@ -101,6 +127,7 @@ export default function FinalistForm(){
             openNotificationWithIcon('error', 'Unable to create account', 'Could not register!');
         })
         .finally(()=>{
+            messageApi.destroy('loader-1');
             setLoading(false);
         })
         
@@ -129,222 +156,225 @@ export default function FinalistForm(){
     
 
     return (
-        <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleFinish}
-            autoComplete="off"
-            initialValues={formData}
-        >
-            <div className="form-group">
-
-                <ImageUpload
-                    name="picture"
-                    onChange={handleElemChange}
-                    getValue={getValue}
-                    error={formerror}
-                    disable={loading}
-                />
-
-                <div className="form-group group-col py-2">
-
-                    <CheckInput
-                        label="Select your gender"
-                        name="gender"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        error={formerror}
-                        disable={loading}
-                        options={[
-                            {
-                                id:'gender-male',
-                                label: 'Male',
-                                icon: 'icon-male',
-                                value: 'male',
-                            },
-                            {
-                                id:'gender-female',
-                                label: 'Female',
-                                icon: 'icon-female',
-                                value: 'female',
-                            }
-                        ]}
-                    />
-
-                    <CheckInput
-                        label="Part IV or Part V"
-                        name="partV"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        error={formerror}
-                        disable={loading}
-                        options={[
-                            {
-                                id:'part-iv',
-                                label: 'Part IV',
-                                icon: 'icon-graduation-iv',
-                                value: false,
-                            },
-                            {
-                                id:'part-v',
-                                label: 'Part V',
-                                icon: 'icon-graduation-v',
-                                value: true,
-                            }
-                        ]}
-                    />
-                </div>
-
-            </div>
-            <br/>
-
-            <div className="form-group">
-                <TextInput
-                    disable={loading}
-                    name="firstname"
-                    label="First Name"
-                    onChange={handleElemChange}
-                    getValue={getValue}
-                    required
-                    error={formerror}
-                />
-
-                <TextInput
-                    disable={loading}
-                    name="lastname"
-                    label="Last Name"
-                    onChange={handleElemChange}
-                    getValue={getValue}
-                    required
-                    error={formerror}
-                />
-            </div>
-
-            <br/>
-
-            <div className="form-group">
-                <TextInput
-                    disable={loading}
-                    name="email"
-                    label="Email"
-                    email
-                    onChange={handleElemChange}
-                    getValue={getValue}
-                    required
-                    error={formerror}
-                />
-
-                <TextInput
-                    name="contact"
-                    label="Phone Number"
-                    tel
-                    onChange={handleElemChange}
-                    getValue={getValue}
-                    required
-                    error={formerror}
-                    disable={loading}
-                />
-
-            </div>
-
-            
-
-            <br/>
-
-
-            <div className="form-group">
-                <div className="form-group group-col">
-
-                    <CheckInput
-                        label="Are you a worker?"
-                        name="worker"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        options={[
-                            {
-                                id:'worker-yes',
-                                label: 'Yes',
-                                icon: 'icon-check',
-                                value: true,
-                            },
-                            {
-                                id:'worker-no',
-                                label: 'No',
-                                icon: 'icon-cross',
-                                value: false,
-                            }
-                        ]}
-                        required
-                        error={formerror}
-                        disable={loading}
-                    />
-
-                    <TextInput
-                        name="unit"
-                        label="Your unit"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        error={formerror}
-                        disable={loading || getValue('worker') !== true}
-                    />
-
-                </div>
-
-
-                <div className="form-group group-col">
-
-                    <CheckInput
-                        label="Are you an executive"
-                        name="exco"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        error={formerror}
-                        disable={loading || getValue('worker') !== true}
-                        options={[
-                            {
-                                id:'executive-yes',
-                                label: 'Yes',
-                                icon: 'icon-check-double',
-                                value: true,
-                            },
-                            {
-                                id:'executive-no',
-                                label: 'No',
-                                icon: 'icon-cross',
-                                value: false,
-                            }
-                        ]}
-                    />
-
-                    <TextInput
-                        name="portfolio"
-                        label="Your Portfolio"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        error={formerror}
-                        required
-                        disable={loading || getValue('exco') !== true || getValue('worker') !== true}
-                    />
-
-                </div>
-            </div>
-
-            <br/>
-
-
-            <div
-                className="steps-action"
+        <>
+            {contextHolder}
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleFinish}
+                autoComplete="off"
+                // initialValues={formData}
             >
-                <button
-                    className="btn btn-primary text-uppercase btn-submit fw-700 fs-18"
-                    // onClick={handl}
-                    title='Submit'
-                    type='submit'
-                    disabled={loading}
+                <div className="form-group">
+
+                    <ImageUpload
+                        name="picture"
+                        onChange={handleElemChange}
+                        getValue={getValue}
+                        error={formerror}
+                        disable={loading}
+                    />
+
+                    <div className="form-group group-col py-2">
+
+                        <CheckInput
+                            label="Select your gender"
+                            name="gender"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            error={formerror}
+                            disable={loading}
+                            options={[
+                                {
+                                    id:'gender-male',
+                                    label: 'Male',
+                                    icon: 'icon-male',
+                                    value: 'male',
+                                },
+                                {
+                                    id:'gender-female',
+                                    label: 'Female',
+                                    icon: 'icon-female',
+                                    value: 'female',
+                                }
+                            ]}
+                        />
+
+                        <CheckInput
+                            label="Part IV or Part V"
+                            name="partV"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            error={formerror}
+                            disable={loading}
+                            options={[
+                                {
+                                    id:'part-iv',
+                                    label: 'Part IV',
+                                    icon: 'icon-graduation-iv',
+                                    value: false,
+                                },
+                                {
+                                    id:'part-v',
+                                    label: 'Part V',
+                                    icon: 'icon-graduation-v',
+                                    value: true,
+                                }
+                            ]}
+                        />
+                    </div>
+
+                </div>
+                <br/>
+
+                <div className="form-group">
+                    <TextInput
+                        disable={loading}
+                        name="firstname"
+                        label="First Name"
+                        onChange={handleElemChange}
+                        getValue={getValue}
+                        required
+                        error={formerror}
+                    />
+
+                    <TextInput
+                        disable={loading}
+                        name="lastname"
+                        label="Last Name"
+                        onChange={handleElemChange}
+                        getValue={getValue}
+                        required
+                        error={formerror}
+                    />
+                </div>
+
+                <br/>
+
+                <div className="form-group">
+                    <TextInput
+                        disable={loading}
+                        name="email"
+                        label="Email"
+                        email
+                        onChange={handleElemChange}
+                        getValue={getValue}
+                        required
+                        error={formerror}
+                    />
+
+                    <TextInput
+                        name="contact"
+                        label="Phone Number"
+                        tel
+                        onChange={handleElemChange}
+                        getValue={getValue}
+                        required
+                        error={formerror}
+                        disable={loading}
+                    />
+
+                </div>
+
+                
+
+                <br/>
+
+
+                <div className="form-group">
+                    <div className="form-group group-col">
+
+                        <CheckInput
+                            label="Are you a worker?"
+                            name="worker"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            options={[
+                                {
+                                    id:'worker-yes',
+                                    label: 'Yes',
+                                    icon: 'icon-check',
+                                    value: true,
+                                },
+                                {
+                                    id:'worker-no',
+                                    label: 'No',
+                                    icon: 'icon-cross',
+                                    value: false,
+                                }
+                            ]}
+                            required
+                            error={formerror}
+                            disable={loading}
+                        />
+
+                        <TextInput
+                            name="unit"
+                            label="Your unit"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            error={formerror}
+                            disable={loading || getValue('worker') !== true}
+                        />
+
+                    </div>
+
+
+                    <div className="form-group group-col">
+
+                        <CheckInput
+                            label="Are you an executive"
+                            name="exco"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            error={formerror}
+                            disable={loading || getValue('worker') !== true}
+                            options={[
+                                {
+                                    id:'executive-yes',
+                                    label: 'Yes',
+                                    icon: 'icon-check-double',
+                                    value: true,
+                                },
+                                {
+                                    id:'executive-no',
+                                    label: 'No',
+                                    icon: 'icon-cross',
+                                    value: false,
+                                }
+                            ]}
+                        />
+
+                        <TextInput
+                            name="portfolio"
+                            label="Your Portfolio"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            error={formerror}
+                            required
+                            disable={loading || getValue('exco') !== true || getValue('worker') !== true}
+                        />
+
+                    </div>
+                </div>
+
+                <br/>
+
+
+                <div
+                    className="steps-action"
                 >
-                    {loading ? 'Loading...': 'Submit'}
-                </button>
-            </div>
-        </Form>
+                    <button
+                        className="btn btn-primary text-uppercase btn-submit fw-700 fs-18"
+                        // onClick={handl}
+                        title='Submit'
+                        type='submit'
+                        disabled={loading}
+                    >
+                        {loading ? 'Loading...': 'Submit'}
+                    </button>
+                </div>
+            </Form>
+        </>
     )
 }

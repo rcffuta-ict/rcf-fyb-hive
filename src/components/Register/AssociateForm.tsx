@@ -1,5 +1,5 @@
 
-import { Form } from "antd";
+import { Form, message } from "antd";
 import { useState } from "react";
 import { openNotificationWithIcon } from "@/utils/notification";
 import ImageUpload from "../ImageUpload";
@@ -33,6 +33,7 @@ export default function AssociateForm(){
     const [formData, setFormData] = useState<any>(()=>{
         return {...dummyData}
     });
+    const [messageApi, contextHolder] = message.useMessage();
     const [formerror, setFormError] = useState<FormError | null>(null);
     const [loading, setLoading] = useState(false);
     const [guest, setGuest] = useState<GuestObject | undefined>();
@@ -45,13 +46,23 @@ export default function AssociateForm(){
 
         if (_errors) {
             setFormError(_errors);
+            messageApi.error('There are issues with your information');
             return;
         }
         
         setLoading(true);
+        messageApi.open({
+            type: 'loading',
+            content: 'Verifying your details...',
+            duration: 0,
+            key: 'loader-1'
+        });
+
         const g = await GuestModel.findOne({email: formData.email});
 
         if (g) {
+            messageApi.destroy('loader-1');
+            messageApi.error('There is an issue with your information');
             setFormError((p)=>{
                 return {
                     email: 'You cannot use this email address' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
@@ -72,6 +83,8 @@ export default function AssociateForm(){
         const e = await GuestModel.findOne({contact: formData.contact});
 
         if (e) {
+            messageApi.destroy('loader-1');
+            messageApi.error('There is an issue with your information');
             setFormError((p)=>{
                 return {
                     contact: 'You cannot use this contact info' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
@@ -81,10 +94,22 @@ export default function AssociateForm(){
             return
         }
 
+        messageApi.destroy('loader-1');
+        messageApi.open({
+            type: 'loading',
+            content: 'Registering you...',
+            duration: 0,
+            key: 'loader-1'
+        });
 
         submitData(formData)
         .then(async (associate: GuestAccount)=>{
-            await axios.post('/api/mail-associate', { guest, associate});
+            try {
+                await axios.post('/api/mail-associate', { guest, associate});
+            } catch (error:any) {
+                messageApi.destroy('loader-1');
+                messageApi.error("We could not send you a mail. Contact the admin to help you.");
+            }
         })
         .then(()=>{
 
@@ -101,6 +126,7 @@ export default function AssociateForm(){
 
         })
         .finally(()=>{
+            messageApi.destroy('loader-1');
             setLoading(false);
         })
         
@@ -112,13 +138,21 @@ export default function AssociateForm(){
         // console.log({associateId, gender});
 
         setVerifying(true);
+        // messageApi.destroy('loader-1');
+        messageApi.open({
+            type: 'loading',
+            content: 'Verifying consent...',
+            duration: 0,
+            key: 'loader-1'
+        });
 
         const consent = parseConsent(associateId);
 
-        // console.log(consent);
-
 
         if (!associateId) {
+
+            messageApi.destroy('loader-1');
+            messageApi.error('There is an issue with your info');
 
             setFormError((p)=>{
                 return {
@@ -132,7 +166,8 @@ export default function AssociateForm(){
         }
 
         if (!gender) {
-
+            messageApi.destroy('loader-1');
+            messageApi.error('There is an issue with your info');
             setFormError((p)=>{
                 return {
                     ...p,
@@ -147,6 +182,8 @@ export default function AssociateForm(){
         const guest = await GuestModel.findOne({consentId: consent});
 
         if (!guest) {
+            messageApi.destroy('loader-1');
+            // messageApi.error('There is an issue with your info');
             openNotificationWithIcon('error', 'Unrecognized Consent', 'Consent not recognized');
 
 
@@ -162,6 +199,8 @@ export default function AssociateForm(){
         }
 
         if (guest.gender === gender) {
+            messageApi.destroy('loader-1');
+            // messageApi.error('There is an issue with your info');
             openNotificationWithIcon('error', 'Match error', 'Gender match error');
 
             setVerifying(false);
@@ -175,6 +214,8 @@ export default function AssociateForm(){
         }) as unknown as GuestObject[];
 
         if (otherAssociate.length > 0) {
+            messageApi.destroy('loader-1');
+            // messageApi.error('There is an issue with your info');
             openNotificationWithIcon('error', 'Consent error', 'Cannot register with given consent');
 
             setVerifying(false);
@@ -186,6 +227,7 @@ export default function AssociateForm(){
             return {}
         });
 
+        messageApi.destroy('loader-1');
         openNotificationWithIcon('success', 'Verified', 'Consent verified!');
         setVerifying(false);
         setGuest(guest);
@@ -216,164 +258,167 @@ export default function AssociateForm(){
     const canProceed = Boolean(guest);
 
     return (
-        <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleFinish}
-            // initialValues={formData}
-        >
-            <div className="form-group">
-
-                <ImageUpload
-                    name="picture"
-                    onChange={handleElemChange}
-                    getValue={getValue}
-                    error={formerror}
-                    disable={loading}
-                />
-
-
-                <div className="form-group group-col">
-                    <TextInput
-                        name="associateId"
-                        label="Finalist consent token"
-                        placeholder="FYB-XXXXXX"
-                        maxLength={10}
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        required
-                        error={formerror}
-                        disable={loading}
-                        toUpperCase
-                    />
-                    
-                    <CheckInput
-                        label="Select your gender"
-                        name="gender"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        error={formerror}
-                        // disable={!canProceed && !loading}
-                        disable={loading}
-                        options={[
-                            {
-                                id:'gender-male',
-                                label: 'Male',
-                                icon: 'icon-male',
-                                value: 'male'
-                            },
-                            {
-                                id:'gender-female',
-                                label: 'Female',
-                                icon: 'icon-female',
-                                value: 'female'
-                            }
-                        ]}
-                    />
-
-                    
-                </div>
-
-            </div>
-            <br/>
-
-
-            <div className="rest-form" data-disabled={!canProceed}>
-
-                <div className="form-group">
-                    <TextInput
-                        name="firstname"
-                        label="First Name"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        required
-                        error={formerror}
-                        disable={!canProceed && !loading}
-                    />
-
-                    <TextInput
-                        name="lastname"
-                        label="Last Name"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        required
-                        error={formerror}
-                        disable={!canProceed && !loading}
-                    />
-                </div>
-
-                <br/>
-
-                <div className="form-group">
-                    <TextInput
-                        name="email"
-                        label="Email"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        required
-                        error={formerror}
-                        disable={!canProceed && !loading}
-                        email
-                    />
-
-                    <TextInput
-                        name="contact"
-                        label="Phone Number"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        required
-                        error={formerror}
-                        disable={!canProceed && !loading}
-                        tel
-                    />
-
-                </div>
-
-                <br/>
-
-
-                <TextInput
-                    name="relationsipWithAssociate"
-                    label={`Relationship with ${getNameByGender(guest)}?`}
-                    onChange={handleElemChange}
-                    getValue={getValue}
-                    required
-                    error={formerror}
-                    disable={!canProceed && !loading}
-                />
-
-            </div>
-
-
-            <br/>
-
-
-            <div
-                className="steps-action"
+        <>
+            {contextHolder}
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleFinish}
+                // initialValues={formData}
             >
-                <button
-                    className="btn btn-primary text-uppercase btn-submit fw-700 fs-18"
-                    // onClick={handl}
-                    title='Submit'
-                    type='submit'
-                    disabled={loading}
-                    data-hide={!Boolean(guest)}
-                >
-                    {loading ? 'Loading...': 'Submit'}
-                </button>
+                <div className="form-group">
 
-                <button
-                    className="btn btn-primary btn-verify text-uppercase btn-submit fw-700 fs-18"
-                    // onClick={handl}
-                    title='Verify'
-                    type='button'
-                    onClick={verifyConsentToken}
-                    disabled={loading || verifying}
-                    data-hide={Boolean(guest)}
+                    <ImageUpload
+                        name="picture"
+                        onChange={handleElemChange}
+                        getValue={getValue}
+                        error={formerror}
+                        disable={loading}
+                    />
+
+
+                    <div className="form-group group-col">
+                        <TextInput
+                            name="associateId"
+                            label="Finalist consent token"
+                            placeholder="FYB-XXXXXX"
+                            maxLength={10}
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            required
+                            error={formerror}
+                            disable={loading}
+                            toUpperCase
+                        />
+                        
+                        <CheckInput
+                            label="Select your gender"
+                            name="gender"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            error={formerror}
+                            // disable={!canProceed && !loading}
+                            disable={loading}
+                            options={[
+                                {
+                                    id:'gender-male',
+                                    label: 'Male',
+                                    icon: 'icon-male',
+                                    value: 'male'
+                                },
+                                {
+                                    id:'gender-female',
+                                    label: 'Female',
+                                    icon: 'icon-female',
+                                    value: 'female'
+                                }
+                            ]}
+                        />
+
+                        
+                    </div>
+
+                </div>
+                <br/>
+
+
+                <div className="rest-form" data-disabled={!canProceed}>
+
+                    <div className="form-group">
+                        <TextInput
+                            name="firstname"
+                            label="First Name"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            required
+                            error={formerror}
+                            disable={!canProceed && !loading}
+                        />
+
+                        <TextInput
+                            name="lastname"
+                            label="Last Name"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            required
+                            error={formerror}
+                            disable={!canProceed && !loading}
+                        />
+                    </div>
+
+                    <br/>
+
+                    <div className="form-group">
+                        <TextInput
+                            name="email"
+                            label="Email"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            required
+                            error={formerror}
+                            disable={!canProceed && !loading}
+                            email
+                        />
+
+                        <TextInput
+                            name="contact"
+                            label="Phone Number"
+                            onChange={handleElemChange}
+                            getValue={getValue}
+                            required
+                            error={formerror}
+                            disable={!canProceed && !loading}
+                            tel
+                        />
+
+                    </div>
+
+                    <br/>
+
+
+                    <TextInput
+                        name="relationsipWithAssociate"
+                        label={`Relationship with ${getNameByGender(guest)}?`}
+                        onChange={handleElemChange}
+                        getValue={getValue}
+                        required
+                        error={formerror}
+                        disable={!canProceed && !loading}
+                    />
+
+                </div>
+
+
+                <br/>
+
+
+                <div
+                    className="steps-action"
                 >
-                    {verifying ? 'Verifying...': 'Verify'}
-                </button>
-            </div>
-        </Form>
+                    <button
+                        className="btn btn-primary text-uppercase btn-submit fw-700 fs-18"
+                        // onClick={handl}
+                        title='Submit'
+                        type='submit'
+                        disabled={loading}
+                        data-hide={!Boolean(guest)}
+                    >
+                        {loading ? 'Loading...': 'Submit'}
+                    </button>
+
+                    <button
+                        className="btn btn-primary btn-verify text-uppercase btn-submit fw-700 fs-18"
+                        // onClick={handl}
+                        title='Verify'
+                        type='button'
+                        onClick={verifyConsentToken}
+                        disabled={loading || verifying}
+                        data-hide={Boolean(guest)}
+                    >
+                        {verifying ? 'Verifying...': 'Verify'}
+                    </button>
+                </div>
+            </Form>
+        </>
     )
 }
