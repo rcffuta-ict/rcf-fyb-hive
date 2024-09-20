@@ -51,7 +51,9 @@ section.main-wrapper {
     max-width: 100%;
     margin-inline: auto;
 
-    // background-color: red;
+    &:has(.ticket-form) {
+        width: 80rem;
+    }
 
 
     display: flex;
@@ -445,3 +447,51 @@ form {
 .text-uppercase {
     text-transform: uppercase;
 }
+
+
+
+.ticket-form {
+    display: flex;
+
+    & > div {
+        flex: 1;
+        box-shadow: rgba(16, 16, 16, 0.397) 0px 2px 8px 0px;
+        padding: 1rem;
+
+        border-radius: 2rem;
+
+        &:has(button) {
+            box-shadow: none;
+        }
+    }
+
+
+    div:has(button) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    button {
+        width: 15rem;
+        padding-block: 1rem;
+        max-width: 100%;
+        font-size: 1.5rem;
+
+        cursor: pointer;
+
+        background-color: colors.$primary;
+        color: colors.$white-accent;
+        border: 0;
+        border-radius: .5rem;
+    }
+
+    .img-wrapper {
+        width: 100%;
+        height: 20rem;
+
+        // border: 1px solid red;
+
+    }
+}
+
