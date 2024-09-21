@@ -6,9 +6,32 @@ import { GuestModel, GuestObject } from "@/lib/nobox/record-structures/Guest";
 
 interface GuestCardProps {
     female?:boolean;
-    updateGuest:(id:string, val: GuestObject | null) => void;
+    updateGuest:(id:string, val: GuestObject | null, isAlter?: boolean) => void;
     guest: GuestObject | null;
     id: string;
+    alterId: string;
+    isAltered?: boolean;
+}
+
+
+async function findAssociate(guest: GuestObject) {
+    // console.log(associateId)
+    const otherAssociate = await GuestModel.search({
+        searchableFields: ['associateId'],
+        searchText: (guest.consentId as string)
+    }) as unknown as GuestObject[];
+
+    let associate:GuestObject | null = null;
+
+    if (otherAssociate.length > 0) {
+        // messageApi.destroy('loader-1');
+        // messageApi.error('There is an issue with your info');
+        associate = otherAssociate.filter((each)=>each.email !== guest.email)[0] || null;
+
+        return associate;
+    }
+
+    return null;
 }
 
 const MAX_CHARACTER = 10;
@@ -23,7 +46,7 @@ export default function GuestCard(props: GuestCardProps) {
 
 
     const getValue = (key:string) => {
-        return consentToken;
+        return props.isAltered ? '<<Associate>>' : consentToken;
     }
 
 
@@ -54,7 +77,14 @@ export default function GuestCard(props: GuestCardProps) {
                         else if (!props.female && guest.gender === 'female') {
                             setError('A consent token from a male is required here')
                         } else {
+                            const associate = await findAssociate(guest);
+
                             props.updateGuest(props.id, guest)
+                            console.log("Associate", associate);
+                            
+                            if (associate) {
+                                props.updateGuest(props.alterId, associate, true)
+                            }
                         }
                     } else {
                         console.log('Ignored outdated request for input:', currentRequest);                        
@@ -124,7 +154,7 @@ export default function GuestCard(props: GuestCardProps) {
                 maxLength={MAX_CHARACTER}
                 onChange={handleElemChange}
                 getValue={getValue}
-                error={{[name]: error}}
+                error={{[name]: props.isAltered ? null : error}}
                 required
                 toUpperCase
             />
