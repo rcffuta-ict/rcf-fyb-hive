@@ -1,4 +1,4 @@
-
+'use client';
 import { Form, message } from "antd";
 import { useState } from "react";
 import { openNotificationWithIcon } from "@/utils/notification";
@@ -10,7 +10,6 @@ import axios from "axios";
 import CheckInput from "../Form/CheckInput";
 import { useRouter } from "next/navigation";
 
-const parseConsent = (associateId:string)=>associateId.toLocaleLowerCase().replaceAll(' ','').replaceAll('fyb-', '')
 
 export default function EmailForm(){
     const [form] = Form.useForm();
@@ -67,7 +66,8 @@ export default function EmailForm(){
             // Show a success notification
             setFormError(()=>null);
             openNotificationWithIcon('success', 'Check your mail', `Please check your email address(${(formData as any).email})`, true);
-            router.replace('/register/done?e=' + formData.email);
+            // router.replace('/register/done?e=' + formData.email);
+            router.refresh();
         })
         .catch((err)=>{
             console.error(err);

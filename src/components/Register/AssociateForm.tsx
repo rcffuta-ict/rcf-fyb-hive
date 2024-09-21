@@ -9,7 +9,7 @@ import submitData from "@/utils/submit";
 import { GuestAccount, GuestModel, GuestObject } from "@/lib/nobox/record-structures/Guest";
 import axios from "axios";
 import CheckInput from "../Form/CheckInput";
-import { getNameByGender } from "@/utils/process-details";
+import { getNameByGender, parseConsent } from "@/utils/process-details";
 import { validateAssociatetForm } from "@/utils/validate-form";
 import { useRouter } from "next/navigation";
 
@@ -24,7 +24,7 @@ const dummyData:any = {
 }
 
 
-const parseConsent = (associateId:string)=>associateId.toLocaleLowerCase().replaceAll(' ','').replaceAll('fyb-', '')
+
 
 export default function AssociateForm(){
     const [form] = Form.useForm();

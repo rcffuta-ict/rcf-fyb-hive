@@ -1,5 +1,4 @@
-import ResendEmailForm from "@/components/Register/ResendEmail";
-
+import EmailForm from "@/components/Register/EmailForm";
 
 export default function ResendEmailPage() {
     return (
@@ -8,7 +7,12 @@ export default function ResendEmailPage() {
                 FYB registration Emaiiling
             </h1>
             <br/><br/>
-            <ResendEmailForm/>
+            <section className="registration-container">
+
+                <div className="tab-content">
+                    <EmailForm />
+                </div>
+            </section>
             <br/>
         </>
     )
