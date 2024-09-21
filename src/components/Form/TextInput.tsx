@@ -55,7 +55,7 @@ export default function TextInput(props: TextInputProps) {
                 onChange={(e)=>props.onChange(props.name, e.target.value)}
                 disabled={props.disable}
                 // value={props.getValue(props.name) as string}
-                value={props.disable ? '': props.getValue(props.name) as string}
+                value={props.getValue(props.name) as string}
                 maxLength={props.maxLength || 200}
                 className={props.toUpperCase ? 'text-uppercase': ''}
             />

@@ -37,10 +37,6 @@ interface UplodProps extends FormElement {
 
 const ImageUpload: React.FC<UplodProps> = (props) => {
     const [loading, setLoading] = useState(false);
-    // const [imageUrl, setImageUrl] = useState<string>();
-
-
-    
     
     function revealError() {
         // const errorMessage = props.error ? props.error[props.name] : null;
@@ -64,6 +60,10 @@ const ImageUpload: React.FC<UplodProps> = (props) => {
             
             if (!file) {
                 throw new Error("No File to upload");
+            }
+
+            if (props.disable) {
+                throw new Error("Uploading not supported!");
             }
 
             const response = await axios.post(`${upload_server_api}/files/upload`,

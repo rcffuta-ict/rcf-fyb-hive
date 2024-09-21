@@ -33,9 +33,6 @@ export default function TicketForm() {
         ));
     }
 
-
-    
-
     const getValue = (key:string) => {
         return {
             // ...dummyData,
