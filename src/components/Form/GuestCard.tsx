@@ -1,28 +1,21 @@
 import Image from "next/image";
 import TextInput from "./TextInput";
 import { useEffect, useRef, useState } from "react";
-import { FormError } from "./form.interface";
 import { getGuestName, parseConsent } from "@/utils/process-details";
 import { GuestModel, GuestObject } from "@/lib/nobox/record-structures/Guest";
 
 interface GuestCardProps {
     female?:boolean;
+    updateGuest:(id:string, val: GuestObject | null) => void;
+    guest: GuestObject | null;
+    id: string;
 }
 
-
-async function fetchGuest(consentToken: string) {
-
-    const consent = parseConsent(consentToken);
-
-    const guest = await GuestModel.findOne({consentId: consent});
-
-    return guest;
-
-}
+const MAX_CHARACTER = 10;
 
 export default function GuestCard(props: GuestCardProps) {
     const [consentToken, setConsentToken] = useState<string>('');
-    const [guest, setGuest] = useState<GuestObject | null >(null);
+    // const [guest, setGuest] = useState<GuestObject | null >(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     
@@ -35,8 +28,8 @@ export default function GuestCard(props: GuestCardProps) {
 
 
     useEffect(() => {
-        // Only proceed if inputValue is exactly 10 characters
-        if (consentToken.length === 10) {
+        // Only proceed if inputValue is exactly MAX_CHARACTER characters
+        if (consentToken.length === MAX_CHARACTER) {
             // Track the current input value as the latest request
             const currentRequest = consentToken;
             requestRef.current = currentRequest;
@@ -54,10 +47,18 @@ export default function GuestCard(props: GuestCardProps) {
                     // if (requestRef.current === currentRequest) {
                     // console.log("The guest", guest)
                     if (guest) {
-                        setGuest(guest)
+
+                        if (props.female && guest.gender === 'male') {
+                            setError('A consent token from a female is required here')
+                        }
+                        else if (!props.female && guest.gender === 'female') {
+                            setError('A consent token from a male is required here')
+                        } else {
+                            props.updateGuest(props.id, guest)
+                        }
                     } else {
-                        console.log('Ignored outdated request for input:', currentRequest);
-                        setGuest(()=>null)
+                        console.log('Ignored outdated request for input:', currentRequest);                        
+                        props.updateGuest(props.id, null)
                     }
                 } catch (error) {
                     console.error('findOne error:', error);
@@ -79,10 +80,19 @@ export default function GuestCard(props: GuestCardProps) {
         // setError(null);
         setConsentToken(val);
 
-        // Clear the request if input becomes less than 10 characters
-        if (val.length < 10) {
+        // Clear the request if input becomes less than MAX_CHARACTER characters
+        if (val.length < MAX_CHARACTER) {
             requestRef.current = null;
-            setGuest(()=>null)
+            // setGuest(()=>null)
+
+            if (props.guest !== null) {
+
+                props.updateGuest(props.id, null)
+            }
+            if (error !== null) {
+
+                setError(null)
+            }
         }
     }
 
@@ -90,8 +100,8 @@ export default function GuestCard(props: GuestCardProps) {
     const name = props.female ? 'consent-female' : 'consent-male'
     const imagePlaceholder = props.female ? '/images/female.svg':'/images/male.svg';
 
-    const label = guest ? getGuestName(guest, true): 'Enter consent Token';
-    const picture = guest ? guest.picture : imagePlaceholder;
+    const label = props.guest ? getGuestName(props.guest, true): 'Enter consent Token';
+    const picture = props.guest ? props.guest.picture : imagePlaceholder;
 
 
     return (
@@ -111,7 +121,7 @@ export default function GuestCard(props: GuestCardProps) {
                 name={name}
                 label={loading ? 'Loading....':label}
                 placeholder="FYB-XXXXXX"
-                maxLength={10}
+                maxLength={MAX_CHARACTER}
                 onChange={handleElemChange}
                 getValue={getValue}
                 error={{[name]: error}}
