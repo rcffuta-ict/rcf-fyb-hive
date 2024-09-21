@@ -5,12 +5,9 @@ import { openNotificationWithIcon } from "@/utils/notification";
 import ImageUpload from "../ImageUpload";
 import TextInput from "../Form/TextInput";
 import { FormError } from "../Form/form.interface";
-import submitData from "@/utils/submit";
-import { GuestAccount, GuestModel, GuestObject } from "@/lib/nobox/record-structures/Guest";
+import { GuestModel, GuestObject } from "@/lib/nobox/record-structures/Guest";
 import axios from "axios";
 import CheckInput from "../Form/CheckInput";
-import { getNameByGender } from "@/utils/process-details";
-import { validateAssociatetForm } from "@/utils/validate-form";
 import { useRouter } from "next/navigation";
 
 const parseConsent = (associateId:string)=>associateId.toLocaleLowerCase().replaceAll(' ','').replaceAll('fyb-', '')
@@ -140,7 +137,7 @@ export default function EmailForm(){
 
         // console.log(associateId)
         const otherAssociate = await GuestModel.search({
-            searchableFields: ['consentId'],
+            searchableFields: ['associateId'],
             searchText: (guest.consentId as string)
         }) as unknown as GuestObject[];
 
