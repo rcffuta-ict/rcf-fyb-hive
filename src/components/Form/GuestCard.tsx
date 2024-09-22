@@ -11,6 +11,7 @@ interface GuestCardProps {
     id: string;
     alterId: string;
     isAltered?: boolean;
+    didAltered?: boolean;
 }
 
 
@@ -80,7 +81,7 @@ export default function GuestCard(props: GuestCardProps) {
                             const associate = await findAssociate(guest);
 
                             props.updateGuest(props.id, guest)
-                            console.log("Associate", associate);
+                            // console.log("Associate", associate);
                             
                             if (associate) {
                                 props.updateGuest(props.alterId, associate, true)
@@ -118,6 +119,11 @@ export default function GuestCard(props: GuestCardProps) {
             if (props.guest !== null) {
 
                 props.updateGuest(props.id, null)
+                
+                if (props.didAltered) {
+                    props.updateGuest(props.alterId, null)
+                }
+
             }
             if (error !== null) {
 
