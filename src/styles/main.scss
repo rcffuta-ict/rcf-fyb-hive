@@ -501,3 +501,71 @@ form {
     }
 }
 
+
+.ant-modal-title {
+    text-align: center;
+    // font-size: 1.5rem;
+}
+
+.ant-modal-body {
+    p {
+        text-align: center;
+    }
+
+    b {
+        letter-spacing: .5rem;
+        color: colors.$primary;
+    }
+}
+
+.ant-modal-footer {
+    // background-color: red !important;
+
+    text-align: center !important;
+
+    .ant-btn {
+
+        background-color: transparent;
+        border: 1px solid colors.$primary;
+        color: colors.$primary;
+
+        width: 10rem;
+        padding-block: 1.5rem;
+
+        font-size: 1.3rem;
+        font-weight: bold;
+
+        &:hover {
+            background-color: colors.$primary !important;
+        }
+
+        &-default {
+            display: none;
+        }
+    }
+}
+
+.detail-info {
+    width: 25rem;
+    max-width: 100%;
+    margin-inline: auto;
+    li {
+        font-size: 1.2rem;
+
+        margin-block: 1rem;
+
+        display: flex;
+        justify-content: space-between;
+
+        // background-color: red;
+
+
+        
+
+        span {
+            display: inline-block;
+            margin-right: 1rem;
+            // text-align: center;
+        }
+    }
+}

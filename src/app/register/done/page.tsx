@@ -39,7 +39,7 @@ export default function Done() {
                 </Link>
 
                 <Link
-                    href={'#'}
+                    href={'/buy-ticket'}
                     className="btn btn-primary-outline text-uppercase"
                 >
                     Pay for Dinner

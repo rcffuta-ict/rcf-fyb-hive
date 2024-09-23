@@ -3,10 +3,17 @@
 import { FormEvent, useRef, useState } from "react"
 import GuestCard from "../Form/GuestCard";
 import { GuestObject } from "@/lib/nobox/record-structures/Guest";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import PaymentDetailsModal from "./PayDetailsModal";
+import { TicketModel } from "@/lib/nobox/record-structures/Ticket";
 
 type ID = 'g-1' | 'g-2';
 
 export default function TicketForm() {
+
+    const router = useRouter();
+    const [open, setOpen] = useState(false);
 
     const [guests, setGuests] = useState<{
         [id: string]: GuestObject | null;
@@ -24,18 +31,46 @@ export default function TicketForm() {
         const _left = guests['g-1']
         const _right = guests['g-2']
 
+
+        if (!_left || !_right) {
+            return []
+        }
+
         return [_left, _right]
     }
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async(e: FormEvent) => {
         e.preventDefault();
 
-        
+        const pairs = verifyPair();
 
-        const [_left, _right] = verifyPair();
+        if (pairs.length !== 2) {
+            // 
+            return
+        }
 
-        console.log("Male", _left)
-        console.log("Femle", _right)
+        const [_left, _right] = pairs;
+
+        // save ticket log
+
+        try {
+
+            const dt = await TicketModel.insertOne({
+                guestFId: _right.id,
+                guestMId: _left.id,
+    
+                amount: 5000,
+            });
+    
+            console.log(dt);
+
+            // display payment procession
+            setOpen(true)
+        } catch(err: any) {
+            console.error(err);
+            // Show error feedback
+        }
+
     }
 
 
@@ -57,7 +92,6 @@ export default function TicketForm() {
         })
     }
 
-
     const canPay = verifyPair().length === 2;
 
     return (
@@ -72,7 +106,7 @@ export default function TicketForm() {
                     didAltered={alterRef.current === 'g-2'}
                 />
                 <div>
-                    <button disabled={!canPay}>
+                    <button disabled={!canPay} onClick={handleSubmit}>
                         Buy Ticket
                     </button>
                 </div>
@@ -86,6 +120,20 @@ export default function TicketForm() {
                     female
                 />
             </form>
+
+            <PaymentDetailsModal
+                open={open}
+                onOk={()=>{
+                    // console.log("Close modal")
+                    alterRef.current = null;
+                    setGuests(null);
+                    setOpen(false);
+
+                    // router.replace('/buy-ticket')
+
+                    // window.location.reload();
+                }}
+            />
         </>
     )
 }
