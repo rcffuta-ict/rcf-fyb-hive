@@ -1,19 +1,45 @@
 'use client'
 
-import { FormEvent, useRef, useState } from "react"
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import GuestCard from "../Form/GuestCard";
 import { GuestObject } from "@/lib/nobox/record-structures/Guest";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import PaymentDetailsModal from "./PayDetailsModal";
-import { TicketModel } from "@/lib/nobox/record-structures/Ticket";
+import { TicketModel, TicketObject } from "@/lib/nobox/record-structures/Ticket";
+import { message } from "antd";
+import { getGuestName } from "@/utils/process-details";
 
 type ID = 'g-1' | 'g-2';
+
+
+async function findTicket(id: string) {
+    const ticket = await TicketModel.search({
+        searchableFields: ['guestFId', 'guestMId'],
+        searchText: id,
+    }) as unknown as TicketObject[];
+
+    return ticket[0];
+}
+
+const verifyGuest = async (guest: GuestObject) => {
+    const val = await findTicket(guest.id);
+    if (val) {
+        console.log(`Taken:`, val);
+        // show feedback
+        return null;
+    }
+    return guest;
+};
+
 
 export default function TicketForm() {
 
     const router = useRouter();
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [canPay, setCanPay] = useState(false);
+    const [messageApi, contextHolder] = message.useMessage();
 
     const [guests, setGuests] = useState<{
         [id: string]: GuestObject | null;
@@ -22,39 +48,55 @@ export default function TicketForm() {
     const alterRef = useRef<string | null>(null);
     
     
-    const verifyPair = () => {
+    const verifyPair = async (showFeedback = true) => {
+
         if (!guests) {
             // show something
             return []
         }
 
-        const _left = guests['g-1']
-        const _right = guests['g-2']
+        const left = guests['g-1'];
+        const right = guests['g-2'];
 
+        
 
-        if (!_left || !_right) {
-            return []
-        }
+        const pairs = [
+            left ? await verifyGuest(left) : null,
+            right ? await verifyGuest(right) : null
+        ].filter(Boolean); // Filter out null values
 
-        return [_left, _right]
+        return pairs as GuestObject[];
     }
 
     const handleSubmit = async(e: FormEvent) => {
         e.preventDefault();
 
-        const pairs = verifyPair();
 
-        if (pairs.length !== 2) {
-            // 
-            return
-        }
+        const pairs = await verifyPair(true);
+        // // messageApi.destroy('loader-1');
+        // if (pairs.length !== 2) {
+        //     //
+        //     console.log("Here")
+        //     messageApi.error("Pairing is not possible") 
+        //     return
+        // }
 
         const [_left, _right] = pairs;
 
         // save ticket log
 
-        try {
 
+        setLoading(true);
+
+
+        messageApi.open({
+            type: 'loading',
+            content: 'Pairing in motion...',
+            duration: 0,
+            key: 'loader-1'
+        });
+
+        try {
             const dt = await TicketModel.insertOne({
                 guestFId: _right.id,
                 guestMId: _left.id,
@@ -62,7 +104,7 @@ export default function TicketForm() {
                 amount: 5000,
             });
     
-            console.log(dt);
+            // console.log(dt);
 
             // display payment procession
             setOpen(true)
@@ -92,10 +134,26 @@ export default function TicketForm() {
         })
     }
 
-    const canPay = verifyPair().length === 2;
+    // const canPay = verifyPair().length === 2;
+
+    useEffect(() => {
+        const checkCanPay = async () => {
+            const pairs = await verifyPair();
+            setCanPay(pairs.length === 2);
+        };
+        checkCanPay();
+    }, [guests]); // Dependency on guests
+
+
+    let state;
+
+    if (loading) state = 'error';
+    // if (loading) state = 'loading'
+    if (canPay) state='active'
 
     return (
         <>
+            {contextHolder}
             <form onSubmit={handleSubmit} className="ticket-form">
                 <GuestCard
                     id="g-1"
@@ -105,11 +163,15 @@ export default function TicketForm() {
                     isAltered={alterRef.current === 'g-1'}
                     didAltered={alterRef.current === 'g-2'}
                 />
-                <div>
-                    <button disabled={!canPay} onClick={handleSubmit}>
-                        Buy Ticket
+                {/* <div> */}
+                    <button
+                        disabled={!canPay}
+                        onClick={handleSubmit}
+                        data-state={state}
+                    >
+                        {loading ? "Paring..." : "Pair"}
                     </button>
-                </div>
+                {/* </div> */}
                 <GuestCard
                     id="g-2"
                     alterId={'g-1'}
@@ -125,13 +187,13 @@ export default function TicketForm() {
                 open={open}
                 onOk={()=>{
                     // console.log("Close modal")
-                    alterRef.current = null;
-                    setGuests(null);
-                    setOpen(false);
+                    // alterRef.current = null;
+                    // setGuests(null);
+                    // setOpen(false);
 
                     // router.replace('/buy-ticket')
 
-                    // window.location.reload();
+                    window.location.reload();
                 }}
             />
         </>

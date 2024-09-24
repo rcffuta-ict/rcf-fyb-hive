@@ -3,6 +3,8 @@ import TextInput from "./TextInput";
 import { useEffect, useRef, useState } from "react";
 import { getGuestName, parseConsent } from "@/utils/process-details";
 import { GuestModel, GuestObject } from "@/lib/nobox/record-structures/Guest";
+import { TicketModel, TicketObject } from "@/lib/nobox/record-structures/Ticket";
+import { message } from "antd";
 
 interface GuestCardProps {
     female?:boolean;
@@ -37,6 +39,16 @@ async function findAssociate(guest: GuestObject) {
 
 const MAX_CHARACTER = 10;
 
+
+async function findTicket(id: string) {
+    const ticket = await TicketModel.search({
+        searchableFields: ['guestFId', 'guestMId'],
+        searchText: id,
+    }) as unknown as TicketObject[];
+
+    return ticket[0];
+}
+
 export default function GuestCard(props: GuestCardProps) {
     const [consentToken, setConsentToken] = useState<string>('');
     // const [guest, setGuest] = useState<GuestObject | null >(null);
@@ -49,6 +61,18 @@ export default function GuestCard(props: GuestCardProps) {
     const getValue = (key:string) => {
         return props.isAltered ? '<<Associate>>' : consentToken;
     }
+
+    const verifyGuest = async (guest: GuestObject, fn?: ()=>void) => {
+        const val = await findTicket(guest.id);
+        if (val) {
+            console.log(`Taken:`, val);
+            // show feedback
+            
+            message.info(`${getGuestName(guest)} is taken!`);
+            return null;
+        }
+        return guest;
+    };
 
 
     useEffect(() => {
@@ -85,8 +109,11 @@ export default function GuestCard(props: GuestCardProps) {
                             
                             if (associate) {
                                 props.updateGuest(props.alterId, associate, true)
+                            } else {
+                                await verifyGuest(guest);
                             }
                         }
+
                     } else {
                         console.log('Ignored outdated request for input:', currentRequest);                        
                         props.updateGuest(props.id, null)
@@ -139,9 +166,14 @@ export default function GuestCard(props: GuestCardProps) {
     const label = props.guest ? getGuestName(props.guest, true): 'Enter consent Token';
     const picture = props.guest ? props.guest.picture : imagePlaceholder;
 
+    let state;
+
+    if (error) state = 'error';
+    if (loading) state = 'loading'
+    if (props.guest) state='active'
 
     return (
-        <div>
+        <div className="guest-card" data-state={state}>
             <div className="img-wrapper">
                 <Image
                     src={picture}
@@ -151,7 +183,6 @@ export default function GuestCard(props: GuestCardProps) {
                 />
             </div>
 
-            <br/>
             <TextInput
                 disable={loading}
                 name={name}
