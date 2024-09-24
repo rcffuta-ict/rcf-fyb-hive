@@ -3,24 +3,14 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import GuestCard from "../Form/GuestCard";
 import { GuestObject } from "@/lib/nobox/record-structures/Guest";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import PaymentDetailsModal from "./PayDetailsModal";
 import { TicketModel, TicketObject } from "@/lib/nobox/record-structures/Ticket";
 import { message } from "antd";
-import { getGuestName } from "@/utils/process-details";
+import { findTicket } from "@/utils/guest-utils";
 
 type ID = 'g-1' | 'g-2';
 
-
-async function findTicket(id: string) {
-    const ticket = await TicketModel.search({
-        searchableFields: ['guestFId', 'guestMId'],
-        searchText: id,
-    }) as unknown as TicketObject[];
-
-    return ticket[0];
-}
 
 const verifyGuest = async (guest: GuestObject) => {
     const val = await findTicket(guest.id);
@@ -73,18 +63,10 @@ export default function TicketForm() {
 
 
         const pairs = await verifyPair(true);
-        // // messageApi.destroy('loader-1');
-        // if (pairs.length !== 2) {
-        //     //
-        //     console.log("Here")
-        //     messageApi.error("Pairing is not possible") 
-        //     return
-        // }
 
         const [_left, _right] = pairs;
 
         // save ticket log
-
 
         setLoading(true);
 
@@ -142,6 +124,7 @@ export default function TicketForm() {
             setCanPay(pairs.length === 2);
         };
         checkCanPay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [guests]); // Dependency on guests
 
 

@@ -1,4 +1,5 @@
-import { Modal } from "antd";
+import { message, Modal, notification } from "antd";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 interface ModalProps {
     open: boolean;
@@ -6,6 +7,8 @@ interface ModalProps {
 }
 
 export default function PaymentDetailsModal(props: ModalProps) {
+    const amount = `₦ ${5_000}`;
+    const raw_amount = 5_000;
     return (
         <Modal
             title="Proceed with your payment"
@@ -23,23 +26,81 @@ export default function PaymentDetailsModal(props: ModalProps) {
 
             <br/>
 
-            <h3 className="fs-48 fw-700 text-center">
-                <span>{`₦ ${5_000}`}</span>
-            </h3>
+            <CopyToClipboard text={raw_amount.toString()} onCopy={() => notification.success({
+                message: (
+                    <span>
+                        Copied Amount to pay
+                        <br/>
+
+                        <span className="fs-32 fw-700">{amount}</span>
+                    </span>
+                )
+            })}>
+                <h3 className="fs-48 fw-700 text-center">
+                    <span className="cursor-pointer">{amount}</span>
+                </h3>
+            </CopyToClipboard>
             {/* <br/> */}
 
             <ul role="list" className="detail-info">
                 <li>
                     <span>Bank Name:</span>
-                    Guarantee Trust Bank
+
+                    <CopyToClipboard
+                        text={"Guarantee Trust Bank"}
+                        onCopy={() => notification.success({
+                            message: (
+                                <span>
+                                    Copied Account Bank Name
+                                    <br/>
+
+                                    <span className="fs-18 fw-700">Guarantee Trust Bank</span>
+                                </span>
+                            )
+                        })}
+                    >
+                        <span className="cursor-pointer">Guarantee Trust Bank</span>
+                    </CopyToClipboard>
                 </li>
+
                 <li>
                     <span>Account Number:</span>
-                    <b>0520727602</b>
+                    <CopyToClipboard
+                        text={"0520727602"}
+                        onCopy={() => notification.success({
+                            message: (
+                                <span>
+                                    Copied Account number
+                                    <br/>
+
+                                    <span className="fs-32 fw-700">0520727602</span>
+                                </span>
+                            )
+                        })}
+                    >
+
+                        <b className="cursor-pointer">0520727602</b>
+                    </CopyToClipboard>
                 </li>
                 <li>
                     <span>Account Name:</span>
-                    Johnson Peter A.
+
+                    <CopyToClipboard
+                        text={"Johnson Peter A."}
+                        onCopy={() => notification.success({
+                            message: (
+                                <span>
+                                    Copied Account Name
+                                    <br/>
+
+                                    <span className="fs-18 fw-700">Johnson Peter A.</span>
+                                </span>
+                            )
+                        })}
+                    >
+
+                        <span className="cursor-pointer">Johnson Peter A.</span>
+                    </CopyToClipboard>
                 </li>
 
                 <li>

@@ -3,7 +3,6 @@ import TextInput from "./TextInput";
 import { useEffect, useRef, useState } from "react";
 import { getGuestName, parseConsent } from "@/utils/process-details";
 import { GuestModel, GuestObject } from "@/lib/nobox/record-structures/Guest";
-import { TicketModel, TicketObject } from "@/lib/nobox/record-structures/Ticket";
 import { message } from "antd";
 import { findAssociate, findTicket } from "@/utils/guest-utils";
 
@@ -109,6 +108,7 @@ export default function GuestCard(props: GuestCardProps) {
 
             findData();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [consentToken]);
 
     const handleElemChange = (key:string, val:any)=>{
