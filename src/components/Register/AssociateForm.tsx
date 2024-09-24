@@ -12,6 +12,7 @@ import CheckInput from "../Form/CheckInput";
 import { getNameByGender, parseConsent } from "@/utils/process-details";
 import { validateAssociatetForm } from "@/utils/validate-form";
 import { useRouter } from "next/navigation";
+import { findTicket } from "@/utils/guest-utils";
 
 
 const dummyData:any = {
@@ -217,6 +218,17 @@ export default function AssociateForm(){
             messageApi.destroy('loader-1');
             // messageApi.error('There is an issue with your info');
             openNotificationWithIcon('error', 'Consent error', 'Cannot register with given consent');
+
+            setVerifying(false);
+            return;
+        }
+
+        const hasTicket = await findTicket(guest.id);
+
+        if (hasTicket) {
+            messageApi.destroy('loader-1');
+            // messageApi.error('There is an issue with your info');
+            openNotificationWithIcon('error', 'Consent error', 'Consent invalidated');
 
             setVerifying(false);
             return;

@@ -504,7 +504,7 @@ form {
 
 
         &::after {
-            // content: '';
+            content: '';
             position: absolute;
 
             width: 100%;
@@ -515,23 +515,32 @@ form {
 
             border-top: 5px dotted var(--state-color);
 
-            top: -50%;
-            left: 50%;
+
+            transform: rotate(90deg);
+            
+            @include mixins.least-large-screen() {
+                transform: rotate(0deg) !important;
+            }
+        }
+
+        &:first-of-type::after {
+            top: 70%;
+            left: 0%;
+
+            @include mixins.least-large-screen() {
+                top: 50%;
+                left: 50%;
+            }
+        
+        }
+
+        &:last-of-type::after {
+            top: 0%;
+            left: 0%;
 
             @include mixins.least-large-screen() {
                 top: 50%;
                 left: -50%;
-            }
-        }
-
-        &:first-of-type{
-            &::after {
-                left: 50%;
-
-                @include mixins.least-large-screen() {
-                    top: 50%;
-                    left: 50%;
-                }
             }
         }
     }
@@ -631,6 +640,7 @@ form {
     width: 25rem;
     max-width: 100%;
     margin-inline: auto;
+
     li {
         font-size: 1.2rem;
 

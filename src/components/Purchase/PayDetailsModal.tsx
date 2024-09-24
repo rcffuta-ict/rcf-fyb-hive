@@ -21,6 +21,13 @@ export default function PaymentDetailsModal(props: ModalProps) {
                 Please proceed with your payment to this account:
             </p>
 
+            <br/>
+
+            <h3 className="fs-48 fw-700 text-center">
+                <span>{`₦ ${5_000}`}</span>
+            </h3>
+            {/* <br/> */}
+
             <ul role="list" className="detail-info">
                 <li>
                     <span>Bank Name:</span>
@@ -41,8 +48,10 @@ export default function PaymentDetailsModal(props: ModalProps) {
                 </li>
             </ul>
 
+            <br/>
+
             <p>
-                please put your that token in the transaction description for quick confirmation.<br/>
+                please put your <span className="text-uppercase fw-700">consent token</span> in the transaction description for quick confirmation.<br/>
                 <br/>
                 We will send you a confirmation mail as sson as we confirm your payment.
             </p>
