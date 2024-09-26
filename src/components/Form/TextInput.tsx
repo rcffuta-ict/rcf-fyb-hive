@@ -52,7 +52,11 @@ export default function TextInput(props: TextInputProps) {
                 placeholder={props.placeholder}
                 type={type}
                 addonBefore={props.tel ? '+234' : ''}
-                onChange={(e)=>props.onChange(props.name, e.target.value)}
+                onChange={(e)=>{
+                    const value = e.target.value;
+
+                    props.onChange(props.name, type === 'email' ? value.toLowerCase():value)
+                }}
                 disabled={props.disable}
                 // value={props.getValue(props.name) as string}
                 value={props.getValue(props.name) as string}
