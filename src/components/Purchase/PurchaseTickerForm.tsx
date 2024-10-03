@@ -1,5 +1,5 @@
 'use client'
-
+import React from 'react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import GuestCard from "../Form/GuestCard";
 import { GuestObject } from "@/lib/nobox/record-structures/Guest";

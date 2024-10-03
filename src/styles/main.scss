@@ -661,3 +661,101 @@ form {
         }
     }
 }
+
+
+.loader {
+    font-size: 1.2rem;
+    text-align: center;
+    font-style: italic;
+    color: colors.$primary-accent;
+    opacity: .5;
+}
+
+.ticket-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    // gap: 4rem;
+    // background-color: red;
+    // width: 30rem;
+
+    margin-bottom: 5rem;
+
+    border: 1px solid colors.$white-accent;
+    padding: .5rem 0rem;
+    & >div {
+        flex: 1;
+        p {
+            margin-top: 1rem;
+            font-size: clamp(.5rem, 3vw, 1.2rem);
+            text-align: center;
+
+            span {
+                font-size: .9rem;
+                text-transform: uppercase;
+
+                display: inline-block;
+
+                &::before {
+                    content: '(FYB-';
+                    display: inline-block;
+                }
+                &::after {
+                    content: ')';
+                    display: inline-block;
+                }
+            }
+        }
+    }
+
+    button {
+        cursor: pointer;
+        accent-color: none;
+
+        border: 0;
+        border-radius: .5rem;
+        
+        // $padding: clamp(1rem, 10vw, 2rem);
+        // padding: $padding calc($padding / 1);
+
+        padding: 1rem;
+
+        background-color: colors.$primary-accent;
+        color: colors.$white;
+
+        
+
+
+        &:disabled {
+            opacity: .5;
+        }
+
+        &[data-success="true"] {
+            // opacity: .9;
+            cursor: not-allowed;
+            background-color: rgb(1, 43, 1);
+            font-weight: bold;
+        }
+
+    }
+
+    .img-wrapper {
+        // background-color: red;
+
+        $size: clamp(2rem, 16vw, 7rem);
+        width: $size;
+        height: $size;
+
+        border-radius: 50%;
+        border: 3px;
+        border-style: dashed;
+        border-color: colors.$primary-accent;
+
+        overflow: hidden;
+
+        img {
+            object-position: center;
+            object-fit: cover;
+        }
+    }
+}

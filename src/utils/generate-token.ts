@@ -28,3 +28,16 @@ export function generateShortToken(userId: string): string {
 
   return combinedValue;
 }
+
+
+export function generateTicketId(): {ticketId: string; date: Date} {
+    const date = new Date();
+    const timestamp = date.getTime().toString(36); // Convert timestamp to a base-36 string
+    const randomString = Math.random().toString(36).substring(2, 10); // Generate random alphanumeric string
+    // return `TICKET-${timestamp}-${randomString}`;
+
+    return {
+      ticketId: `TICKET-${timestamp}-${randomString}`,
+      date
+    }
+}

@@ -1,4 +1,4 @@
-
+import React from "react";
 import ImageUpload from "../ImageUpload";
 import TextInput from "../Form/TextInput";
 import CheckInput from "../Form/CheckInput";
@@ -9,7 +9,7 @@ import { FormError } from "../Form/form.interface";
 import { GuestAccount, GuestModel } from "@/lib/nobox/record-structures/Guest";
 import axios from "axios";
 import { validateFinalistForm } from "@/utils/validate-form";
-import submitData from "@/utils/submit";
+import {submitData} from "@/utils/submit";
 import { useRouter } from "next/navigation";
 
 const dummyData:any = {
