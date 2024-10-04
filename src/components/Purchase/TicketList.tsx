@@ -154,7 +154,7 @@ export default function TicketList() {
             if (a.confirmed === b.confirmed) {
                 return 0; // If both are the same, maintain their order
             }
-            return a.confirmed ? -1 : 1; // Move confirmed to the top
+            return a.confirmed ? 1 : -1; // Move confirmed to the top
         });
     }, [tickets])
 
