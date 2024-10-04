@@ -71,12 +71,16 @@ export async function approveTicket (id: string) {
     const existing_ticket = await TicketModel.findOne({id});
 
     if (!existing_ticket) throw new Error("Could not approve ticket");
-    if (!existing_ticket.ticketId) throw new Error("Could not approve ticket. Not assigned!");
+    if (!existing_ticket.ticketId) {
+        const _ticket = await assignTicketId();
+
+        existing_ticket.ticketId = _ticket.ticketId;
+    }
 
     const ticketUpdateResult = await TicketModel.updateOneById(id, {
         confirmed: true,
         confirmedDate: new Date(),
-        // ticketId: existing_ticket.ticketId
+        ticketId: existing_ticket.ticketId
     });
 
     return ticketUpdateResult;
