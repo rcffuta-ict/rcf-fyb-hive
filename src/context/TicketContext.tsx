@@ -160,6 +160,7 @@ export const TicketContextProvider:FC<PropsWithChildren> = (props) => {
                     <br/>
 
                     <div className="dot-sep">
+                        <span>{tickets.length * 2} guest{tickets.length > 0 ? 's': '' }</span>
                         <span>{tickets.length} registered</span>
                         <span>{tickets.filter((e)=>e.confirmed).length} approved</span>
                     </div>
