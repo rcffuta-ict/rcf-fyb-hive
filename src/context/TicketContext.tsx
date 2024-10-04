@@ -10,7 +10,7 @@ interface TicketContextProps {
     obtainGuestRecord: (id:string) => Promise<GuestObject | null>;
     messageApi: MessageInstance;
     tickets: TicketObject[];
-    handleApproval: (id: string) => Promise<void>;
+    handleApproval: (id: string) => Promise<TicketObject | undefined>;
 }
 
 const TicketContext = createContext<TicketContextProps | null>(null);
@@ -128,9 +128,8 @@ export const TicketContextProvider:FC<PropsWithChildren> = (props) => {
             messageApi.error("Could not approve ticket!");
         }
 
-        // return _updated_ticket;
-
-
+        
+        
         if (!_updated_ticket) return;
 
         setTickets((t)=>{
@@ -140,6 +139,7 @@ export const TicketContextProvider:FC<PropsWithChildren> = (props) => {
                 return e;
             })
         })
+        return _updated_ticket;
     }
 
 

@@ -708,6 +708,7 @@ form {
         }
     }
 
+
     button {
         cursor: pointer;
         accent-color: none;
@@ -722,6 +723,18 @@ form {
 
         background-color: colors.$primary-accent;
         color: colors.$white;
+
+        margin-inline: auto;
+
+        display: block;
+
+
+        & ~ span {
+            display: block;
+            text-align: center;
+
+            font-size: 11px;
+        }
 
         
 

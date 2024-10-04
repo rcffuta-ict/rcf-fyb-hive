@@ -6,6 +6,7 @@ import { TicketObject } from "@/lib/nobox/record-structures/Ticket";
 import Image from 'next/image';
 import { getGuestName } from '@/utils/process-details';
 import { useTicket } from '@/context/TicketContext';
+import axios from 'axios';
 
 interface GuestItem {
     guestM: GuestObject | null;
@@ -41,7 +42,7 @@ function TicketUnit({guest, female}: {guest: GuestObject | null | undefined; fem
 
 function TicketItem({data}: {data: TicketObject}) {
 
-    const {obtainGuestRecord, handleApproval} = useTicket();
+    const {obtainGuestRecord, handleApproval, messageApi} = useTicket();
     
     const [guests, setGuests] = useState<GuestItem | null>(null);
     const [approving, setApproving] = useState(false);
@@ -80,8 +81,31 @@ function TicketItem({data}: {data: TicketObject}) {
         setApproving(true);
 
         handleApproval(data.id)
-        .then(()=>{
+        .then((_data)=>{
+
+            if (!_data) return;
+
             console.debug("Approved:", data.id);
+            
+            messageApi.open({
+                type: 'loading',
+                content: 'Sending confirmation mail...',
+                duration: 0,
+                key: 'mail-1'
+            });
+
+            axios.post('/api/mail-ticket', { ticket: _data, guests: [guests?.guestM, guests?.guestF] })
+            .then(()=>{
+
+                messageApi.destroy('mail-1');
+                messageApi.success("Sent mail!");
+            })
+            .catch((err)=>{
+                console.error("Error sending mail:", err)
+                messageApi.destroy('mail-1');
+                messageApi.error("We could not send mail!");
+            });
+
         })
         .catch((e)=>{
             console.error("Approval error:", e);
@@ -101,9 +125,17 @@ function TicketItem({data}: {data: TicketObject}) {
                 guest={guests?.guestM}
             />
 
-            <button disabled={data.confirmed} type='submit' data-success={Boolean(data.ticketId)}>
-                {indicator}
-            </button>
+            <div className='ticket-cta'>
+
+                <button disabled={data.confirmed} type='submit' data-success={Boolean(data.confirmedDate)}>
+                    {indicator}
+                </button>
+                <br/>
+                <span>
+                    {data.ticketId}
+                </span>
+            </div>
+
 
             <TicketUnit
                 guest={guests?.guestF}

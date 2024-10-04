@@ -8,6 +8,7 @@ import PaymentDetailsModal from "./PayDetailsModal";
 import { TicketModel, TicketObject } from "@/lib/nobox/record-structures/Ticket";
 import { message } from "antd";
 import { findTicket } from "@/utils/guest-utils";
+import { assignTicketId } from '@/utils/submit';
 
 type ID = 'g-1' | 'g-2';
 
@@ -25,7 +26,6 @@ const verifyGuest = async (guest: GuestObject) => {
 
 export default function TicketForm() {
 
-    const router = useRouter();
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [canPay, setCanPay] = useState(false);
@@ -78,12 +78,16 @@ export default function TicketForm() {
             key: 'loader-1'
         });
 
+        const _ticket = await assignTicketId();
+
         try {
             const dt = await TicketModel.insertOne({
                 guestFId: _right.id,
                 guestMId: _left.id,
     
                 amount: 5000,
+
+                ticketId: _ticket.ticketId,
             });
     
             // console.log(dt);

@@ -163,7 +163,7 @@ export default function EmailForm(){
         setVerifying(false);
 
         setGuests(()=>{
-            console.debug({guest, associate})
+            // console.debug({guest, associate})
             return {
                 guest,
                 associate

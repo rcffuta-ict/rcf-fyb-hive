@@ -27,8 +27,8 @@ export async function submitData (formData: any, genToken: boolean = false) {
     return obj;
 }
 
-export async function approveTicket (id: string) {
 
+export async function assignTicketId () {
     let found_it = false;
     let _ticket;
 
@@ -46,13 +46,37 @@ export async function approveTicket (id: string) {
 
     } while (!found_it);
 
-    // We should never reach this, but added for extra safety
     if (!_ticket) throw new Error("Could not generate ticket");
+
+    return _ticket;
+}
+
+export async function approveTicket (id: string) {
+
+    // let found_it = false;
+    // let _ticket;
+
+    // do {
+    //     const ticket = generateTicketId();
+
+    
+
+    
+
+    // } while (!found_it);
+
+    // // We should never reach this, but added for extra safety
+    // if (!_ticket) throw new Error("Could not generate ticket");
+
+    const existing_ticket = await TicketModel.findOne({id});
+
+    if (!existing_ticket) throw new Error("Could not approve ticket");
+    if (!existing_ticket.ticketId) throw new Error("Could not approve ticket. Not assigned!");
 
     const ticketUpdateResult = await TicketModel.updateOneById(id, {
         confirmed: true,
-        confirmedDate: _ticket.date,
-        ticketId: _ticket.ticketId
+        confirmedDate: new Date(),
+        // ticketId: existing_ticket.ticketId
     });
 
     return ticketUpdateResult;
