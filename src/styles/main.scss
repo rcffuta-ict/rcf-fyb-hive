@@ -691,7 +691,7 @@ form {
             text-align: center;
 
             span {
-                font-size: .9rem;
+                font-size: clamp(.5rem, 3vw, .9rem);
                 text-transform: uppercase;
 
                 display: inline-block;

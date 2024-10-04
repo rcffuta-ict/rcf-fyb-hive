@@ -32,8 +32,8 @@ function TicketUnit({guest, female}: {guest: GuestObject | null | undefined; fem
                     guest ? getGuestName(guest, true) : <span className='loader'>loading...</span>
                 }
                 <br/>
-                <span>
-                    {guest?.consentId || guest?.associateId}
+                <span className=''>
+                    {guest?.consentId || (guest?.associateId && '<<Associate>>')}
                 </span>
             </p>
         </div>
