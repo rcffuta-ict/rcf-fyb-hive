@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useEffect, useState } from "react"
 import { GuestObject } from "@/lib/nobox/record-structures/Guest";
 import { TicketObject } from "@/lib/nobox/record-structures/Ticket";
@@ -149,6 +149,15 @@ function TicketItem({data}: {data: TicketObject}) {
 export default function TicketList() {
     const {tickets} = useTicket();
 
+    const _sorted_tickets = useMemo(()=>{
+        return tickets.sort((a, b) => {
+            if (a.confirmed === b.confirmed) {
+                return 0; // If both are the same, maintain their order
+            }
+            return a.confirmed ? -1 : 1; // Move confirmed to the top
+        });
+    }, [tickets])
+
     return (
         <>
             {/* <ApproveTicket/> */}
@@ -156,10 +165,8 @@ export default function TicketList() {
 
             <div className="ticket-item-wrapper">
 
-                
-
                 {
-                    tickets.map((ticket, i)=>{
+                    _sorted_tickets.map((ticket, i)=>{
 
                         return <TicketItem key={ticket.id} data={ticket} />
                     })

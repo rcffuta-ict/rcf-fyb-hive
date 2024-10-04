@@ -155,8 +155,14 @@ export const TicketContextProvider:FC<PropsWithChildren> = (props) => {
         <>
             {contextHolder}
             <TicketContext.Provider value={context}>
-                <h1 className="text-center clr-primary ff-riffic fw-700 fs-24 lh-30">
-                    Approve ticket ({tickets.length} registered!)
+                <h1 className="text-center clr-primary fs-24 lh-30">
+                    <span className='ff-riffic fw-700'>Approve ticket</span>
+                    <br/>
+
+                    <div className="dot-sep">
+                        <span>{tickets.length} registered</span>
+                        <span>{tickets.filter((e)=>e.confirmed).length} approved</span>
+                    </div>
                 </h1>
                 
                 <br/><br/>

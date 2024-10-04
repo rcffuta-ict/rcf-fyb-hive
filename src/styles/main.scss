@@ -663,6 +663,32 @@ form {
 }
 
 
+.dot-sep {
+    font-size: .8rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    span {
+        display: flex;
+        align-items: center;
+
+        &:not(:last-of-type)::after {
+            content: '';
+            $size: .3rem;
+            width: $size;
+            height: $size;
+
+            background-color: colors.$primary-accent;
+
+            display: inline-block;
+            margin-inline: .5rem;
+            border-radius: 50%;
+        }
+    }
+}
+
 .loader {
     font-size: 1.2rem;
     text-align: center;
