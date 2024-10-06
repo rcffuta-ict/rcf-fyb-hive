@@ -7,7 +7,7 @@ import AwaitModal from './AwaitModal';
 
 
 export default function VoteWrapper() {
-    const [auth, setAuth] = useState(true);
+    const [auth, setAuth] = useState(false);
     const [done, setDone] = useState(false);
 
     return (
