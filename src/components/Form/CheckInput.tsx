@@ -48,12 +48,14 @@ export default function CheckInput(props: CheckInputProps) {
                             className += ` icon ${item.icon}`;
                         }
 
-                        let disable = d_value === item.value;
+                        let disable;
 
 
                         if (item.disable) disable = true;
 
                         if (props.disable) disable = true;
+
+                        // if (d_value === item.value) disable = true;
                         
                         return (
                             <label htmlFor={item.id} key={i}>
