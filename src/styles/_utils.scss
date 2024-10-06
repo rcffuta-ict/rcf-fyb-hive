@@ -89,6 +89,34 @@
     }
 }
 
+.my {
+    &-auto {
+        // display: block;
+        margin-inline:auto
+    }
+
+    &-1 {
+        margin-block: 1rem;
+    }
+    &-2 {
+        margin-block: 2rem;
+    }
+}
+
+.mt {
+    &-auto {
+        // display: block;
+        margin-inline:auto
+    }
+
+    &-1 {
+        margin-top: 1rem;
+    }
+    &-2 {
+        margin-top: 2rem;
+    }
+}
+
 .cta {
     display: flex;
     gap: 1.75rem;

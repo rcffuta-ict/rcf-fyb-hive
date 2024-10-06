@@ -9,6 +9,7 @@ interface TextInputProps extends FormElement {
     placeholder?: string;
     email?: boolean;
     tel?: boolean;
+    password?: boolean;
     maxLength?: number;
     toUpperCase?: boolean;
 }
@@ -49,6 +50,10 @@ export default function TextInput(props: TextInputProps) {
 
     if (props.tel) {
         type = 'tel'
+    }
+
+    if (props.password) {
+        type = 'password'
     }
 
     return (

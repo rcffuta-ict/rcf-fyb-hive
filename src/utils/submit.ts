@@ -1,6 +1,7 @@
 import { GuestAccount, GuestModel } from "@/lib/nobox/record-structures/Guest";
 import { generateShortToken, generateTicketId } from "./generate-token";
 import { TicketModel } from "@/lib/nobox/record-structures/Ticket";
+import { Voter, VoterModel } from "@/lib/nobox/record-structures/voter";
 
 export async function submitData (formData: any, genToken: boolean = false) {
 
@@ -23,6 +24,19 @@ export async function submitData (formData: any, genToken: boolean = false) {
         return guest;
     }
 
+
+    return obj;
+}
+
+export async function submitForm (formData: any) {
+
+    const obj = await VoterModel.insertOne(formData as Voter)
+
+
+    if (!obj) {
+        
+        throw new Error("Did not create account!");
+    }
 
     return obj;
 }

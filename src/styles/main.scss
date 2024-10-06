@@ -115,6 +115,8 @@ form {
     }
 }
 
+// @include mixins.responsive-options('group-col') {}
+
 
 .py-2 {
     padding-block: 2rem;
@@ -206,6 +208,7 @@ form {
 
     div {
         display: flex;
+        flex-wrap: wrap;
     }
 
 
@@ -797,4 +800,63 @@ form {
             object-fit: cover;
         }
     }
+}
+
+
+.auth-modal {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    // overflow: scroll;
+
+    background: #1010102c;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+
+    z-index: 5;
+    
+    &-content {
+        width: 40rem;
+        max-width: 95%;
+
+        max-height: 40rem;
+        overflow: auto;
+
+        position: relative;
+
+        bottom: -2rem;
+
+        @include mixins.hide-scrollbar;
+
+
+        
+        
+        border-radius: 2.5rem;
+
+        background-color: colors.$white;
+
+        
+        h1 {
+            position: sticky;
+            top: 0rem;
+            background-color: colors.$white;
+
+            padding: 1rem 0;
+
+            z-index: 5;
+            // background-color: red;
+        }
+
+        form {
+            padding-block: 1rem 5rem;
+            padding-inline: 1rem;
+        }
+    }
+
 }

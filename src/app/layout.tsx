@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import '@/styles/main.scss';
 import Link from "next/link";
+import Attribution from "@/components/Attribution";
 
 
 export const metadata: Metadata = {
@@ -26,9 +27,7 @@ export default function RootLayout({
                 {children}
 
                 <footer>
-                    <p className="attribution">
-                        © 2024 Army of Light Family, RCF FUTA. All rights reserved.
-                    </p>
+                    <Attribution />
                 </footer>
             </body>
         </html>

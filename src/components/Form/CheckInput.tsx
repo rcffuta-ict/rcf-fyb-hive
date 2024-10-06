@@ -3,12 +3,14 @@ import { FormElement } from "./form.interface";
 interface CheckInputProps extends FormElement {
     name: string;
     label: string;
+    className?: string;
 
     options: {
         id: string;
         label: string;
         icon?: string;
         value: string | boolean;
+        disable?: boolean;
     }[]
 }
 
@@ -26,7 +28,7 @@ export default function CheckInput(props: CheckInputProps) {
 
     return (
         <fieldset
-            className="form-checks"
+            className={("form-checks" + ' ' + (props.className || '')).trim()}
         >
             <legend
                 className="text-capitalize fw-400 fs-14 lh-27 clr-primary"
@@ -45,6 +47,13 @@ export default function CheckInput(props: CheckInputProps) {
                         if (item.icon) {
                             className += ` icon ${item.icon}`;
                         }
+
+                        let disable = d_value === item.value;
+
+
+                        if (item.disable) disable = true;
+
+                        if (props.disable) disable = true;
                         
                         return (
                             <label htmlFor={item.id} key={i}>
@@ -57,7 +66,7 @@ export default function CheckInput(props: CheckInputProps) {
                                     readOnly={props.disable}
                                     aria-checked={props.disable ? false : (d_value === item.value)}
                                     checked={props.disable ? false : (d_value === item.value)}
-                                    disabled={!props.disable ? false : (d_value === item.value)}
+                                    disabled={disable}
                                 />
                                 <span
                                     className={className}

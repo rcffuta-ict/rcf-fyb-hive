@@ -89,3 +89,35 @@ export function validateAssociatetForm(_data: any) {
     return _formError;
 
 }
+
+
+export function validateAuthenticationForm(_data: any) {
+    const _formError: FormError = {};
+
+    const {
+        name, email,
+        level, password, confirm_password
+
+    } = _data;
+
+
+    if (!name) _formError.name = 'Your full name is required';
+    if (!email) _formError.email = 'Your email address is required';
+    if (!level) _formError.level = 'Your level please?'
+    if (!password) _formError.password = 'Your password please?'
+
+    if (password) {
+        if (!confirm_password) _formError.confirm_password = 'Please type your password again';
+
+        if (!Object.is(password, confirm_password)) _formError.confirm_password = 'Password does not match!';
+    }
+
+
+
+
+    if (Object.keys(_formError).length < 1) {
+        return null
+    }
+
+    return _formError;
+};
