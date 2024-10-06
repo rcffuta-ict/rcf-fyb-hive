@@ -209,6 +209,7 @@ form {
     div {
         display: flex;
         flex-wrap: wrap;
+        gap: 1rem;
     }
 
 
@@ -216,6 +217,11 @@ form {
         cursor: pointer;
         height: fit-content;
         position: relative;
+
+        border: 1px solid #160a3665;
+        border-radius: .5rem;
+
+
         input {
             width: 0;
             height: 0;
@@ -226,12 +232,13 @@ form {
 
         &:has(input:disabled) {
             opacity: .6;
+            cursor: not-allowed;
         }
 
 
         &:has(input:checked) {
             span {
-                background-color: #160a3665;                
+                background-color: #160a3665;
             }
         }
 
@@ -816,10 +823,29 @@ form {
     background: #1010102c;
 
     display: flex;
-    align-items: flex-end;
     justify-content: center;
+    align-items: flex-end;
+    
+    
+    &:has(.donna) {
+        align-items: center;
+    }
 
     z-index: 5;
+
+
+    &::before {
+        content: '';
+        position: absolute;
+
+
+        width: 100%;
+        height: 100%;
+
+        // background-color: #1010102c;
+        background-color: rgba(109, 102, 102, 0.747);
+        filter: blur(20px);
+    }
     
     &-content {
         width: 40rem;
@@ -830,35 +856,48 @@ form {
 
         position: relative;
 
-        bottom: -2rem;
+        
 
         @include mixins.hide-scrollbar;
 
 
-        
-        
-        border-radius: 2.5rem;
+        &:not(.donna) {
+            bottom: -2rem;
+            background-color: colors.$white;
+            border-radius: 2.5rem;
 
-        background-color: colors.$white;
+            h1 {
+                
+                position: sticky;
+                top: 0rem;
+                background-color: colors.$white;
+                z-index: 5;
+            }
+        }
+
+
+        
+        
+        
+
+        
 
         
         h1 {
-            position: sticky;
-            top: 0rem;
-            background-color: colors.$white;
 
             padding: 1rem 0;
 
-            z-index: 5;
             // background-color: red;
         }
 
         form {
             padding-block: 1rem 5rem;
-            padding-inline: 1rem;
+            padding-inline: 2rem;
         }
-    }
 
+
+    }
+    
 }
 
 
