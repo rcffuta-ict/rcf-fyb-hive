@@ -860,3 +860,52 @@ form {
     }
 
 }
+
+
+._heading {
+    p {
+        width: 50rem;
+        max-width: 90%;
+
+        margin-inline: auto;
+        text-align: center;
+
+        margin-block: 1rem;
+    }
+}
+
+.carousel-container {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    height: 100vh;
+    scroll-behavior: smooth;
+}
+
+.carousel-item {
+    height: 50vh;
+    width: 100%;
+    scroll-snap-align: start;
+
+    overflow: auto;
+
+    // overflow: hidden;
+
+    // background-color: red;
+
+    display: flex;
+    gap: 5rem;
+    flex-wrap: nowrap;
+    // justify-content: center;
+    align-items: center;
+    // position: relative;
+    @include mixins.hide-scrollbar;
+}
+
+.vote-lists {
+    display: flex;
+    align-items: center;
+
+
+    
+    gap: 5rem;
+}
