@@ -22,14 +22,8 @@ export default function RootLayout({
                     </Link>
 
                 </header>
-                <main>
-                    <section className="main-wrapper">
-                        <div className="main-content">
-                            <br/>
-                            {children}
-                        </div>
-                    </section>
-                </main>
+                
+                {children}
 
                 <footer>
                     <p className="attribution">
