@@ -218,7 +218,7 @@ export default function AuthModal(props: AuthModalProps) {
                                                 label: '500 Level',
                                                 icon: '',
                                                 value: '500',
-                                                disable: true,
+                                                disable: false,
                                             },
                                         ]}
                                         required
