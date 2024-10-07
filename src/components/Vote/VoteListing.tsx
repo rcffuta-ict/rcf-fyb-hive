@@ -40,14 +40,19 @@ const SkeletonVoteCard = () => {
 
 function VoteCard(props: VoteCardProps) {
 
-    const {obtainGuestRecord} = useVote();
+    const {obtainGuestRecord, handleSelection, checkVote} = useVote();
     const [guest, setGuest] = useState<GuestObject | null | undefined>();
 
     const checkRef = useRef<HTMLInputElement>(null);
+    
     const handleSelect = () => {
-        if(!checkRef.current) return;
+        // if(!checkRef.current) return;
 
-        checkRef.current.checked = !checkRef.current.checked;
+        // checkRef.current.checked = !checkRef.current.checked;
+
+        if(!guest) return;
+
+        handleSelection(props.category.id, guest.id);
     }
 
     useEffect(()=>{
@@ -58,7 +63,7 @@ function VoteCard(props: VoteCardProps) {
 
             const _g = await obtainGuestRecord(props.contestantId)
 
-            console.log(_g)
+            // console.log(_g)
 
             setGuest(()=>{
                 if (!_g) return null;
@@ -67,6 +72,9 @@ function VoteCard(props: VoteCardProps) {
             })
         })()
     },)
+
+
+    const isSelected = checkVote(props.category.id, props.contestantId);
 
 
     
@@ -108,7 +116,7 @@ function VoteCard(props: VoteCardProps) {
             <div className="voter-card-button">
                 {/* <div className="shimmer"></div> */}
 
-                <input ref={checkRef} type="radio" name='vote-check' id='vote-check'/>
+                <input ref={checkRef} type="radio" name='vote-check' id='vote-check' data-checked={isSelected}/>
 
                 <button onClick={handleSelect}>
                     Vote

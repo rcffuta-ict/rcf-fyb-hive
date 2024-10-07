@@ -154,7 +154,7 @@
     align-items: center;
     position: relative;
 
-    &:has(input:checked) {
+    &:has(input[data-checked="true"]) {
         outline: 1px solid colors.$primary;
         outline-offset: 4px;
         box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
@@ -272,7 +272,7 @@
 
         position: absolute;
 
-        &:checked ~ button {
+        &[data-checked="true"] ~ button {
             
             background-color: colors.$primary !important;
             color: colors.$white;

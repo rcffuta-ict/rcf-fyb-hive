@@ -2,10 +2,19 @@ import { ReturnObject, Space } from "nobox-client";
 import { createRowSchema } from "../config";
 
 
-export interface Vote {
+type CategoryId = string;
+type GuestId = string;
+
+
+export type VoteItem = {
     categoryId: string;
     guestId: string;
+};
+
+
+export interface Vote {
     userId: string;
+    votes: VoteItem[];
 }
 
 export type VoteObject = ReturnObject<Vote>;
@@ -14,20 +23,16 @@ export const VoteStructure: Space<Vote> = {
     space: "Vote",
     description: "A Record Space for FYB Award votes",
     structure: {
-        categoryId: {
-            description: "Vote category",
-            type: String,
-            required: true
-        },
-        guestId: {
-            description: "Voted guest",
-            type: String,
-            required: true,
-        },
         userId: {
             description: "Voting user",
             type: String,
             required: true
+        },
+        votes: {
+            description: "Voting user votes",
+            type: Array,
+            // required: true,
+            defaultValue: []
         },
     }
 }

@@ -18,6 +18,7 @@ interface VoteContextProps {
     user: VoterObject | null;
     userVotes: VoteObject | null;
     handleSelection: (categoryId: string, guestId: string)=> void;
+    checkVote: (categoryId: string, guestId: string)=> boolean;
     voteList: NomineeList[];
     loading: boolean;
 }
@@ -70,14 +71,14 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
 
         (async ()=>{
             // if (!user) return;
-            if (!loading) return;
+            // if (!loading && !user) return;
 
             try {
 
                 // const _all_tickets = await TicketModel.find({});
                 // Load Votes
 
-                if (user) {
+                if (user && userVotes === null) {
 
                     const user_votes = await VoteModel.findOne({
                         userId: user.id
@@ -101,7 +102,7 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
 
         })()
 
-    },[loading]);
+    });
 
 
 
@@ -113,37 +114,85 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
             key: 'loader-1'
         });
 
-        let _updated_ticket;
+        let updated_votes, _urs_vote=userVotes, updated= false ;
 
         try {
-            // _updated_ticket = await approveTicket(id);
+            
             // Upload vote
 
-            await new Promise((res, rej)=>setTimeout(()=>rej(null), 3000));
+            if (!user) throw new Error("Cannot Vote!");
+
+            if (!userVotes) {
+                _urs_vote = await VoteModel.insertOne({
+                    userId: user.id,
+                    votes: []
+                })
+            };
+
+
+            if (!_urs_vote) throw new Error("Cannot Vote...!");
+            
+
+            // updated_votes = await 
+
+            updated_votes = [..._urs_vote.votes];
+
+            const existingVote = updated_votes.find((item)=>item.categoryId === categoryId);
+
+
+            if (existingVote) {
+                if (existingVote.guestId !== guestId) {
+                    updated_votes.map((each)=>{
+                        if (each.categoryId === categoryId) {
+                            each.guestId = guestId;
+                            updated = true;
+                        }
+
+                        return each;
+                    })  
+                };
+            } else {
+                // No existing vote
+                updated_votes.push({
+                    categoryId,
+                    guestId
+                });
+                updated = true;
+            }
+
+
+            if (updated) {
+                const _votes = await VoteModel.updateOneById(_urs_vote.id, {
+                    votes: updated_votes,
+                });
+
+                setUserVotes(()=>_votes);
+            }
+
+            // await new Promise((res, rej)=>setTimeout(()=>rej(null), 3000));
+
+            const category = voteCategories?.find((each)=>each.id===categoryId);
 
             messageApi.destroy('loader-1');
-            messageApi.success("Sent your vote for...!");
+            messageApi.success(`Sent your vote for ${category?.label || 'your recent cast'}!`);
             
         } catch (error:any) {
             console.error(error);
             messageApi.destroy('loader-1');
-            messageApi.error("Could not send vote for ...!");
+            messageApi.error(error.message || "Could not send vote for ...!");
         }
-
-        
-        
-        if (!_updated_ticket) return;
-
-        // Update vote log
-        // setTickets((t)=>{
-        //     return t.map((e)=>{
-        //         if (e.id === id) return _updated_ticket;
-
-        //         return e;
-        //     })
-        // })
-        return _updated_ticket;
     }
+
+
+    const checkVote = (categoryId: string, guestId: string) => {
+
+        if (!userVotes) return false;
+        return Boolean(userVotes.votes.find((vote)=>{
+            return Object.is(vote.categoryId, categoryId) && Object.is(vote.guestId, guestId);
+        }))
+    }
+
+
 
     const voteList = useMemo(()=>{
         const nomList = nomineeList as unknown as NomineeBase[];
@@ -175,6 +224,7 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
         handleSelection,
         voteList,
         loading,
+        checkVote,
     }
 
 
