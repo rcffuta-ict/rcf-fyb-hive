@@ -23,7 +23,7 @@ export default function Vote() {
 
             <VoteListing/>
 
-            <VoteWrapper/>
+            {/* <VoteWrapper/> */}
         </Fragment>
     )
 }
