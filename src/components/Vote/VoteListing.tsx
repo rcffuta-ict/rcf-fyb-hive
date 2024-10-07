@@ -1,5 +1,7 @@
 'use client';
 import { motion, useScroll, Variants } from 'framer-motion';
+import Image from 'next/image';
+import { useRef } from 'react';
 import Slider from "react-slick";
 
 interface VoteCategoryListProps {
@@ -9,44 +11,71 @@ interface VoteCategoryListProps {
 
 const SkeletonVoteCard = () => {
     return (
-        <div className="skeleton-vote-card">
-            <div className="skeleton-avatar">
-                <div className="skeleton-shimmer"></div>
+        <div className="voter-card-container">
+            <div className="avatar-wrapper">
+                <div className="shimmer"></div>
             </div>
-            <div className="skeleton-name">
-                <div className="skeleton-shimmer"></div>
+            <div className="voter-card-name">
+                <div className="shimmer"></div>
             </div>
-            <div className="skeleton-info">
-                <div className="skeleton-shimmer"></div>
+            <div className="voter-card-info">
+                <div className="shimmer"></div>
             </div>
-            <div className="skeleton-button">
-                <div className="skeleton-shimmer"></div>
+            <div className="voter-card-button">
+                <div className="shimmer"></div>
             </div>
         </div>
     );
 };
 
 function VoteCard() {
+    const checkRef = useRef<HTMLInputElement>(null);
+    const handleSelect = () => {
+        if(!checkRef.current) return;
+
+
+        checkRef.current.checked = !checkRef.current.checked;
+    }
     return (
         <motion.div 
-            className="skeleton-container"
+            className="voter-card-container"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.5 } }}
             exit={{ opacity: 0 }}
         >
-            {/* Video Thumbnail */}
-            <div className="skeleton-thumbnail">
-                <div className="skeleton-shimmer"></div>
+            <div className="avatar-wrapper">
+                {/* <div className="shimmer"></div> */}
+                <Image
+                    src={"https://nobox-upload-bucket.s3.eu-west-2.amazonaws.com/uploads/a4239623-caed-42f3-9fd1-a3c31afa2471_img-20240929-wa0124.jpg"}
+                    alt='Avatar'
+                    width={200}
+                    height={200}
+                />
+            </div>
+            <div className="voter-card-name">
+                {/* <div className="shimmer"></div> */}
+                <p className='ff-riffic clr-primary fs-25'>
+                    Ruth Alabi
+                </p>
+                <p className='fs-16'>
+                    (Mama)
+                </p>
+            </div>
+            <div className="voter-card-info">
+                {/* <div className="shimmer"></div> */}
+                <p className='ff-poppins fs-18'>Executive of the year</p>
             </div>
 
-            {/* Title Placeholder */}
-            <div className="skeleton-title">
-                <div className="skeleton-shimmer"></div>
-            </div>
+            <div className="voter-card-button">
+                {/* <div className="shimmer"></div> */}
 
-            {/* Subtitle Placeholder */}
-            <div className="skeleton-subtitle">
-                <div className="skeleton-shimmer"></div>
+                <input ref={checkRef} type="radio" name='vote-check' id='vote-check'/>
+
+                <button onClick={handleSelect}>
+                    Vote
+                </button>
+
+
             </div>
         </motion.div>
     )
@@ -65,12 +94,6 @@ function VoteCategoryList(props: VoteCategoryListProps) {
     return (
         <div
             className="carousel-item" 
-            // initial="hidden" 
-            // animate="visible" 
-            // exit="exit" 
-            // variants={props.variants}
-            // key="slide1"
-            // style={{ backgroundColor: '#f9a825' }}
         >
 
             <div className="vote-lists">
@@ -79,7 +102,7 @@ function VoteCategoryList(props: VoteCategoryListProps) {
                 {
                     [...Array(5)].map((_, i)=>{
                         return (
-                            <SkeletonVoteCard key={i}/>
+                            <VoteCard key={i}/>
                         )
                     })
                 }

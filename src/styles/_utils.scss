@@ -136,58 +136,162 @@
 
 
 /* CSS for the skeleton loader */
-.skeleton-vote-card {
-    // width: 100%;
+.voter-card-container {
+    max-width: 90vw;
 
     width: 40rem;
-    height: 26rem;
 
-    // margin-inline: 5rem;
-    // max-width: 320px;
-    // height: 400px;
+    height: 28rem;
 
     border-radius: 12px;
     background-color: #f0f0f0;
-    padding: 20px;
+    // padding: 2rem 0rem;
+    padding-block: 2rem 2.5rem;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
+
+    &:has(input:checked) {
+        outline: 1px solid colors.$primary;
+        outline-offset: 4px;
+        box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+
+        background-color: #160a3623;
+    }
+
 }
 
-.skeleton-avatar {
-    width: 120px;
-    height: 120px;
+.avatar-wrapper {
+
+    $size: 200px;
+    width: $size;
+    height: $size;
+
     background-color: #e0e0e0;
-    border-radius: 50%;
+    // border-radius: 50%;
+    border-radius: 2rem;
     position: relative;
     overflow: hidden;
     margin-bottom: 20px;
+
+
+    img {
+        width: 100%;
+        height: auto;
+
+        object-fit: cover;
+    }
 }
 
-.skeleton-name,
-.skeleton-info {
+.voter-card-name,
+.voter-card-info {
     width: 80%;
-    height: 20px;
-    background-color: #e0e0e0;
+
+    text-align: center;
+    
     margin-top: 10px;
-    border-radius: 4px;
+    
     position: relative;
-    overflow: hidden;
+
+    &:has(.shimmer) {
+        height: 20px;
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    // p {
+    //     font-size: 2rem;
+    // }
 }
 
-.skeleton-button {
+.voter-card-button {
     width: 50%;
     height: 40px;
-    background-color: #e0e0e0;
-    border-radius: 20px;
+    
+    
     position: relative;
-    overflow: hidden;
+    
     margin-top: auto;
+
+    
+
+    button {
+        
+
+        --transition: all 500ms ease;
+        transition: var(--transition);
+        width: 100%;
+        // height: 100%;
+
+        border-radius: 5rem;
+
+        padding-block: 1rem;
+
+        position: relative;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 1.4rem;
+        font-weight: bold;
+
+
+        background-color: transparent;
+        border-color: colors.$primary;
+
+        cursor: pointer;
+
+
+
+        &::after {
+            transition: var(--transition);
+            content: '';
+            background-image: url('/icons/check-circle.svg');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+
+            width: 2rem;
+            aspect-ratio: 1;
+
+            position: relative;
+
+            right: -2rem;
+        }
+    }
+
+
+    input {
+        width: 0rem;
+        height: 0rem;
+
+        position: absolute;
+
+        &:checked ~ button {
+            
+            background-color: colors.$primary !important;
+            color: colors.$white;
+            
+            &::after {
+                background-image: url('/icons/check-badge.svg');
+            }
+        }
+    }
+
+
+    &:has(.shimmer) {
+        background-color: #e0e0e0;
+        border-radius: 20px;
+        overflow: hidden;
+    }
 }
 
-.skeleton-shimmer {
+.shimmer {
     position: absolute;
     top: 0;
     left: -100%;
