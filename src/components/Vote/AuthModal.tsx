@@ -67,8 +67,8 @@ export default function AuthModal(props: AuthModalProps) {
             messageApi.error("Sorry you're not allowed!");
             setFormError((p)=>{
                 return {
-                    email: 'Your email address is likely not recognized!',
-                    password: 'Your password may be wrong!'
+                    email: "It looks like you didn't register to vote",
+                    password: 'Perhaps, your password may be wrong!'
                 }
             });
             setLoading(false);
