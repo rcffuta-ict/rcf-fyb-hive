@@ -5,11 +5,12 @@ import { VoteCategory, VoteCategoryModel, VoteCategoryObject } from '@/lib/nobox
 import { message } from 'antd';
 import { MessageInstance } from 'antd/es/message/interface';
 import React, {createContext, FC, PropsWithChildren, useContext, useEffect, useMemo, useState} from 'react';
-import nomineeList from '@/data/nominees.json';
+
 import { NomineeBase, NomineeList } from '@/data/data.types';
 import { VoterObject } from '@/lib/nobox/record-structures/voter';
 import AuthIndicator from '@/components/Vote/AuthIndicator';
 import AuthModal from '@/components/Vote/AuthModal';
+import { nominee } from '@/lib/nobox/config';
 
 
 const canVote = false;
@@ -201,7 +202,7 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
 
 
     const voteList = useMemo(()=>{
-        const nomList = nomineeList as unknown as NomineeBase[];
+        const nomList = nominee as unknown as NomineeBase[];
 
         // if (!user) return null;
         if (loading || !voteCategories) return (nomList as unknown as NomineeList[]);

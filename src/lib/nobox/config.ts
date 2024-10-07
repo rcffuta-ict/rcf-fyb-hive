@@ -1,4 +1,6 @@
 import  {  Config,  getFunctions,  getSchemaCreator  }  from  "nobox-client";
+import nomineeListProd from '@/data/nominees_prod.json';
+import nomineeListDev from '@/data/nominees_dev.json';
 
 
 const project =  process.env.NEXT_PUBLIC_NOBOX_PROJECT || process.env.NOBOX_PROJECT;
@@ -40,6 +42,8 @@ export const config: Config = {
     endpoint:  process.env.NEXT_PUBLIC_NOBOX_API || "https://api.nobox.cloud",
     project, token
 };
+
+export const nominee = process.env.NODE_ENV === 'development' ? nomineeListDev : nomineeListProd;
 
 export const createRowSchema = getSchemaCreator(config, { type: "rowed" });
 
