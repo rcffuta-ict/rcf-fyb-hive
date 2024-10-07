@@ -1,8 +1,18 @@
 [
     {
-        "categoryId": "",
+        "categoryId": "6704209a2d2bb21312c61f64",
         "contestants": [
-            "123", "456"
+            "66ff371d2d2bb21312c61ae6", "66f205602d2bb21312c615d1",
+            "66f2042ae001778cda018095", "66f204202d2bb21312c615c3"
+        ]
+    },
+    {
+        "categoryId": "670420a52d2bb21312c61f66",
+        "contestants": [
+            "66ff371d2d2bb21312c61ae6",
+            "66f205602d2bb21312c615d1",
+            "66f2042ae001778cda018095",
+            "66f204202d2bb21312c615c3"
         ]
     }
 ]

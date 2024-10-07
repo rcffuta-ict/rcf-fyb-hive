@@ -9,6 +9,7 @@ import nomineeList from '@/data/nominees.json';
 import { NomineeBase, NomineeList } from '@/data/data.types';
 import { VoterObject } from '@/lib/nobox/record-structures/voter';
 import AuthIndicator from '@/components/Vote/AuthIndicator';
+import AuthModal from '@/components/Vote/AuthModal';
 
 interface VoteContextProps {
     obtainGuestRecord: (id:string) => Promise<GuestObject | null>;
@@ -182,9 +183,13 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
             {contextHolder}
             <VoteContext.Provider value={context}>
                 {
-                    user && (
+                    user ? (
 
                         <AuthIndicator user={user}/>
+                    ) : (
+                        <AuthModal show={true} onHide={(data: VoterObject)=>{
+                            setUser(data)
+                        }}/>
                     )
                 }
                 {props.children}

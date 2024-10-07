@@ -15,7 +15,7 @@ import Attribution from '../Attribution';
 
 interface AuthModalProps {
     show?: boolean;
-    onHide: ()=>void;
+    onHide: (data: VoterObject)=>void;
 }
 
 export default function AuthModal(props: AuthModalProps) {
@@ -55,45 +55,27 @@ export default function AuthModal(props: AuthModalProps) {
 
         messageApi.open({
             type: 'loading',
-            content: 'Registering you...',
+            content: 'Checking you...',
             duration: 0,
             key: 'loader-1'
         });
 
-        const g = await VoterModel.findOne({email: formData.email});
+        const g = await VoterModel.findOne({email: formData.email, password: formData.password});
 
-        if (g) {
+        if (!g) {
             messageApi.destroy('loader-1');
-            messageApi.error('There is an issue with your information');
+            messageApi.error("Sorry you're not allowed!");
             setFormError((p)=>{
                 return {
-                    email: 'You cannot use this email address'
+                    email: 'Your email address is not recognized!'
                 }
             });
             setLoading(false);
             return
         }
 
-        const _d = {...formData};
 
-        delete _d['confirm_password'];
-
-        submitForm(_d)
-        .then(async (voter: VoterObject)=>{
-            // console.debug(voter);
-            setFormError(()=>null);
-            openNotificationWithIcon('success', 'Form Submitted', "Your've been registered! Check back soon to vote.");
-
-            props.onHide();
-        })
-        .catch((err)=>{
-            console.error(err);
-            openNotificationWithIcon('error', 'Unable to create account', 'Could not register you!');
-        })
-        .finally(()=>{
-            messageApi.destroy('loader-1');
-            setLoading(false);
-        })
+        props.onHide(g);
         
     }
 
@@ -138,7 +120,7 @@ export default function AuthModal(props: AuthModalProps) {
                             exit="exit" className="auth-modal-content">
 
                                 <h1 className="text-center clr-primary ff-riffic fw-700 lh-60">
-                                    Alright! Let&apos;s set you up.
+                                    Hello! Who are you?
                                 </h1>
 
 
@@ -149,108 +131,30 @@ export default function AuthModal(props: AuthModalProps) {
                                     autoComplete="off"
                                     // initialValues={formData}
                                 >
-
-
-                                    <div className="form-group mt-1">
-                                        <TextInput
-                                            disable={loading}
-                                            name="name"
-                                            label="Full Name"
-                                            onChange={handleElemChange}
-                                            getValue={getValue}
-                                            required
-                                            error={formerror}
-                                        />
-
-                                        <TextInput
-                                            disable={loading}
-                                            name="email"
-                                            label="Email"
-                                            email
-                                            onChange={handleElemChange}
-                                            getValue={getValue}
-                                            required
-                                            error={formerror}
-                                        />
-                                    </div>
-
-
-
-                                    {/* <br/> */}
-
-
-
-
-                                    <CheckInput
-                                        label="What level?"
-                                        name="level"
+                                    <br/>
+                                    <TextInput
+                                        disable={loading}
+                                        name="email"
+                                        label="What's your email address?"
+                                        email
                                         onChange={handleElemChange}
                                         getValue={getValue}
-                                        className='my-1'
-                                        options={[
-                                            {
-                                                id:'level-100',
-                                                label: '100 Level',
-                                                icon: '',
-                                                value: '100',
-                                            },
-                                            {
-                                                id:'level-200',
-                                                label: '200 Level',
-                                                icon: '',
-                                                value: '200',
-                                            },
-                                            {
-                                                id:'level-300',
-                                                label: '300 Level',
-                                                icon: '',
-                                                value: '300',
-                                            },
-                                            {
-                                                id:'level-400',
-                                                label: '400 Level',
-                                                icon: '',
-                                                value: '400',
-                                                disable: false,
-                                            },
-                                            {
-                                                id:'level-500',
-                                                label: '500 Level',
-                                                icon: '',
-                                                value: '500',
-                                                disable: false,
-                                            },
-                                        ]}
+                                        required
+                                        error={formerror}
+                                    />
+
+                                    <br/>
+
+                                    <TextInput
+                                        name="password"
+                                        label="What's your password?"
+                                        password
+                                        onChange={handleElemChange}
+                                        getValue={getValue}
                                         required
                                         error={formerror}
                                         disable={loading}
                                     />
-
-                                    {/* <br/> */}
-
-
-                                    <div className="form-group ">
-                                        <TextInput
-                                            name="password"
-                                            label="Set a password for yourself"
-                                            password
-                                            onChange={handleElemChange}
-                                            getValue={getValue}
-                                            required
-                                            error={formerror}
-                                            disable={loading}
-                                        />
-                                        <TextInput
-                                            name="confirm_password"
-                                            label="Type your password again"
-                                            password
-                                            onChange={handleElemChange}
-                                            getValue={getValue}
-                                            required
-                                            error={formerror}
-                                            disable={loading}
-                                        />
-                                    </div>
 
                                     <br/>
 
@@ -261,11 +165,11 @@ export default function AuthModal(props: AuthModalProps) {
                                         <button
                                             className="btn btn-primary text-uppercase btn-submit fw-700 fs-18"
                                             // onClick={handl}
-                                            title='Submit'
+                                            title='Login'
                                             type='submit'
                                             disabled={loading}
                                         >
-                                            {loading ? 'Loading...': 'Submit'}
+                                            {loading ? 'Loading...': 'Continue'}
                                         </button>
                                     </div>
                                     <br/>

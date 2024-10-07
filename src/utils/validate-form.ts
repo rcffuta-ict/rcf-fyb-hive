@@ -101,16 +101,16 @@ export function validateAuthenticationForm(_data: any) {
     } = _data;
 
 
-    if (!name) _formError.name = 'Your full name is required';
+    // if (!name) _formError.name = 'Your full name is required';
     if (!email) _formError.email = 'Your email address is required';
-    if (!level) _formError.level = 'Your level please?'
+    // if (!level) _formError.level = 'Your level please?'
     if (!password) _formError.password = 'Your password please?'
 
-    if (password) {
-        if (!confirm_password) _formError.confirm_password = 'Please type your password again';
+    // if (password) {
+    //     if (!confirm_password) _formError.confirm_password = 'Please type your password again';
 
-        if (!Object.is(password, confirm_password)) _formError.confirm_password = 'Password does not match!';
-    }
+    //     if (!Object.is(password, confirm_password)) _formError.confirm_password = 'Password does not match!';
+    // }
 
 
 

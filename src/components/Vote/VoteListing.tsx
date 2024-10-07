@@ -52,8 +52,13 @@ function VoteCard(props: VoteCardProps) {
 
     useEffect(()=>{
         (async ()=>{
-            if (guest || guest == null) return;
+
+            
+            if (guest || guest === null) return;
+
             const _g = await obtainGuestRecord(props.contestantId)
+
+            console.log(_g)
 
             setGuest(()=>{
                 if (!_g) return null;
@@ -61,8 +66,10 @@ function VoteCard(props: VoteCardProps) {
                 return _g;
             })
         })()
-    }, [props.contestantId, guest, obtainGuestRecord])
+    },)
 
+
+    
 
     if (guest === undefined) return <SkeletonVoteCard/>
 
@@ -123,7 +130,11 @@ function VoteCategoryList(props: VoteCategoryListProps) {
                 {
                     props.contestants.map((contestant, i)=>{
 
-                        if (loading || !props.category) return <SkeletonVoteCard key={i}/>
+                        // if (loading || !props.category) return <SkeletonVoteCard key={i}/>
+
+                        if (loading) return <SkeletonVoteCard key={i}/>;
+
+                        if (!props.category) return <SkeletonVoteCard key={i}/>
                         return (
                             <VoteCard
                                 key={i}
