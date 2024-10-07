@@ -26,6 +26,9 @@
 }
 
 @include mixins.responsive-options('fs') {
+    &-12 {
+        font-size: 0.75rem;
+    }
     &-14 {
         font-size: 0.875rem;
     }

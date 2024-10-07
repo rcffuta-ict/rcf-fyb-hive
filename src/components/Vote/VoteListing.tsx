@@ -95,7 +95,6 @@ function VoteCategoryList(props: VoteCategoryListProps) {
         <div
             className="carousel-item" 
         >
-
             <div className="vote-lists">
 
             {/* <Slider {...settings}> */}
@@ -122,10 +121,34 @@ export default function VoteListing() {
     return (
         <section className="carousel-container">
             
-            
-            <VoteCategoryList variants={slideVariants}/>
-            <VoteCategoryList variants={slideVariants}/>
-            <VoteCategoryList variants={slideVariants}/>
+            <div className="vote-wrapper">
+
+                <div className="vote-header">
+
+                    <h3 className='ff-riffic fs-25 lg-fs-48'>Executive of the Year</h3>
+
+
+                </div>
+
+                <VoteCategoryList variants={slideVariants}/>
+            </div>
+            <div className="vote-wrapper">
+
+                <div className="vote-header">
+                    <h3 className='ff-riffic fs-25 lg-fs-48'>Executive of the Year</h3>
+                </div>
+
+                <VoteCategoryList variants={slideVariants}/>
+            </div>
+            <div className="vote-wrapper">
+
+                <div className="vote-header">
+                    <h3 className='ff-riffic fs-25 lg-fs-48'>Executive of the Year</h3>
+                </div>
+
+                <VoteCategoryList variants={slideVariants}/>
+            </div>
+
             
 
         </section>

@@ -31,6 +31,8 @@
 
     z-index: 2;
 
+    margin-top: 2rem;
+
     // height: 5rem;
     // background-color: green;
     
@@ -915,7 +917,7 @@ form {
 
 .carousel-container {
     scroll-snap-type: y mandatory;
-    overflow-y: scroll;
+    // overflow-y: scroll;
     height: 100vh;
     scroll-behavior: smooth;
 }
@@ -925,13 +927,9 @@ form {
 
     
     width: 100%;
-    scroll-snap-align: start;
+    // scroll-snap-align: start;
 
     overflow: auto;
-
-    // overflow: hidden;
-
-    // background-color: red;
 
     display: flex;
     gap: 5rem;
@@ -949,4 +947,42 @@ form {
 
     
     gap: 5rem;
+}
+
+.vote-wrapper {
+    padding-block: 2rem;
+
+    .vote-header {
+        // text-align: center;
+
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin-block: 1rem;
+
+        &::before {
+            content: '';
+            width: 5rem;
+            aspect-ratio: 1;
+
+            background-image: url('/icons/award.svg');
+            background-position: center;
+            background-size: cover;
+
+            background-repeat: no-repeat;
+
+            
+        }
+
+        
+        h3 {
+            // font-size: 3rem;
+        }
+        // position: sticky;
+        // top: 0rem;
+
+        // z-index: 15rem;
+    }
 }

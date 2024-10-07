@@ -360,3 +360,18 @@
 .vote-button:hover {
     background-color: #0056b3;
 }
+
+
+.auth-indicator-wrapper {
+    position: fixed;
+    top: 0;
+    right: 0rem;
+
+    z-index: 10;
+
+    background-color: colors.$white;
+
+    // h1 {
+    //     font-size: 1rem;
+    // }
+}
