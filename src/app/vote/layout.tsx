@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { Metadata } from "next";
+import AuthIndicator from "@/components/Vote/AuthIndicator";
 
 
 export const metadata: Metadata = {
@@ -15,8 +16,10 @@ export default function FixedWidthLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <Fragment>
+        <main className="vote-layout">
             {children}
-        </Fragment>
+
+            <AuthIndicator user={{}}/>
+        </main>
     );
 }

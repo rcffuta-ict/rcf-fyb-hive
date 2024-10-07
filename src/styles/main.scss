@@ -24,10 +24,18 @@
     }
 }
 
+body:has(.vote-layout) {
+    .logo-wrapper {
+        top: 2rem !important;
+    }
+}
+
 .logo-wrapper {
     background-color: colors.$white;
     width: 100%;
     height: calc(17rem / 3);
+
+    // top: 2rem !important;
 
     z-index: 2;
 
@@ -453,6 +461,8 @@ form {
     color: rgb(190, 189, 189);
 
     text-align: center;
+
+    
 }
 
 .text-uppercase {
@@ -918,7 +928,7 @@ form {
 .carousel-container {
     scroll-snap-type: y mandatory;
     // overflow-y: scroll;
-    height: 100vh;
+    min-height: 100vh;
     scroll-behavior: smooth;
 }
 

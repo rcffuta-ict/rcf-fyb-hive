@@ -22,8 +22,6 @@ export default function Vote() {
 
             <br/>
 
-            <AuthIndicator user={{}}/>
-
             <VoteListing/>
 
             {/* <VoteWrapper/> */}
