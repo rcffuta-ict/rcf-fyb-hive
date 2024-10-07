@@ -26,7 +26,8 @@
 
 body:has(.vote-layout) {
     .logo-wrapper {
-        margin-top: 4rem;
+        // margin-top: 4rem;
+        top: 2rem !important;
     }
 }
 
@@ -933,16 +934,16 @@ form {
 }
 
 .carousel-item {
-    min-height: 50vh;
+    min-height: 60vh;
 
     
     width: 100%;
-    // scroll-snap-align: start;
+    scroll-snap-align: start;
 
     overflow: auto;
 
     display: flex;
-    gap: 5rem;
+    // gap: 2rem;
     flex-wrap: nowrap;
     // justify-content: center;
     align-items: center;
@@ -956,7 +957,7 @@ form {
 
 
     
-    gap: 5rem;
+    gap: 2rem;
 }
 
 .vote-wrapper {
@@ -972,6 +973,9 @@ form {
 
         margin-block: 1rem;
 
+        max-width: 95%;
+        margin-inline: auto;
+
         &::before {
             content: '';
             width: 5rem;
@@ -985,14 +989,5 @@ form {
 
             
         }
-
-        
-        h3 {
-            // font-size: 3rem;
-        }
-        // position: sticky;
-        // top: 0rem;
-
-        // z-index: 15rem;
     }
 }

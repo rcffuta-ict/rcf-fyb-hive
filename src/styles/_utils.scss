@@ -162,6 +162,15 @@
         background-color: #160a3623;
     }
 
+
+    &:first-of-type {
+        margin-left: 1.5rem;
+    }
+
+    &:last-of-type {
+        margin-right: 1.5rem;
+    }
+
 }
 
 .avatar-wrapper {
@@ -262,7 +271,7 @@
 
             position: relative;
 
-            right: -2rem;
+            right: -1rem;
         }
     }
 
@@ -367,12 +376,24 @@
     position: fixed;
     top: 0;
     right: 0rem;
+    left: 0rem;
 
+    width: 100%;
+
+    
     z-index: 10;
-
+    
+    // background-color: red;
     background-color: colors.$white;
 
-    // h1 {
-    //     font-size: 1rem;
-    // }
+    h1 {
+        width: 90%;
+        margin-inline: auto;
+        white-space: nowrap;
+        /* Prevent the text from wrapping to a new line */
+        overflow: hidden;
+        /* Hide any text that goes beyond the container */
+        text-overflow: ellipsis;
+        /* Add ellipsis (...) at the end of the text */
+    }
 }
