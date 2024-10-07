@@ -1,13 +1,23 @@
 'use client';
+import { useVote } from '@/context/VoteContext';
+import { GuestObject } from '@/lib/nobox/record-structures/Guest';
+import { VoteCategoryObject } from '@/lib/nobox/record-structures/voteCategory';
+import { getGuestName } from '@/utils/process-details';
 import { motion, useScroll, Variants } from 'framer-motion';
 import Image from 'next/image';
-import { useRef } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import Slider from "react-slick";
 
 interface VoteCategoryListProps {
-    variants: Variants
+    variants: Variants;
+    contestants: string[];
+    category?: VoteCategoryObject;
 }
 
+interface VoteCardProps {
+    contestantId: string;
+    category: VoteCategoryObject;
+}
 
 const SkeletonVoteCard = () => {
     return (
@@ -28,14 +38,36 @@ const SkeletonVoteCard = () => {
     );
 };
 
-function VoteCard() {
+function VoteCard(props: VoteCardProps) {
+
+    const {obtainGuestRecord} = useVote();
+    const [guest, setGuest] = useState<GuestObject | null | undefined>();
+
     const checkRef = useRef<HTMLInputElement>(null);
     const handleSelect = () => {
         if(!checkRef.current) return;
 
-
         checkRef.current.checked = !checkRef.current.checked;
     }
+
+    useEffect(()=>{
+        (async ()=>{
+            if (guest || guest == null) return;
+            const _g = await obtainGuestRecord(props.contestantId)
+
+            setGuest(()=>{
+                if (!_g) return null;
+
+                return _g;
+            })
+        })()
+    }, [props.contestantId, guest, obtainGuestRecord])
+
+
+    if (guest === undefined) return <SkeletonVoteCard/>
+
+    if (guest === null) return null;
+
     return (
         <motion.div 
             className="voter-card-container"
@@ -46,8 +78,8 @@ function VoteCard() {
             <div className="avatar-wrapper">
                 {/* <div className="shimmer"></div> */}
                 <Image
-                    src={"https://nobox-upload-bucket.s3.eu-west-2.amazonaws.com/uploads/a4239623-caed-42f3-9fd1-a3c31afa2471_img-20240929-wa0124.jpg"}
-                    alt='Avatar'
+                    src={guest.picture}
+                    alt={guest.firstname + ' Picture'}
                     width={200}
                     height={200}
                 />
@@ -55,15 +87,15 @@ function VoteCard() {
             <div className="voter-card-name">
                 {/* <div className="shimmer"></div> */}
                 <p className='ff-riffic clr-primary fs-25'>
-                    Ruth Alabi
+                    {getGuestName(guest)}
                 </p>
-                <p className='fs-16'>
+                {/* <p className='fs-16'>
                     (Mama)
-                </p>
+                </p> */}
             </div>
             <div className="voter-card-info">
                 {/* <div className="shimmer"></div> */}
-                <p className='ff-poppins fs-18'>Executive of the year</p>
+                <p className='ff-poppins fs-18 text-capitalize'>{props.category.label}</p>
             </div>
 
             <div className="voter-card-button">
@@ -74,8 +106,6 @@ function VoteCard() {
                 <button onClick={handleSelect}>
                     Vote
                 </button>
-
-
             </div>
         </motion.div>
     )
@@ -83,35 +113,34 @@ function VoteCard() {
 
 function VoteCategoryList(props: VoteCategoryListProps) {
 
-    var settings = {
-        dots: true,
-        infinite: true,
-        speed: 500,
-        slidesToShow: 1,
-        slidesToScroll: 1,
-    };
+    const {loading} = useVote();
 
     return (
         <div
             className="carousel-item" 
         >
-            <div className="vote-lists">
-
-            {/* <Slider {...settings}> */}
+            <div className="vote-lists">        
                 {
-                    [...Array(5)].map((_, i)=>{
+                    props.contestants.map((contestant, i)=>{
+
+                        if (loading || !props.category) return <SkeletonVoteCard key={i}/>
                         return (
-                            <VoteCard key={i}/>
+                            <VoteCard
+                                key={i}
+                                contestantId={contestant}
+                                category={props.category}
+                            />
                         )
                     })
                 }
-            {/* </Slider> */}
             </div>
         </div>
     )
 }
 
 export default function VoteListing() {
+    const {voteList} = useVote();
+
     const slideVariants = {
         hidden: { opacity: 0, y: 50 },  // Slide enters from below
         visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } },
@@ -120,37 +149,26 @@ export default function VoteListing() {
 
     return (
         <section className="carousel-container">
-            
-            <div className="vote-wrapper">
 
-                <div className="vote-header">
+            {
+                voteList.map((voteCategory)=>{
+                    return (
+                        <div className="vote-wrapper" key={voteCategory.categoryId}>
 
-                    <h3 className='ff-riffic fs-25 lg-fs-48'>Executive of the Year</h3>
+                            <div className="vote-header">
 
+                                <h3 className='ff-riffic fs-25 lg-fs-48 text-capitalize'>{voteCategory.category?.label || 'loading...'}</h3>
+                            </div>
 
-                </div>
-
-                <VoteCategoryList variants={slideVariants}/>
-            </div>
-            <div className="vote-wrapper">
-
-                <div className="vote-header">
-                    <h3 className='ff-riffic fs-25 lg-fs-48'>Executive of the Year</h3>
-                </div>
-
-                <VoteCategoryList variants={slideVariants}/>
-            </div>
-            <div className="vote-wrapper">
-
-                <div className="vote-header">
-                    <h3 className='ff-riffic fs-25 lg-fs-48'>Executive of the Year</h3>
-                </div>
-
-                <VoteCategoryList variants={slideVariants}/>
-            </div>
-
-            
-
+                            <VoteCategoryList
+                                variants={slideVariants}
+                                contestants={voteCategory.contestants}
+                                category={voteCategory.category}
+                            />
+                        </div>
+                    )
+                })
+            }
         </section>
     )
 }

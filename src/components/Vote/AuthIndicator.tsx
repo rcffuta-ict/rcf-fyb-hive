@@ -3,11 +3,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { Fragment } from 'react';
 import Attribution from '../Attribution';
+import { VoterObject } from '@/lib/nobox/record-structures/voter';
 
 
 
 interface AuthModalProps {
-    user: any;
+    user: VoterObject;
 }
 
 export default function AuthIndicator(props: AuthModalProps) {
@@ -42,7 +43,7 @@ export default function AuthIndicator(props: AuthModalProps) {
                     exit="exit" className="auth-modal-content donna">
 
                         <h1 className="text-center clr-primary ff-riffic fw-700 fs-14">
-                            Logged In as: Precious Olusola
+                            Logged In as: {props.user.name}
                         </h1>
 
                         {/* <Attribution /> */}

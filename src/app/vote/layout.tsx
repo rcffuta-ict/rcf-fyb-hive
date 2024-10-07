@@ -3,6 +3,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { Metadata } from "next";
 import AuthIndicator from "@/components/Vote/AuthIndicator";
+import { VoteContextProvider } from "@/context/VoteContext";
 
 
 export const metadata: Metadata = {
@@ -17,9 +18,9 @@ export default function FixedWidthLayout({
 }>) {
     return (
         <main className="vote-layout">
-            {children}
-
-            <AuthIndicator user={{}}/>
+            <VoteContextProvider>
+                {children}
+            </VoteContextProvider>
         </main>
     );
 }
