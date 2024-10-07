@@ -127,7 +127,7 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
             // Upload vote
 
             if (!user) throw new Error("Cannot Vote!");
-            if (!canVote) throw new Error("You cannot vote yet! Come back soon.");
+            if (!canVote) throw new Error("You cannot vote yet! Please hold on.");
 
             if (!userVotes) {
                 _urs_vote = await VoteModel.insertOne({
