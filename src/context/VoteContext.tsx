@@ -11,6 +11,11 @@ import { VoterObject } from '@/lib/nobox/record-structures/voter';
 import AuthIndicator from '@/components/Vote/AuthIndicator';
 import AuthModal from '@/components/Vote/AuthModal';
 
+
+const canVote = false;
+
+
+
 interface VoteContextProps {
     obtainGuestRecord: (id:string) => Promise<GuestObject | null>;
     messageApi: MessageInstance;
@@ -121,6 +126,7 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
             // Upload vote
 
             if (!user) throw new Error("Cannot Vote!");
+            if (!canVote) throw new Error("You cannot vote yet! Come back soon.");
 
             if (!userVotes) {
                 _urs_vote = await VoteModel.insertOne({
