@@ -142,5 +142,46 @@
             "66f1e737e001778cda018046",
             "66f98ff72d2bb21312c61885"
         ]
-    }    
+    },
+    {
+        "categoryId": "670434f96483b01eb5e25a54",
+        "contestants": []
+    },
+    {
+        "categoryId": "670435206483b01eb5e25a56",
+        "contestants": [
+            "66e4c14a5e78e14b411a914c",
+            "66efcabb6483b01eb5e24c82",
+            "66e35c4af28bf30a17963b75"
+        ]
+    },
+    {
+        "categoryId": "670435726483b01eb5e25a58",
+        "contestants": [
+            "66e6c7cc5e78e14b411a9bd1",
+            "66e89d655e78e14b411ab018",
+           "66f07f5a2d2bb21312c61404"
+        ]
+    },
+    {
+        "categoryId": "670435dbe001778cda018ac4",
+        "contestants": [
+            "66e35c4af28bf30a17963b75",
+            "66e4bf1f8e618e1f163f1507"
+        ]
+    },
+    {
+        "categoryId": "670436216483b01eb5e25a5a",
+        "contestants": [
+            "66e80cfcf28bf30a179652b6",
+            "66e1b6a48e618e1f163f0e25"
+        ]
+    },
+    {
+        "categoryId": "6704367d6483b01eb5e25a5c",
+        "contestants": [
+            "66e98689e001778cda0163e1",
+            "66e150488e618e1f163f0837"
+        ]
+    }
 ]
