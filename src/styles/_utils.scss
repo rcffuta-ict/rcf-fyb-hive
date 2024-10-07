@@ -152,7 +152,28 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    
     position: relative;
+
+
+    &::before {
+        content: attr(data-label);
+        /* Set the label based on data attribute */
+        position: absolute;
+        top: 2rem;
+        right: -2rem;
+        transform: translate(-50%, -50%);
+        /* Center the label */
+        font-size: .8rem;
+        letter-spacing: .3rem;
+        color: colors.$primary;;
+        font-weight: bold;
+
+        border: 1px solid colors.$primary;
+        padding: .5rem .9rem;
+        border-radius: 4rem;
+
+    }
 
     &:has(input[data-checked="true"]) {
         outline: 1px solid colors.$primary;

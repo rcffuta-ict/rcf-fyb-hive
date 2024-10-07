@@ -17,6 +17,7 @@ interface VoteCategoryListProps {
 interface VoteCardProps {
     contestantId: string;
     category: VoteCategoryObject;
+    label: string;
 }
 
 const SkeletonVoteCard = () => {
@@ -89,6 +90,8 @@ function VoteCard(props: VoteCardProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.5 } }}
             exit={{ opacity: 0 }}
+
+            data-label={props.label}
         >
             <div className="avatar-wrapper">
                 {/* <div className="shimmer"></div> */}
@@ -148,6 +151,7 @@ function VoteCategoryList(props: VoteCategoryListProps) {
                                 key={i}
                                 contestantId={contestant}
                                 category={props.category}
+                                label={`${i+1}/${props.contestants.length}`}
                             />
                         )
                     })
