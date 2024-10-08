@@ -109,7 +109,7 @@ function VoteCard(props: VoteCardProps) {
             <div className="voter-card-name">
                 {/* <div className="shimmer"></div> */}
                 <p className='ff-riffic clr-primary fs-25'>
-                    {getGuestName(guests)}
+                    {getGuestName(guests, guests.length > 1)}
                 </p>
                 {props.contestant.alias && (<p className='fs-16'>
                     ({props.contestant.alias})
