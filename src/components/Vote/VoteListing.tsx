@@ -178,9 +178,9 @@ export default function VoteListing() {
         <section className="carousel-container">
 
             {
-                voteList.map((voteCategory)=>{
+                voteList.map((voteCategory, i)=>{
                     return (
-                        <div className="vote-wrapper" key={voteCategory.categoryId}>
+                        <div className="vote-wrapper" key={i}>
 
                             <div className="vote-header">
 
