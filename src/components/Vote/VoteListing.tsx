@@ -80,6 +80,8 @@ function VoteCard(props: VoteCardProps) {
     const isMultiple = guests.length > 1;
     const shouldMaintain = guests.length === 2;
 
+    // console.debug(guests);
+
     return (
         <motion.div 
             className="voter-card-container"
@@ -93,8 +95,8 @@ function VoteCard(props: VoteCardProps) {
             <div className="avatar-wrapper-container" data-multiple={isMultiple}>
 
                 {
-                    guests.map((guest)=>(
-                        <div className="avatar-wrapper" key={guest.id} data-maintain={shouldMaintain}>
+                    guests.map((guest, i)=>(
+                        <div className="avatar-wrapper" key={i} data-maintain={shouldMaintain}>
                             {/* <div className="shimmer"></div> */}
                             <Image
                                 src={guest.picture}

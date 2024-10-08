@@ -44,7 +44,7 @@ export function useVote() {
 
 export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
     const [messageApi, contextHolder] = message.useMessage();
-    const [guestLog, setGuestLog] = useState<GuestObject[]>([]);
+    const [guestLog, setGuestLog] = useState<GuestObject[] | null>(null);
 
     const [user, setUser] = useState<VoterObject | null>(null);
     const [userVotes, setUserVotes] = useState<VoteObject | null>(null);
@@ -57,36 +57,39 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
 
         let ids = ref.split(',').map((e)=>e.trim());
 
-        const _new_entry: GuestObject[] = [];
+        // const _new_entry: GuestObject[] = [];
 
         const _guests = ids.map((id)=>{
 
-            return new Promise(async (res, rej)=>{
+            const __guest = (guestLog || []).find((item)=>item.id === id);
 
-                const __guest = guestLog.find((item)=>item.id === id);
+            return __guest;
+            // return new Promise(async (res, rej)=>{
 
-                if (__guest) {
-                    return res(__guest);
-                }
 
-                const _new_guest = await GuestModel.findOne({ id });
+            //     if (__guest) {
+            //         return res(__guest);
+            //     }
 
-                _new_entry.push(_new_guest);
+            //     const _new_guest = await GuestModel.findOne({ id });
 
-                res(_new_guest);
+            //     _new_entry.push(_new_guest);
 
-            })
+            //     res(_new_guest);
+
+            // })
         })
 
-        const guest = await Promise.all(_guests) as GuestObject[];
+        // const guest = await Promise.all(_guests) as GuestObject[];
+
 
         
-        setGuestLog((p)=>{
-            return [...p, ..._new_entry];
-        });
+        // setGuestLog((p)=>{
+        //     return [...p, ..._new_entry].filter((e)=>Boolean(e));
+        // });
         
         // console.debug(ref, "=> guest:", guest);
-        return guest;
+        return _guests.filter((e)=>Boolean(e)) as GuestObject[];
 
     }
 
@@ -115,6 +118,10 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
                     setVoteCategories(()=>categories);
                 }
 
+                if(!guestLog) {
+                    const _guest = await GuestModel.find({});
+                    setGuestLog(()=>_guest);
+                }
     
                 // setTickets(()=>_all_tickets);
                 // return
@@ -126,7 +133,7 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
 
         })()
 
-    });
+    }, [user, userVotes, voteCategories, guestLog]);
 
 
 
