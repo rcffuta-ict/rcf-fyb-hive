@@ -53,16 +53,6 @@ export const TicketContextProvider:FC<PropsWithChildren> = (props) => {
 
     const [loading, setLoading] = useState(true);
 
-    // const [searchTerm, setSearchTerm] = useState<string>(''); // For search input
-    // const debouncedSearchTerm = useDebounce(searchTerm, 300); // Using debounced value
-
-    // // Memoized filtered results to avoid recalculating on every render
-    // const filteredResults = useMemo(() => {
-    //     return guestLog.filter(item =>
-    //         item.firstname.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    //     );
-    // }, [debouncedSearchTerm]); // Only recalculate when `debouncedSearchTerm` changes
-
 
     const obtainGuestRecord = async (id: string) => {
 
@@ -161,7 +151,7 @@ export const TicketContextProvider:FC<PropsWithChildren> = (props) => {
 
                     <div className="dot-sep">
                         <span>{tickets.length * 2} guest{tickets.length > 0 ? 's': '' }</span>
-                        <span>{tickets.length} registered</span>
+                        <span>{tickets.length} Paired </span>
                         <span>{tickets.filter((e)=>e.confirmed).length} approved</span>
                     </div>
                 </h1>
