@@ -13,7 +13,7 @@ import AuthModal from '@/components/Vote/AuthModal';
 import { nominee } from '@/lib/nobox/config';
 
 
-const canVote = true;
+const canVote = false;
 
 
 

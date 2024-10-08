@@ -2,205 +2,205 @@
     {
         "categoryId": "67051251e001778cda01b623",
         "contestants": [
-            "66ffd3952d2bb21312c61c1d",
-            "66ea26912d2bb21312c5ff71",
-            "66e6c7cc5e78e14b411a9bd1",
-            "66e1b3bf5e78e14b411a8988",
-            "66e51e6ef28bf30a179640c3"
+            {"ref":"66ffd3952d2bb21312c61c1d"},
+            {"ref":"66ea26912d2bb21312c5ff71"},
+            {"ref":"66e6c7cc5e78e14b411a9bd1"},
+            {"ref":"66e1b3bf5e78e14b411a8988"},
+            {"ref":"66e51e6ef28bf30a179640c3"}
         ]
     },
     {
         "categoryId": "67042d88e001778cda018aae",
         "contestants": [
-            "66e1b7528e618e1f163f0e54",
-            "66ff0d46e001778cda018539",
-            "66ef3a416483b01eb5e24bac",
-            "66fac137e001778cda0183e3"
+            {"ref":"66e1b7528e618e1f163f0e54"},
+            {"ref":"66ff0d46e001778cda018539"},
+            {"ref":"66ef3a416483b01eb5e24bac"},
+            {"ref":"66fac137e001778cda0183e3"}
         ]
     },
     {
         "categoryId": "67042dd06483b01eb5e25a45",
         "contestants": [
-            "66e4bf1f8e618e1f163f1507",
-            "670448152d2bb21312c62470",
-            "66e4c14a5e78e14b411a914c",
-            "66e1b6388e618e1f163f0e04"
+            {"ref":"66e4bf1f8e618e1f163f1507"},
+            {"ref":"670448152d2bb21312c62470"},
+            {"ref":"66e4c14a5e78e14b411a914c"},
+            {"ref":"66e1b6388e618e1f163f0e04"}
         ]
     },
     {
         "categoryId": "67042e26e001778cda018ab1",
         "contestants": [
-            "66e98689e001778cda0163e1",
-            "66e2bf425e78e14b411a8f9e",
-            "66eab03ce001778cda016c0e",
-            "66ef2d266483b01eb5e24b9c"
+            {"ref":"66e98689e001778cda0163e1"},
+            {"ref":"66e2bf425e78e14b411a8f9e"},
+            {"ref":"66eab03ce001778cda016c0e"},
+            {"ref":"66ef2d266483b01eb5e24b9c"}
         ]
     },
     {
         "categoryId": "67042ec22d2bb21312c6202a",
         "contestants": [
-            "66fa583f2d2bb21312c6190d",
-            "66f9a12ae001778cda018347",
-            "66e1b6fdf28bf30a17963628",
-            "66f2186e6483b01eb5e24f09"
+            {"ref":"66fa583f2d2bb21312c6190d"},
+            {"ref":"66f9a12ae001778cda018347"},
+            {"ref":"66e1b6fdf28bf30a17963628"},
+            {"ref":"66f2186e6483b01eb5e24f09"}
         ]
     },
     {
         "categoryId": "67042f1e6483b01eb5e25a49",
         "contestants": [
-            "66f07f5a2d2bb21312c61404",
-            "66e6c7cc5e78e14b411a9bd1",
-            "66eec8bae001778cda017d2b",
-            "6704e7046483b01eb5e28058"
+            {"ref":"66f07f5a2d2bb21312c61404"},
+            {"ref":"66e6c7cc5e78e14b411a9bd1"},
+            {"ref":"66eec8bae001778cda017d2b"},
+            {"ref":"6704e7046483b01eb5e28058"}
         ]
     },
     {
         "categoryId": "67042f8ce001778cda018ab4",
         "contestants": [
-            "66fa583f2d2bb21312c6190d",
-            "670448152d2bb21312c62470",
-            "66e80e858e618e1f163f2b42",
-            "66e6cc37f28bf30a17964785"
+            {"ref":"66fa583f2d2bb21312c6190d"},
+            {"ref":"670448152d2bb21312c62470"},
+            {"ref":"66e80e858e618e1f163f2b42"},
+            {"ref":"66e6cc37f28bf30a17964785"}
         ]
     },
     {
         "categoryId": "6704305fe001778cda018ab7",
         "contestants": [
-            "66eec8bae001778cda017d2b",
-            "66e54ffbf28bf30a179640d5",
-            "66f677f16483b01eb5e25158"
+            {"ref":"66eec8bae001778cda017d2b"},
+            {"ref":"66e54ffbf28bf30a179640d5"},
+            {"ref":"66f677f16483b01eb5e25158"}
         ]
     },
     {
         "categoryId": "6704305fe001778cda018ab7",
         "contestants": [
-            "66e4c14a5e78e14b411a914c",
-            "66f991a26483b01eb5e252b5"
+            {"ref":"66e4c14a5e78e14b411a914c"},
+            {"ref":"66f991a26483b01eb5e252b5"}
         ]
     },
     {
         "categoryId": "670430e36483b01eb5e25a4e",
         "contestants": [
-            "66e1b7528e618e1f163f0e54",
-            "66e7f7a45e78e14b411aa799",
-            "670297a46483b01eb5e258eb",
-            "66fa58d36483b01eb5e2534d",
-            "66ee989e2d2bb21312c6122b"
+            {"ref":"66e1b7528e618e1f163f0e54"},
+            {"ref":"66e7f7a45e78e14b411aa799"},
+            {"ref":"670297a46483b01eb5e258eb"},
+            {"ref":"66fa58d36483b01eb5e2534d"},
+            {"ref":"66ee989e2d2bb21312c6122b"}
         ]
     },
     {
         "categoryId": "6704315f2d2bb21312c6202e",
         "contestants": [
-            "66efcabb6483b01eb5e24c82",
-            "66e80e858e618e1f163f2b42",
-            "66f1e737e001778cda018046"
+            {"ref":"66efcabb6483b01eb5e24c82"},
+            {"ref":"66e80e858e618e1f163f2b42"},
+            {"ref":"66f1e737e001778cda018046"}
         ]
     },
     {
         "categoryId": "670431a92d2bb21312c62030",
         "contestants": [
-            "66ee8c532d2bb21312c61222",
-            "66f677f16483b01eb5e25158",
-            "66f03aab6483b01eb5e24cb0",
-            "66e4b3f25e78e14b411a913d"
+            {"ref":"66ee8c532d2bb21312c61222"},
+            {"ref":"66f677f16483b01eb5e25158"},
+            {"ref":"66f03aab6483b01eb5e24cb0"},
+            {"ref":"66e4b3f25e78e14b411a913d"}
         ]
     },
     {
         "categoryId": "670432212d2bb21312c62032",
         "contestants": [
-            "66efcabb6483b01eb5e24c82",
-            "66e51e6ef28bf30a179640c3",
-            "66f9afb52d2bb21312c618aa"
+            {"ref":"66efcabb6483b01eb5e24c82"},
+            {"ref":"66e51e6ef28bf30a179640c3"},
+            {"ref":"66f9afb52d2bb21312c618aa"}
         ]
     },
     {
         "categoryId": "6704324fe001778cda018abb",
         "contestants": [
-            "66eab03ce001778cda016c0e",
-            "66f98ff72d2bb21312c61885",
-            "66fac824e001778cda0183e6"
+            {"ref":"66eab03ce001778cda016c0e"},
+            {"ref":"66f98ff72d2bb21312c61885"},
+            {"ref":"66fac824e001778cda0183e6"}
         ]
     },
     {
         "categoryId": "670432b86483b01eb5e25a50",
         "contestants": [
-            "66ee895e6483b01eb5e24b2e",
-            "66e4b3f25e78e14b411a913d",
-            "66e1b6a48e618e1f163f0e25",
-            "66e67b9cf28bf30a17964515"
+            {"ref":"66ee895e6483b01eb5e24b2e"},
+            {"ref":"66e4b3f25e78e14b411a913d"},
+            {"ref":"66e1b6a48e618e1f163f0e25"},
+            {"ref":"66e67b9cf28bf30a17964515"}
         ]
     },
     {
         "categoryId": "6704333b6483b01eb5e25a52",
         "contestants": [
-            "66ef1c2e2d2bb21312c6127c",
-            "66e4bf1f8e618e1f163f1507",
-            "66e80be45e78e14b411aa7b9"
+            {"ref":"66ef1c2e2d2bb21312c6127c"},
+            {"ref":"66e4bf1f8e618e1f163f1507"},
+            {"ref":"66e80be45e78e14b411aa7b9"}
         ]
     },
     {
         "categoryId": "670433ce2d2bb21312c62034",
         "contestants": [
-            "66ffd3952d2bb21312c61c1d",
-            "66e89d655e78e14b411ab018"
+            {"ref":"66ffd3952d2bb21312c61c1d"},
+            {"ref":"66e89d655e78e14b411ab018"}
         ]
     },
     {
         "categoryId": "67043418e001778cda018abf",
         "contestants": [
-            "66e80e858e618e1f163f2b42",
-            "66e98689e001778cda0163e1",
-            "66f1e737e001778cda018046",
-            "66f98ff72d2bb21312c61885"
+            {"ref":"66e80e858e618e1f163f2b42"},
+            {"ref":"66e98689e001778cda0163e1"},
+            {"ref":"66f1e737e001778cda018046"},
+            {"ref":"66f98ff72d2bb21312c61885"}
         ]
     },
     {
         "categoryId": "670434f96483b01eb5e25a54",
         "contestants": [
-            "66f9716de001778cda018324",
-            "66fa40626483b01eb5e25332"
+            {"ref":"66f9716de001778cda018324"},
+            {"ref":"66fa40626483b01eb5e25332"}
         ]
     },
     {
         "categoryId": "670435206483b01eb5e25a56",
         "contestants": [
-            "66e4c14a5e78e14b411a914c",
-            "66efcabb6483b01eb5e24c82",
-            "66e35c4af28bf30a17963b75"
+            {"ref":"66e4c14a5e78e14b411a914c"},
+            {"ref":"66efcabb6483b01eb5e24c82"},
+            {"ref":"66e35c4af28bf30a17963b75"}
         ]
     },
     {
         "categoryId": "670435726483b01eb5e25a58",
         "contestants": [
-            "66e6c7cc5e78e14b411a9bd1",
-            "66e89d655e78e14b411ab018",
-           "66f07f5a2d2bb21312c61404",
-           "66e1b3bf5e78e14b411a8988"
+            {"ref":"66e6c7cc5e78e14b411a9bd1"},
+            {"ref":"66e89d655e78e14b411ab018"},
+           {"ref":"66f07f5a2d2bb21312c61404"},
+           {"ref":"66e1b3bf5e78e14b411a8988"}
         ]
     },
     {
         "categoryId": "670435dbe001778cda018ac4",
         "contestants": [
-            "66e35c4af28bf30a17963b75",
-            "66e4bf1f8e618e1f163f1507"
+            {"ref":"66e35c4af28bf30a17963b75"},
+            {"ref":"66e4bf1f8e618e1f163f1507"}
         ]
     },
     {
         "categoryId": "670436216483b01eb5e25a5a",
         "contestants": [
-            "66e80cfcf28bf30a179652b6",
-            "66e1b6a48e618e1f163f0e25",
-            "66e1b584f28bf30a179635be",
-            "66fac137e001778cda0183e3"
+            {"ref":"66e80cfcf28bf30a179652b6"},
+            {"ref":"66e1b6a48e618e1f163f0e25"},
+            {"ref":"66e1b584f28bf30a179635be"},
+            {"ref":"66fac137e001778cda0183e3"}
         ]
     },
     {
         "categoryId": "6704367d6483b01eb5e25a5c",
         "contestants": [
-            "66e98689e001778cda0163e1",
-            "66e150488e618e1f163f0837",
-            "66edd8a32d2bb21312c6116a",
-            "66ef29cc6483b01eb5e24b94"
+            {"ref":"66e98689e001778cda0163e1"},
+            {"ref":"66e150488e618e1f163f0837"},
+            {"ref":"66edd8a32d2bb21312c6116a"},
+            {"ref":"66ef29cc6483b01eb5e24b94"}
         ]
     }
 ]
