@@ -48,10 +48,6 @@ function VoteCard(props: VoteCardProps) {
     const checkRef = useRef<HTMLInputElement>(null);
     
     const handleSelect = () => {
-        // if(!checkRef.current) return;
-
-        // checkRef.current.checked = !checkRef.current.checked;
-
         if(!guests) return;
 
         handleSelection(props.category.id, props.contestant.ref);
@@ -82,6 +78,7 @@ function VoteCard(props: VoteCardProps) {
 
     const isSelected = checkVote(props.category.id, props.contestant.ref);
     const isMultiple = guests.length > 1;
+    const shouldMaintain = guests.length === 2;
 
     return (
         <motion.div 
@@ -97,7 +94,7 @@ function VoteCard(props: VoteCardProps) {
 
                 {
                     guests.map((guest)=>(
-                        <div className="avatar-wrapper" key={guest.id}>
+                        <div className="avatar-wrapper" key={guest.id} data-maintain={shouldMaintain}>
                             {/* <div className="shimmer"></div> */}
                             <Image
                                 src={guest.picture}

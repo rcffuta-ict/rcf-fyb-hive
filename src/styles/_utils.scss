@@ -144,7 +144,12 @@
     // min-height: 30rem;
     // height: 26rem;
 
-    height: 30rem;
+    height: max-content;
+
+
+    @include mixins.least-large-screen {
+        height: 30rem;
+    }
 
     border-radius: 12px;
     background-color: #f0f0f0;
@@ -194,17 +199,6 @@
     &:last-of-type {
         margin-right: 1.5rem;
     }
-
-
-    &:has(.avatar-wrapper-container>*:nth-child(n+2)) {
-        // background-color: lightblue;
-    
-        // /* Style applied only if there's more than 1 item */
-        // .avatar-wrapper {
-        //     --size: 100px;
-        // }
-    }
-
 }
 
 .avatar-wrapper-container {
@@ -217,6 +211,10 @@
         /* Style applied only if there's more than 1 item */
         .avatar-wrapper {
             --size: 100px;
+
+            &[data-maintain="true"] {
+                --size: 200px;
+            }
         }
     }
 
@@ -231,7 +229,6 @@
     flex: 1 1 var(--size);
 
     background-color: #e0e0e0;
-    // border-radius: 50%;
     border-radius: 2rem;
     position: relative;
     overflow: hidden;

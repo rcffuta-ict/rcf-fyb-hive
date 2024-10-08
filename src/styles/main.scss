@@ -934,7 +934,12 @@ form {
 }
 
 .carousel-item {
-    min-height: 60vh;
+    min-height: 65vh;
+
+
+    // @include mixins.least-large-screen {
+    //     height: 30rem;
+    // }
 
     
     width: 100%;
@@ -946,7 +951,7 @@ form {
     // gap: 2rem;
     flex-wrap: nowrap;
     // justify-content: center;
-    align-items: center;
+    align-items: stretch;
     // position: relative;
     // @include mixins.hide-scrollbar;
 }
