@@ -1,9 +1,10 @@
 [
     {
-        "categoryId": "67042d15e001778cda018aa6",
+        "categoryId": "67051251e001778cda01b623",
         "contestants": [
             "66ffd3952d2bb21312c61c1d", "66ea26912d2bb21312c5ff71",
-            "66e6c7cc5e78e14b411a9bd1", "66e1b3bf5e78e14b411a8988"
+            "66e6c7cc5e78e14b411a9bd1", "66e1b3bf5e78e14b411a8988",
+            "66e51e6ef28bf30a179640c3"
         ]
     },
     {
@@ -12,7 +13,7 @@
             "66e1b7528e618e1f163f0e54",
             "66ff0d46e001778cda018539",
             "66ef3a416483b01eb5e24bac",
-            "66f204202d2bb21312c615c3"
+            "66fac137e001778cda0183e3"
         ]
     },
     {
@@ -38,7 +39,8 @@
         "contestants": [
             "66fa583f2d2bb21312c6190d",
             "66f9a12ae001778cda018347",
-            "66e1b6fdf28bf30a17963628"
+            "66e1b6fdf28bf30a17963628",
+            "66f2186e6483b01eb5e24f09"
         ]
     },
     {
@@ -46,7 +48,8 @@
         "contestants": [
             "66f07f5a2d2bb21312c61404",
             "66e6c7cc5e78e14b411a9bd1",
-            "66eec8bae001778cda017d2b"
+            "66eec8bae001778cda017d2b",
+            "6704e7046483b01eb5e28058"
         ]
     },
     {
@@ -96,27 +99,32 @@
         "contestants": [
             "66ee8c532d2bb21312c61222",
             "66f677f16483b01eb5e25158",
-            "66f03aab6483b01eb5e24cb0"
+            "66f03aab6483b01eb5e24cb0",
+            "66e4b3f25e78e14b411a913d"
         ]
     },
     {
         "categoryId": "670432212d2bb21312c62032",
         "contestants": [
-            "66efcabb6483b01eb5e24c82"
+            "66efcabb6483b01eb5e24c82",
+            "66e51e6ef28bf30a179640c3",
+            "66f9afb52d2bb21312c618aa"
         ]
     },
     {
         "categoryId": "6704324fe001778cda018abb",
         "contestants": [
             "66eab03ce001778cda016c0e",
-            "66f98ff72d2bb21312c61885"
+            "66f98ff72d2bb21312c61885",
+            "66fac824e001778cda0183e6"
         ]
     },
     {
         "categoryId": "670432b86483b01eb5e25a50",
         "contestants": [
             "66ee895e6483b01eb5e24b2e",
-            "66e2f4188e618e1f163f1381",
+            "66e4b3f25e78e14b411a913d",
+            "66e1b6a48e618e1f163f0e25",
             "66e67b9cf28bf30a17964515"
         ]
     },
@@ -125,7 +133,7 @@
         "contestants": [
             "66ef1c2e2d2bb21312c6127c",
             "66e4bf1f8e618e1f163f1507",
-            "66fa583f2d2bb21312c6190d"
+            "66e80be45e78e14b411aa7b9"
         ]
     },
     {
@@ -139,7 +147,7 @@
         "categoryId": "67043418e001778cda018abf",
         "contestants": [
             "66e80e858e618e1f163f2b42",
-            "66ef22132d2bb21312c6129b",
+            "66e98689e001778cda0163e1",
             "66f1e737e001778cda018046",
             "66f98ff72d2bb21312c61885"
         ]
@@ -147,7 +155,8 @@
     {
         "categoryId": "670434f96483b01eb5e25a54",
         "contestants": [
-            "66f9716de001778cda018324"
+            "66f9716de001778cda018324",
+            "66fa40626483b01eb5e25332"
         ]
     },
     {
@@ -163,7 +172,8 @@
         "contestants": [
             "66e6c7cc5e78e14b411a9bd1",
             "66e89d655e78e14b411ab018",
-           "66f07f5a2d2bb21312c61404"
+           "66f07f5a2d2bb21312c61404",
+           "66e1b3bf5e78e14b411a8988"
         ]
     },
     {
@@ -186,7 +196,9 @@
         "categoryId": "6704367d6483b01eb5e25a5c",
         "contestants": [
             "66e98689e001778cda0163e1",
-            "66e150488e618e1f163f0837"
+            "66e150488e618e1f163f0837",
+            "66edd8a32d2bb21312c6116a",
+            "66ef29cc6483b01eb5e24b94"
         ]
     }
 ]
