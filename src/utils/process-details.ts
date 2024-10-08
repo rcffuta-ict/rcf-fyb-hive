@@ -19,7 +19,7 @@ export function getGuestName(guest: GuestObject | GuestObject[], pronoun=false) 
         let _name: string[] = [];
 
         guest.forEach((each)=>{
-            _name.push(`${pronoun ? getPronoun(each, true) : ''} ${each.firstname}`.trim());
+            _name.push(`${pronoun ? getPronoun(each, true) : ''} ${each.firstname} ${pronoun ? '':each.lastname}`.trim());
         });
 
         return _name.join(', ');
