@@ -56,7 +56,6 @@
         "categoryId": "67042f1e6483b01eb5e25a49",
         "contestants": [
             {"ref":"66f07f5a2d2bb21312c61404"},
-            {"ref":"66e6c7cc5e78e14b411a9bd1"},
             {"ref":"66eec8bae001778cda017d2b"},
             {"ref":"6704e7046483b01eb5e28058"}
         ]
@@ -180,8 +179,7 @@
         "contestants": [
             {"ref":"66e6c7cc5e78e14b411a9bd1"},
             {"ref":"66e89d655e78e14b411ab018"},
-           {"ref":"66f07f5a2d2bb21312c61404"},
-           {"ref":"66e1b3bf5e78e14b411a8988"}
+           {"ref":"66f07f5a2d2bb21312c61404"}
         ]
     },
     {
@@ -194,8 +192,7 @@
     {
         "categoryId": "670436216483b01eb5e25a5a",
         "contestants": [
-            {"ref":"66e80cfcf28bf30a179652b6"},
-            {"ref":"66e1b6a48e618e1f163f0e25"},
+            {"ref":"66e80cfcf28bf30a179652b6"},            
             {"ref":"66e1b584f28bf30a179635be"},
             {"ref":"66fac137e001778cda0183e3"}
         ]
