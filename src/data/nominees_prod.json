@@ -130,7 +130,6 @@
         "categoryId": "6704324fe001778cda018abb",
         "contestants": [
             {"ref":"66eab03ce001778cda016c0e"},
-            {"ref":"66f98ff72d2bb21312c61885"},
             {"ref":"66fac824e001778cda0183e6"}
         ]
     },
@@ -161,8 +160,7 @@
         "categoryId": "67043418e001778cda018abf",
         "contestants": [
             {"ref":"66e80e858e618e1f163f2b42"},
-            {"ref":"66e98689e001778cda0163e1"},
-            {"ref":"66f98ff72d2bb21312c61885"}
+            {"ref":"66e98689e001778cda0163e1"}
         ]
     },
     {
