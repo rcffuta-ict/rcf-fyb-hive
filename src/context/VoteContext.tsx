@@ -59,6 +59,8 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
 
         // const _new_entry: GuestObject[] = [];
 
+        // console.log(guestLog)
+
         const _guests = ids.map((id)=>{
 
             const __guest = (guestLog || []).find((item)=>item.id === id);
@@ -114,6 +116,7 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
                 }
 
                 if (!voteCategories) {
+                    // console.log("Vote Cat!")
                     const categories = await VoteCategoryModel.find({});
                     setVoteCategories(()=>categories);
                 }
@@ -133,7 +136,8 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
 
         })()
 
-    }, [user, userVotes, voteCategories, guestLog]);
+    });
+
 
 
 
@@ -245,7 +249,7 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
         
         return _list.filter((e)=>Boolean(e)) as NomineeList[];
 
-    }, [voteCategories])
+    }, [loading, voteCategories])
 
 
     const context = {

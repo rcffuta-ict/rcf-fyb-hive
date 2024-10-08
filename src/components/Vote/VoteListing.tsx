@@ -61,8 +61,6 @@ function VoteCard(props: VoteCardProps) {
 
             const _g = await obtainGuestRecord(props.contestant.ref)
 
-            // console.log(_g)
-
             setGuests(()=>{
                 if (!_g) return null;
 
@@ -148,6 +146,8 @@ function VoteCategoryList(props: VoteCategoryListProps) {
                     props.contestants.map((contestant, i)=>{
 
                         // if (loading || !props.category) return <SkeletonVoteCard key={i}/>
+
+                        // console.log(loading, props.category)
 
                         if (loading) return <SkeletonVoteCard key={i}/>;
 
