@@ -5,8 +5,7 @@
             {"ref":"66ffd3952d2bb21312c61c1d"},
             {"ref":"66ea26912d2bb21312c5ff71"},
             {"ref":"66e6c7cc5e78e14b411a9bd1"},
-            {"ref":"66e1b3bf5e78e14b411a8988"},
-            {"ref":"66e51e6ef28bf30a179640c3"}
+            {"ref":"66e1b3bf5e78e14b411a8988"}
         ]
     },
     {
@@ -32,8 +31,7 @@
         "contestants": [
             {"ref":"66e98689e001778cda0163e1"},
             {"ref":"66e2bf425e78e14b411a8f9e"},
-            {"ref":"66eab03ce001778cda016c0e"},
-            {"ref":"66ef2d266483b01eb5e24b9c"}
+            {"ref":"66eab03ce001778cda016c0e"}
         ]
     },
     {
@@ -109,7 +107,6 @@
         "categoryId": "670432212d2bb21312c62032",
         "contestants": [
             {"ref":"66efcabb6483b01eb5e24c82"},
-            {"ref":"66e51e6ef28bf30a179640c3"},
             {"ref":"66f9afb52d2bb21312c618aa"}
         ]
     },
