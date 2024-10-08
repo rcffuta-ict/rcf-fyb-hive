@@ -54,7 +54,8 @@
         "contestants": [
             "66fa583f2d2bb21312c6190d",
             "670448152d2bb21312c62470",
-            "66e80e858e618e1f163f2b42"
+            "66e80e858e618e1f163f2b42",
+            "66e6cc37f28bf30a17964785"
         ]
     },
     {
@@ -145,7 +146,9 @@
     },
     {
         "categoryId": "670434f96483b01eb5e25a54",
-        "contestants": []
+        "contestants": [
+            "66f9716de001778cda018324"
+        ]
     },
     {
         "categoryId": "670435206483b01eb5e25a56",
@@ -174,7 +177,9 @@
         "categoryId": "670436216483b01eb5e25a5a",
         "contestants": [
             "66e80cfcf28bf30a179652b6",
-            "66e1b6a48e618e1f163f0e25"
+            "66e1b6a48e618e1f163f0e25",
+            "66e1b584f28bf30a179635be",
+            "66fac137e001778cda0183e3"
         ]
     },
     {
