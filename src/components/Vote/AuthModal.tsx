@@ -5,10 +5,7 @@ import React, { Fragment, useState } from 'react';
 import { FormError } from '../Form/form.interface';
 import { validateAuthenticationForm } from '@/utils/validate-form';
 import { VoterModel, VoterObject } from '@/lib/nobox/record-structures/voter';
-import { submitForm } from '@/utils/submit';
-import { openNotificationWithIcon } from '@/utils/notification';
 import TextInput from '../Form/TextInput';
-import CheckInput from '../Form/CheckInput';
 import Attribution from '../Attribution';
 
 

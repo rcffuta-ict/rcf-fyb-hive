@@ -1,5 +1,6 @@
 'use client';
 import { useVote } from '@/context/VoteContext';
+import { Contestant } from '@/data/data.types';
 import { GuestObject } from '@/lib/nobox/record-structures/Guest';
 import { VoteCategoryObject } from '@/lib/nobox/record-structures/voteCategory';
 import { getGuestName } from '@/utils/process-details';
@@ -10,12 +11,12 @@ import Slider from "react-slick";
 
 interface VoteCategoryListProps {
     variants: Variants;
-    contestants: string[];
+    contestants: Contestant[];
     category?: VoteCategoryObject;
 }
 
 interface VoteCardProps {
-    contestantId: string;
+    contestant: Contestant;
     category: VoteCategoryObject;
     label: string;
 }
@@ -42,7 +43,7 @@ const SkeletonVoteCard = () => {
 function VoteCard(props: VoteCardProps) {
 
     const {obtainGuestRecord, handleSelection, checkVote} = useVote();
-    const [guest, setGuest] = useState<GuestObject | null | undefined>();
+    const [guests, setGuests] = useState<GuestObject[] | null | undefined>();
 
     const checkRef = useRef<HTMLInputElement>(null);
     
@@ -51,38 +52,36 @@ function VoteCard(props: VoteCardProps) {
 
         // checkRef.current.checked = !checkRef.current.checked;
 
-        if(!guest) return;
+        if(!guests) return;
 
-        handleSelection(props.category.id, guest.id);
+        handleSelection(props.category.id, props.contestant.ref);
     }
 
     useEffect(()=>{
         (async ()=>{
 
             
-            if (guest || guest === null) return;
+            if (guests || guests === null) return;
 
-            const _g = await obtainGuestRecord(props.contestantId)
+            const _g = await obtainGuestRecord(props.contestant.ref)
 
             // console.log(_g)
 
-            setGuest(()=>{
+            setGuests(()=>{
                 if (!_g) return null;
 
                 return _g;
             })
         })()
-    },)
+    },)    
+
+    if (guests === undefined) return <SkeletonVoteCard/>
+
+    if (guests === null) return null;
 
 
-    const isSelected = checkVote(props.category.id, props.contestantId);
-
-
-    
-
-    if (guest === undefined) return <SkeletonVoteCard/>
-
-    if (guest === null) return null;
+    const isSelected = checkVote(props.category.id, props.contestant.ref);
+    const isMultiple = guests.length > 1;
 
     return (
         <motion.div 
@@ -93,23 +92,31 @@ function VoteCard(props: VoteCardProps) {
 
             data-label={props.label}
         >
-            <div className="avatar-wrapper">
-                {/* <div className="shimmer"></div> */}
-                <Image
-                    src={guest.picture}
-                    alt={guest.firstname + ' Picture'}
-                    width={200}
-                    height={200}
-                />
+
+            <div className="avatar-wrapper-container" data-multiple={isMultiple}>
+
+                {
+                    guests.map((guest)=>(
+                        <div className="avatar-wrapper" key={guest.id}>
+                            {/* <div className="shimmer"></div> */}
+                            <Image
+                                src={guest.picture}
+                                alt={guest.firstname + ' Picture'}
+                                width={200}
+                                height={200}
+                            />
+                        </div>
+                    ))
+                }
             </div>
             <div className="voter-card-name">
                 {/* <div className="shimmer"></div> */}
                 <p className='ff-riffic clr-primary fs-25'>
-                    {getGuestName(guest)}
+                    {getGuestName(guests)}
                 </p>
-                {/* <p className='fs-16'>
-                    (Mama)
-                </p> */}
+                {props.contestant.alias && (<p className='fs-16'>
+                    ({props.contestant.alias})
+                </p>)}
             </div>
             <div className="voter-card-info">
                 {/* <div className="shimmer"></div> */}
@@ -149,7 +156,7 @@ function VoteCategoryList(props: VoteCategoryListProps) {
                         return (
                             <VoteCard
                                 key={i}
-                                contestantId={contestant}
+                                contestant={contestant}
                                 category={props.category}
                                 label={`${i+1}/${props.contestants.length}`}
                             />

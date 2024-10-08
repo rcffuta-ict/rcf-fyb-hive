@@ -1,7 +1,7 @@
 'use client';
 import { GuestModel, GuestObject } from '@/lib/nobox/record-structures/Guest';
 import { VoteModel, VoteObject } from '@/lib/nobox/record-structures/vote';
-import { VoteCategory, VoteCategoryModel, VoteCategoryObject } from '@/lib/nobox/record-structures/voteCategory';
+import { VoteCategoryModel, VoteCategoryObject } from '@/lib/nobox/record-structures/voteCategory';
 import { message } from 'antd';
 import { MessageInstance } from 'antd/es/message/interface';
 import React, {createContext, FC, PropsWithChildren, useContext, useEffect, useMemo, useState} from 'react';
@@ -13,12 +13,12 @@ import AuthModal from '@/components/Vote/AuthModal';
 import { nominee } from '@/lib/nobox/config';
 
 
-const canVote = false;
+const canVote = true;
 
 
 
 interface VoteContextProps {
-    obtainGuestRecord: (id:string) => Promise<GuestObject | null>;
+    obtainGuestRecord: (id:string) => Promise<GuestObject[] | null>;
     messageApi: MessageInstance;
 
     user: VoterObject | null;
@@ -53,22 +53,40 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
     const [loading, setLoading] = useState(true);
 
 
-    const obtainGuestRecord = async (id: string) => {
+    const obtainGuestRecord = async (ref: string) => {
 
-        const guest = guestLog.find((item)=>item.id === id);
+        let ids = ref.split(',').map((e)=>e.trim());
 
-        if (guest) return guest;
+        const _new_entry: GuestObject[] = [];
 
+        const _guests = ids.map((id)=>{
 
-        const _guest = await GuestModel.findOne({ id });
+            return new Promise(async (res, rej)=>{
 
-        if (!_guest) return null;
+                const __guest = guestLog.find((item)=>item.id === id);
 
+                if (__guest) {
+                    return res(__guest);
+                }
+
+                const _new_guest = await GuestModel.findOne({ id });
+
+                _new_entry.push(_new_guest);
+
+                res(_new_guest);
+
+            })
+        })
+
+        const guest = await Promise.all(_guests) as GuestObject[];
+
+        
         setGuestLog((p)=>{
-            return [...p, _guest];
+            return [...p, ..._new_entry];
         });
-
-        return _guest;
+        
+        // console.debug(ref, "=> guest:", guest);
+        return guest;
 
     }
 

@@ -12,7 +12,19 @@ export function getNameByGender(guest?: GuestObject) {
     return getPronoun(guest) + ' ' + guest.firstname;
 }
 
-export function getGuestName(guest: GuestObject, pronoun=false) {
+export function getGuestName(guest: GuestObject | GuestObject[], pronoun=false) {
+
+    if (Array.isArray(guest)) {
+
+        let _name: string[] = [];
+
+        guest.forEach((each)=>{
+            _name.push(`${pronoun ? getPronoun(each, true) : ''} ${each.firstname}`.trim());
+        });
+
+        return _name.join(', ');
+
+    }
 
     return `${pronoun ? getPronoun(guest, true) : ''} ${guest.lastname} ${guest.firstname}`.trim()
 
