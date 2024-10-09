@@ -2,17 +2,18 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { Fragment } from 'react';
-import Attribution from '../Attribution';
 import { VoterObject } from '@/lib/nobox/record-structures/voter';
+import { useVote } from '@/context/VoteContext';
+import AuthModal from './AuthModal';
 
 
 
-interface AuthModalProps {
-    user: VoterObject;
-}
 
-export default function AuthIndicator(props: AuthModalProps) {
+export default function AuthIndicator() {
 
+    const { user, updateUser } = useVote();
+
+    
     const modalVariants = {
         hidden: {
             opacity: 0,
@@ -29,6 +30,9 @@ export default function AuthIndicator(props: AuthModalProps) {
             transition: { duration: 0.3, ease: "easeInOut" }
         }
     };
+    
+
+    if (!user) return <AuthModal onHide={(user: any)=>updateUser(user)} />;
 
     return (
         <Fragment>
@@ -38,15 +42,14 @@ export default function AuthIndicator(props: AuthModalProps) {
                     className="auth-indicator-wrapper"
                 >
                     <motion.div variants={modalVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit" className="auth-modal-content donna">
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit" className="auth-modal-content donna"
+                    >
 
                         <h1 className="text-center clr-primary ff-riffic fw-700 fs-14">
-                            Logged In as: {props.user.name}
+                            Logged In as: {user.name}
                         </h1>
-
-                        {/* <Attribution /> */}
 
                     </motion.div>
 

@@ -43,7 +43,8 @@ export const config: Config = {
     project, token
 };
 
-export const nominee = process.env.NODE_ENV === 'development' ? nomineeListDev : nomineeListProd;
+// export const nominee = process.env.NODE_ENV === 'development' ? nomineeListDev : nomineeListProd;
+export const nominee = nomineeListProd;
 
 export const createRowSchema = getSchemaCreator(config, { type: "rowed" });
 

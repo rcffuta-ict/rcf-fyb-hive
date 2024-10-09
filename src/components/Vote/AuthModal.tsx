@@ -1,12 +1,13 @@
 'use client';
 import { Form, message } from 'antd';
 import { AnimatePresence, motion } from 'framer-motion';
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { FormError } from '../Form/form.interface';
 import { validateAuthenticationForm } from '@/utils/validate-form';
 import { VoterModel, VoterObject } from '@/lib/nobox/record-structures/voter';
 import TextInput from '../Form/TextInput';
 import Attribution from '../Attribution';
+import { useVote } from '@/context/VoteContext';
 
 
 
@@ -15,9 +16,12 @@ interface AuthModalProps {
     onHide: (data: VoterObject)=>void;
 }
 
+
 export default function AuthModal(props: AuthModalProps) {
+
+    const {messageApi, canVote} = useVote()
+
     const [form] = Form.useForm();
-    const [messageApi, contextHolder] = message.useMessage();
 
     const [formData, setFormData] = useState<any>({});
     const [formerror, setFormError] = useState<FormError | null>(null);
@@ -39,6 +43,11 @@ export default function AuthModal(props: AuthModalProps) {
 
     const handleFinish = async () => {
         // console.debug(formData)
+
+        if (!canVote) {
+            message.info("Voting has ended!");
+            return;
+        }
         // return null;
         const _errors = validateAuthenticationForm(formData);
 
@@ -104,83 +113,72 @@ export default function AuthModal(props: AuthModalProps) {
 
     return (
         <Fragment>
-            {contextHolder}
-
             <AnimatePresence>
-                {
-                    props.show && (
-                        <motion.div 
-                            className="auth-modal"
+                <motion.div className="auth-modal">
+                    <motion.div
+                        variants={modalVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="auth-modal-content"
+                    >
+                        <h1 className="text-center clr-primary ff-riffic fw-700 lh-60">
+                            Hello! Who are you?<br/>
+                        {!canVote && <b className="error-display">Voting has ended!</b>}
+                        </h1>
+
+                        <Form
+                            form={form}
+                            layout="vertical"
+                            onFinish={handleFinish}
+                            autoComplete="off"
+                            // initialValues={formData}
                         >
-                            <motion.div variants={modalVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit" className="auth-modal-content">
 
-                                <h1 className="text-center clr-primary ff-riffic fw-700 lh-60">
-                                    Hello! Who are you?
-                                </h1>
+                            <br />
+                            <TextInput
+                                disable={loading}
+                                name="email"
+                                label="What's your email address?"
+                                email
+                                onChange={handleElemChange}
+                                getValue={getValue}
+                                required
+                                error={formerror}
+                            />
 
+                            <br />
 
-                                <Form
-                                    form={form}
-                                    layout="vertical"
-                                    onFinish={handleFinish}
-                                    autoComplete="off"
-                                    // initialValues={formData}
+                            <TextInput
+                                name="password"
+                                label="What's your password?"
+                                password
+                                onChange={handleElemChange}
+                                getValue={getValue}
+                                required
+                                error={formerror}
+                                disable={loading}
+                            />
+
+                            <br />
+
+                            <div className="steps-action">
+                                <button
+                                    className="btn btn-primary text-uppercase btn-submit fw-700 fs-18"
+                                    // onClick={handl}
+                                    title="Login"
+                                    type="submit"
+                                    disabled={loading}
                                 >
-                                    <br/>
-                                    <TextInput
-                                        disable={loading}
-                                        name="email"
-                                        label="What's your email address?"
-                                        email
-                                        onChange={handleElemChange}
-                                        getValue={getValue}
-                                        required
-                                        error={formerror}
-                                    />
-
-                                    <br/>
-
-                                    <TextInput
-                                        name="password"
-                                        label="What's your password?"
-                                        password
-                                        onChange={handleElemChange}
-                                        getValue={getValue}
-                                        required
-                                        error={formerror}
-                                        disable={loading}
-                                    />
-
-                                    <br/>
-
-
-                                    <div
-                                        className="steps-action"
-                                    >
-                                        <button
-                                            className="btn btn-primary text-uppercase btn-submit fw-700 fs-18"
-                                            // onClick={handl}
-                                            title='Login'
-                                            type='submit'
-                                            disabled={loading}
-                                        >
-                                            {loading ? 'Loading...': 'Continue'}
-                                        </button>
-                                    </div>
-                                    <br/>
-                                    <Attribution />
-                                </Form>
-
-                            </motion.div>
-
-                        </motion.div>
-                    )
-                }
+                                    {loading ? "Loading..." : "Continue"}
+                                </button>
+                            </div>
+                            <br />
+                            <Attribution />
+                        </Form>
+                    </motion.div>
+                </motion.div>
             </AnimatePresence>
-
         </Fragment>
-    )
+    );
 }

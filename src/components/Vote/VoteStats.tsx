@@ -1,9 +1,10 @@
 'use client';
 import { useVote } from '@/context/VoteContext';
-import { Contestant, VoteStat, VoteStatItem } from '@/data/data.types';
+import { Contestant, VoteStat, VoteStatItem, Winner, WinnerItem } from '@/data/data.types';
 import { GuestObject } from '@/lib/nobox/record-structures/Guest';
 import { VoteCategoryObject } from '@/lib/nobox/record-structures/voteCategory';
 import { getGuestName } from '@/utils/process-details';
+import { getSum, getWinners } from '@/utils/stats';
 import { motion, useScroll, Variants } from 'framer-motion';
 import Image from 'next/image';
 import { Fragment, useEffect, useRef, useState } from 'react';
@@ -19,7 +20,8 @@ interface VoteCardProps {
     contestant: Contestant;
     category: VoteCategoryObject;
     label: string;
-    stats: VoteStatItem
+    stats: VoteStatItem;
+    winner: WinnerItem;
 }
 
 const SkeletonVoteCard = () => {
@@ -78,12 +80,16 @@ function VoteStatCard(props: VoteCardProps) {
     const isMultiple = guests.length > 1;
     const shouldMaintain = guests.length === 2;
 
-    const isWinner = false;
-    const totalVotes = Object.keys(props.stats).length;
-    
+    const _stats = props.stats || {}
 
-    const reff = props.stats[props.contestant.ref] || [];
+    const reff: string[] = _stats[props.contestant.ref] || [];
+
+    const isWinner = props.winner.contestant === props.contestant.ref;
+    const totalVotes = getSum(_stats);
+    
     const votes = reff.length;
+
+    // console.log(props.winner)
 
     return (
         <motion.div
@@ -160,7 +166,7 @@ function VoteCategoryList(props: VoteCategoryListProps) {
 
     const { loading, voteStatistics } = useVote();
 
-
+    const winners = getWinners(voteStatistics);
     
 
     return (
@@ -180,6 +186,7 @@ function VoteCategoryList(props: VoteCategoryListProps) {
                         if (!props.category) return <SkeletonVoteCard key={i}/>
 
                         const stats = voteStatistics[props.category.id];
+                        const category_winner = winners[props.category.id]
                         return (
                             <VoteStatCard
                                 key={i}
@@ -187,6 +194,7 @@ function VoteCategoryList(props: VoteCategoryListProps) {
                                 category={props.category}
                                 label={`${i + 1}/${props.contestants.length}`}
                                 stats={stats}
+                                winner={category_winner}
                             />
                         );
                     })

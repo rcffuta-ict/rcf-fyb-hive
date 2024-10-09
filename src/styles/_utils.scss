@@ -193,6 +193,26 @@
     }
 
 
+    &:has(input[data-filled="true"]) {
+        &::before {
+            content: '';
+
+            right: 1rem;
+            width: 4rem;
+            height: 3rem;
+            // aspect-ratio: 1;
+
+            border-radius: .5rem;
+        
+            background-image: url('/icons/award.svg');
+            background-position: center;
+            background-size: 60%;
+        
+            background-repeat: no-repeat;
+        }
+    }
+
+
     &:first-of-type {
         margin-left: 1.5rem;
     }

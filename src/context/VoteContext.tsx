@@ -8,12 +8,11 @@ import React, {createContext, FC, PropsWithChildren, useContext, useEffect, useM
 
 import { NomineeBase, NomineeList, VoteStat, VoteStatItem } from '@/data/data.types';
 import { VoterObject } from '@/lib/nobox/record-structures/voter';
-import AuthIndicator from '@/components/Vote/AuthIndicator';
-import AuthModal from '@/components/Vote/AuthModal';
 import { nominee } from '@/lib/nobox/config';
 
 
 const canVote = false;
+
 
 
 
@@ -25,9 +24,12 @@ interface VoteContextProps {
     userVotes: VoteObject | null;
     handleSelection: (categoryId: string, guestId: string) => void;
     checkVote: (categoryId: string, guestId: string) => boolean;
+    updateUser: (data: VoterObject) => void;
     voteList: NomineeList[];
     loading: boolean;
     voteStatistics: VoteStat;
+
+    canVote: boolean;
 }
 
 const VoteContext = createContext<VoteContextProps | null>(null);
@@ -129,8 +131,16 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
                     setGuestLog(()=>_guest);
                 }
 
-                if (!allVotes && canVote === false) {
-                    const _votes = await VoteModel.find({});
+                if (!allVotes) {
+
+                    let _votes: VoteObject[] = [];
+
+                    if ((canVote as boolean) === true) {
+                        messageApi.info("Voting is still On...");
+                    } else {
+                        _votes = await VoteModel.find({});
+                    }
+
                     setAllVotes(() => _votes);
                 }
     
@@ -260,42 +270,6 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
     }, [loading, voteCategories])
 
 
-    const obtainStats = (categoryId: string, ) => {
-
-        if (!allVotes) return [];
-        
-        const categoryVotes = allVotes.filter((voteItem)=>Boolean(voteItem.votes.find((e)=>Object.is(e.categoryId, categoryId))));
-
-
-        console.debug(allVotes)
-
-        const vote_stats:VoteStat[] = categoryVotes.reduce((accumulator:VoteStat[], value:VoteObject)=>{
-
-            const _d: any = {};
-
-            const user = value.userId;
-
-
-            value.votes.forEach((val)=>{
-
-                if (_d.guestId) {
-                    _d.votes.push(user);
-                } else {
-                    _d.guestId = val.guestId;
-                    _d.votes = [user]
-                }
-            })
-
-            return [...accumulator, _d];
-
-
-        }, []);
-
-
-        return vote_stats;
-    }
-
-
     const voteStatistics = useMemo(()=>{
         const stats:VoteStat = {};
 
@@ -334,10 +308,9 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
     },[allVotes, voteCategories])
 
     
-    // if (allVotes) {
-    //     console.debug("All Votes:", allVotes);
-    //     console.debug("Vote Statistics:", voteStatistics)
-    // }
+    const updateUser = (data: VoterObject) => {
+        setUser(data);
+    };
 
 
     const context = {
@@ -350,6 +323,8 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
         loading,
         checkVote,
         voteStatistics,
+        updateUser,
+        canVote
     };
 
 
@@ -357,16 +332,6 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
         <>
             {contextHolder}
             <VoteContext.Provider value={context}>
-                {/* {
-                    user ? (
-
-                        <AuthIndicator user={user}/>
-                    ) : (
-                        <AuthModal show={true} onHide={(data: VoterObject)=>{
-                            setUser(data)
-                        }}/>
-                    )
-                } */}
                 {props.children}
             </VoteContext.Provider>
         </>

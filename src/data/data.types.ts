@@ -17,7 +17,7 @@ export interface NomineeList extends NomineeBase {
 }
 
 export interface VoteStatItem {
-    [contestantId: ContestantId]: VoterId[]
+    [contestantId: ContestantId]: VoterId[];
 }
 
 
@@ -27,4 +27,13 @@ type VoterId = string;
 
 export interface VoteStat {
     [categoryId: CategoryId]: VoteStatItem
+}
+
+export interface WinnerItem {
+    contestant: string;
+    value: number;
+}
+
+export interface Winner {
+    [category: string]: WinnerItem;
 }
