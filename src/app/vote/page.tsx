@@ -3,6 +3,7 @@ import { Fragment } from "react";
 import VoteWrapper from "../../components/Vote/VoteWrapper";
 import VoteListing from "@/components/Vote/VoteListing";
 import AuthIndicator from "@/components/Vote/AuthIndicator";
+import VoteStats from "@/components/Vote/VoteStats";
 
 
 export default function Vote() {
@@ -22,7 +23,8 @@ export default function Vote() {
 
             <br/>
 
-            <VoteListing/>
+            {/* <VoteListing/> */}
+            <VoteStats />
 
             {/* <VoteWrapper/> */}
         </Fragment>

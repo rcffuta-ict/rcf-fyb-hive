@@ -183,7 +183,8 @@
 
     }
 
-    &:has(input[data-checked="true"]) {
+    &:has(input[data-checked="true"]),
+    &:has(input[data-filled="true"]) {
         outline: 1px solid colors.$primary;
         outline-offset: 4px;
         box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
@@ -340,11 +341,28 @@
 
         position: absolute;
 
+
+        &:disabled~button {
+            &::after {
+                background-image: url('/icons/check-badge-filled.svg');
+            }
+        }
+
         &[data-checked="true"] ~ button {
             
             background-color: colors.$primary !important;
             color: colors.$white;
             
+            &::after {
+                background-image: url('/icons/check-badge.svg');
+            }
+        }
+
+        &[data-filled="true"] ~ button {
+
+            background-color: colors.$primary !important;
+            color: colors.$white;
+
             &::after {
                 background-image: url('/icons/check-badge.svg');
             }

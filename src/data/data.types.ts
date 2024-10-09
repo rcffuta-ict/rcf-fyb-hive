@@ -15,3 +15,16 @@ export interface NomineeBase {
 export interface NomineeList extends NomineeBase {
     category: VoteCategoryObject,
 }
+
+export interface VoteStatItem {
+    [contestantId: ContestantId]: VoterId[]
+}
+
+
+type CategoryId = string;
+type ContestantId = string;
+type VoterId = string;
+
+export interface VoteStat {
+    [categoryId: CategoryId]: VoteStatItem
+}

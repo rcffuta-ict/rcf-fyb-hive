@@ -6,27 +6,28 @@ import { message } from 'antd';
 import { MessageInstance } from 'antd/es/message/interface';
 import React, {createContext, FC, PropsWithChildren, useContext, useEffect, useMemo, useState} from 'react';
 
-import { NomineeBase, NomineeList } from '@/data/data.types';
+import { NomineeBase, NomineeList, VoteStat, VoteStatItem } from '@/data/data.types';
 import { VoterObject } from '@/lib/nobox/record-structures/voter';
 import AuthIndicator from '@/components/Vote/AuthIndicator';
 import AuthModal from '@/components/Vote/AuthModal';
 import { nominee } from '@/lib/nobox/config';
 
 
-const canVote = true;
+const canVote = false;
 
 
 
 interface VoteContextProps {
-    obtainGuestRecord: (id:string) => Promise<GuestObject[] | null>;
+    obtainGuestRecord: (id: string) => Promise<GuestObject[] | null>;
     messageApi: MessageInstance;
 
     user: VoterObject | null;
     userVotes: VoteObject | null;
-    handleSelection: (categoryId: string, guestId: string)=> void;
-    checkVote: (categoryId: string, guestId: string)=> boolean;
+    handleSelection: (categoryId: string, guestId: string) => void;
+    checkVote: (categoryId: string, guestId: string) => boolean;
     voteList: NomineeList[];
     loading: boolean;
+    voteStatistics: VoteStat;
 }
 
 const VoteContext = createContext<VoteContextProps | null>(null);
@@ -49,6 +50,8 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
     const [user, setUser] = useState<VoterObject | null>(null);
     const [userVotes, setUserVotes] = useState<VoteObject | null>(null);
     const [voteCategories, setVoteCategories] = useState<VoteCategoryObject[] | null>(null);
+
+    const [allVotes, setAllVotes] = useState<VoteObject[] | null>(null);
 
     const [loading, setLoading] = useState(true);
 
@@ -124,6 +127,11 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
                 if(!guestLog) {
                     const _guest = await GuestModel.find({});
                     setGuestLog(()=>_guest);
+                }
+
+                if (!allVotes && canVote === false) {
+                    const _votes = await VoteModel.find({});
+                    setAllVotes(() => _votes);
                 }
     
                 // setTickets(()=>_all_tickets);
@@ -252,6 +260,86 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
     }, [loading, voteCategories])
 
 
+    const obtainStats = (categoryId: string, ) => {
+
+        if (!allVotes) return [];
+        
+        const categoryVotes = allVotes.filter((voteItem)=>Boolean(voteItem.votes.find((e)=>Object.is(e.categoryId, categoryId))));
+
+
+        console.debug(allVotes)
+
+        const vote_stats:VoteStat[] = categoryVotes.reduce((accumulator:VoteStat[], value:VoteObject)=>{
+
+            const _d: any = {};
+
+            const user = value.userId;
+
+
+            value.votes.forEach((val)=>{
+
+                if (_d.guestId) {
+                    _d.votes.push(user);
+                } else {
+                    _d.guestId = val.guestId;
+                    _d.votes = [user]
+                }
+            })
+
+            return [...accumulator, _d];
+
+
+        }, []);
+
+
+        return vote_stats;
+    }
+
+
+    const voteStatistics = useMemo(()=>{
+        const stats:VoteStat = {};
+
+        if (!voteCategories) return stats;
+        if (!allVotes) return stats;
+
+        allVotes.forEach((each) => {
+            const userId = each.userId;
+
+            const voteItems = each.votes.map((ev) => {
+                return {
+                    categoryId: ev.categoryId,
+                    userId: userId,
+                    guestId: ev.guestId,
+                };
+            });
+
+            voteItems.forEach((vt) => {
+                if (stats[vt.categoryId]) {
+                    if (!stats[vt.categoryId][vt.guestId]) {
+                        stats[vt.categoryId][vt.guestId] = [vt.userId];
+                    } else {
+                        stats[vt.categoryId][vt.guestId].push(vt.userId);
+                    }
+                } else {
+                    stats[vt.categoryId] = {
+                        [vt.guestId]: [vt.userId],
+                    };
+                }
+            });
+        });
+
+        return stats
+
+
+    },[allVotes, voteCategories])
+
+    
+    // if (allVotes) {
+    //     console.debug("All Votes:", allVotes);
+    //     console.debug("Vote Statistics:", voteStatistics)
+    // }
+
+
     const context = {
         obtainGuestRecord,
         messageApi,
@@ -261,14 +349,15 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
         voteList,
         loading,
         checkVote,
-    }
+        voteStatistics,
+    };
 
 
     return (
         <>
             {contextHolder}
             <VoteContext.Provider value={context}>
-                {
+                {/* {
                     user ? (
 
                         <AuthIndicator user={user}/>
@@ -277,7 +366,7 @@ export const VoteContextProvider:FC<PropsWithChildren> = (props) => {
                             setUser(data)
                         }}/>
                     )
-                }
+                } */}
                 {props.children}
             </VoteContext.Provider>
         </>
