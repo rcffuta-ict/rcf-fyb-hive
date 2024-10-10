@@ -7,8 +7,8 @@ interface ModalProps {
 }
 
 export default function PaymentDetailsModal(props: ModalProps) {
-    const amount = `₦ ${5_000}`;
-    const raw_amount = 5_000;
+    const raw_amount = 6_000;
+    const amount = `₦ ${raw_amount}`;
     return (
         <Modal
             title="Proceed with your payment"
