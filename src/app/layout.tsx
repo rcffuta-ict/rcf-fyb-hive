@@ -1,34 +1,29 @@
 import type { Metadata } from "next";
-import '@/styles/main.scss';
-import Link from "next/link";
-import Attribution from "@/components/Attribution";
-
+import Header from "./components/common/Header";
+import Footer from "./components/common/Footer";
+import "./global.css";
 
 export const metadata: Metadata = {
-  title: "FYB Hive | Reddemed Christian Fellowship FUTA",
-  description: "FYB Hive Feast 2024: Splendor Of His Love",
+    title: "FYB Hive | Redeemed Christian Fellowship FUTA",
+    description: "FYB Hive Feast 2024: Splendor Of His Love",
 };
 
 export default function RootLayout({
     children,
-}: Readonly<{
+}: {
     children: React.ReactNode;
-}>) {
+}) {
     return (
-        <html lang="en">
-            <body>
-                <header className="logo-wrapper sticky">
-                    <Link href='/' className="img-wrapper logo">
-                        RCF FUTA
-                    </Link>
+        <html lang="en" className="scroll-smooth dark">
+            <body className="bg-white-accent text-primary font-sans antialiased">
+                {/* Header */}
+                <Header/>
 
-                </header>
-                
-                {children}
+                {/* Main content */}
+                <main className="min-h-screen">{children}</main>
 
-                <footer>
-                    <Attribution />
-                </footer>
+                {/* Footer */}
+                <Footer/>
             </body>
         </html>
     );

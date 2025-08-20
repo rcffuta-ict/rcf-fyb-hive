@@ -1,0 +1,433 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+    *,
+    *::before,
+    *::after {
+        @apply box-border;
+    }
+
+    html {
+        scroll-behavior: smooth;
+        @apply overflow-x-hidden;
+    }
+
+    body {
+        @apply font-modern bg-gradient-to-br from-pearl-50 via-white to-romance-50 text-pearl-800 overflow-x-hidden antialiased;
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    /* Dark mode body */
+    .dark body {
+        @apply bg-gradient-to-br from-pearl-900 via-luxury-900 to-romance-900 text-pearl-100;
+    }
+
+    /* Typography hierarchy with romantic styling */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply m-0 p-0 font-luxury tracking-tight;
+    }
+
+    h1 {
+        @apply text-5xl md:text-6xl lg:text-7xl font-bold leading-tight;
+    }
+
+    h2 {
+        @apply text-3xl md:text-4xl lg:text-5xl font-bold leading-tight;
+    }
+
+    h3 {
+        @apply text-2xl md:text-3xl font-semibold leading-snug;
+    }
+
+    h4 {
+        @apply text-xl md:text-2xl font-semibold leading-snug;
+    }
+
+    h5 {
+        @apply text-lg md:text-xl font-medium leading-normal;
+    }
+
+    h6 {
+        @apply text-base md:text-lg font-medium leading-normal;
+    }
+
+    p {
+        @apply m-0 p-0 leading-relaxed;
+    }
+
+    /* Enhanced form elements */
+    input,
+    textarea,
+    select {
+        @apply font-inherit transition-all duration-350 ease-romantic;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        @apply font-inherit text-pearl-400 transition-colors duration-300;
+    }
+
+    input:focus::placeholder,
+    textarea:focus::placeholder {
+        @apply text-pearl-300;
+    }
+
+    /* Lists */
+    ul[role="list"],
+    ol[role="list"] {
+        @apply list-none p-0;
+    }
+
+    /* Images */
+    img {
+        @apply w-full h-auto max-h-full object-cover;
+    }
+
+    /* Links */
+    a {
+        @apply transition-all duration-300 ease-romantic;
+    }
+
+    /* Selection styling */
+    ::selection {
+        @apply bg-champagne-gold-30 text-luxury-800;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        @apply w-2;
+    }
+
+    ::-webkit-scrollbar-track {
+        @apply bg-pearl-100 dark:bg-pearl-800;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply bg-champagne-gold rounded-full;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-golden-600;
+    }
+}
+
+@layer components {
+
+    /* Enhanced background effects */
+    main::before {
+        content: "";
+        @apply fixed rounded-full -z-10 animate-float-slow;
+        width: clamp(400px, 35vw, 600px);
+        height: clamp(400px, 35vw, 600px);
+        top: -10%;
+        left: 60%;
+        transform: translate(-50%, -50%);
+        @apply bg-golden-400 opacity-10;
+        filter: blur(100px);
+    }
+
+    main::after {
+        content: "";
+        @apply fixed rounded-full -z-10 animate-drift;
+        width: clamp(300px, 30vw, 500px);
+        height: clamp(300px, 30vw, 500px);
+        top: 60%;
+        left: -10%;
+        transform: translate(-50%, -50%);
+        @apply bg-romance-400 opacity-15;
+        filter: blur(80px);
+    }
+
+    /* Additional floating elements */
+    /* Note: You can't have multiple ::before pseudoelements - this was causing issues */
+    main::before {
+        content: "";
+        @apply fixed rounded-full -z-10 animate-pulse-romantic;
+        width: clamp(200px, 20vw, 350px);
+        height: clamp(200px, 20vw, 350px);
+        top: 80%;
+        right: -5%;
+        @apply bg-luxury-300 opacity-10;
+        filter: blur(60px);
+    }
+
+    /* Enhanced button components */
+    .btn {
+        @apply inline-flex items-center justify-center px-6 py-3 rounded-2xl border-2 transition-all duration-400 ease-romantic font-elegant font-semibold relative overflow-hidden cursor-pointer;
+    }
+
+    .btn::before {
+        content: "";
+        @apply absolute inset-0 bg-shimmer-gold bg-[length:200%_100%] opacity-0 transition-opacity duration-300;
+    }
+
+    .btn:hover::before {
+        @apply opacity-100 animate-shimmer;
+    }
+
+    .btn-primary {
+        @apply bg-champagne-gold text-white border-champagne-gold hover:bg-golden-600 hover:border-golden-600 hover:shadow-golden-glow hover:scale-105 active:scale-95;
+    }
+
+    .btn-secondary {
+        @apply bg-luxury-600 text-white border-luxury-600 hover:bg-luxury-700 hover:border-luxury-700 hover:shadow-rose-glow hover:scale-105 active:scale-95;
+    }
+
+    .btn-outline {
+        @apply bg-transparent border-champagne-gold text-champagne-gold hover:bg-champagne-gold hover:text-white hover:shadow-golden-glow hover:scale-105 active:scale-95;
+    }
+
+    .btn-ghost {
+        @apply bg-glass-warm border-white/20 text-pearl-700 backdrop-blur-md hover:bg-glass-gold hover:text-golden-800 hover:shadow-soft hover:scale-105 active:scale-95;
+    }
+
+    .btn-award {
+        @apply bg-golden-trophy text-white border-golden-600 hover:shadow-trophy-glow hover:scale-110 active:scale-95 animate-award-glow;
+    }
+
+    .btn-romantic {
+        /* FIXED: Using proper gradient classes instead of rose-gold/20 */
+        @apply bg-gradient-to-r from-rose-gold-300 to-rose-gold-400 text-white border-romance-400 hover:shadow-romantic-glow hover:scale-105 active:scale-95 animate-pulse-romantic;
+    }
+
+    /* Size variants */
+    .btn-sm {
+        @apply px-4 py-2 text-sm rounded-lg;
+    }
+
+    .btn-md {
+        @apply px-8 py-3 text-base rounded-xl;
+    }
+
+    .btn-lg {
+        @apply px-12 py-4 text-lg rounded-2xl;
+    }
+
+    .btn-xl {
+        @apply px-16 py-5 text-xl rounded-3xl;
+    }
+
+    /* Card components */
+    .card {
+        @apply bg-glass-warm backdrop-blur-xl border border-white/20 rounded-3xl shadow-glass p-6 transition-all duration-400 ease-romantic;
+    }
+
+    .card:hover {
+        @apply shadow-elevated scale-[1.02] border-white/30;
+    }
+
+    .card-romantic {
+        /* FIXED: Using proper gradient classes */
+        @apply bg-gradient-to-br from-romance-50/80 to-rose-gold-200/20 border-romance-200/30 shadow-rose-glow;
+    }
+
+    .card-luxury {
+        @apply bg-gradient-to-br from-luxury-50/80 to-luxury-400/20 border-luxury-200/30 shadow-magic;
+    }
+
+    .card-award {
+        /* FIXED: Using proper gradient classes */
+        @apply bg-gradient-to-br from-golden-50/80 to-champagne-gold-300/20 border-golden-200/30 shadow-golden-glow animate-glow-pulse;
+    }
+
+    /* Enhanced voter card */
+    .voter-card-container {
+        @apply relative overflow-hidden rounded-3xl transition-all duration-400 ease-romantic;
+    }
+
+    .voter-card-container::before {
+        content: attr(data-label);
+        @apply absolute -top-2 -right-4 text-xs tracking-widest font-bold border-2 px-3 py-1 rounded-full text-champagne-gold border-champagne-gold bg-white/90 backdrop-blur-sm shadow-golden-glow animate-sparkle z-10;
+    }
+
+    .voter-card-container:hover::before {
+        @apply animate-bounce-gentle shadow-trophy-glow;
+    }
+
+    /* Enhanced shimmer effect */
+    .shimmer {
+        @apply absolute top-0 left-[-100%] w-full h-full animate-shimmer z-10;
+        background: linear-gradient(110deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 215, 0, 0.3) 25%,
+                rgba(255, 255, 255, 0.8) 50%,
+                rgba(255, 215, 0, 0.3) 75%,
+                rgba(255, 255, 255, 0) 100%);
+    }
+
+    /* Input components */
+    .input {
+        @apply w-full px-4 py-3 rounded-xl border-2 border-pearl-200 bg-glass-warm backdrop-blur-sm text-pearl-800 transition-all duration-350 ease-romantic focus:border-champagne-gold focus:ring-2 focus:ring-champagne-gold/20 focus:shadow-golden-glow placeholder:text-pearl-400;
+    }
+
+    .input-romantic {
+        @apply border-romance-200 focus:border-romance-400 focus:ring-romance-400/20 focus:shadow-rose-glow;
+    }
+
+    .input-luxury {
+        @apply border-luxury-200 focus:border-luxury-400 focus:ring-luxury-400/20 focus:shadow-magic;
+    }
+
+    /* Text effects */
+    .text-gradient-gold {
+        @apply bg-gradient-to-r from-champagne-gold-400 to-golden-600 bg-clip-text text-transparent;
+    }
+
+    .text-gradient-romantic {
+        /* FIXED: Using proper gradient classes */
+        @apply bg-gradient-to-r from-rose-gold-400 to-romance-500 bg-clip-text text-transparent;
+    }
+
+    .text-gradient-luxury {
+        @apply bg-gradient-to-r from-luxury-600 to-luxury-400 bg-clip-text text-transparent;
+    }
+
+    /* Loading and skeleton effects */
+    .skeleton {
+        @apply bg-gradient-to-r from-pearl-200 via-pearl-100 to-pearl-200 bg-[length:200%_100%] animate-shimmer rounded-lg;
+    }
+
+    .pulse-romantic {
+        @apply animate-pulse-romantic;
+    }
+
+    /* Section dividers */
+    .divider-romantic {
+        @apply h-px bg-gradient-to-r from-transparent via-romance-300 to-transparent my-8 opacity-50;
+    }
+
+    .divider-golden {
+        @apply h-px bg-gradient-to-r from-transparent via-champagne-gold to-transparent my-8 opacity-60;
+    }
+
+    /* Status indicators */
+    .status-online {
+        @apply relative;
+    }
+
+    .status-online::after {
+        content: "";
+        @apply absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-ping;
+    }
+
+    .status-award {
+        @apply relative;
+    }
+
+    .status-award::after {
+        content: "🏆";
+        @apply absolute -top-2 -right-2 text-lg animate-bounce-gentle;
+    }
+}
+
+@layer utilities {
+    .font-inherit {
+        font-family: inherit !important;
+        font-size: inherit !important;
+        font-style: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+    }
+
+    /* Custom spacing utilities */
+    .space-y-romantic>*+* {
+        margin-top: 1.5rem;
+    }
+
+    .space-y-luxury>*+* {
+        margin-top: 2rem;
+    }
+
+    /* Romantic aspect ratios */
+    .aspect-dinner {
+        aspect-ratio: 16 / 10;
+    }
+
+    .aspect-award {
+        aspect-ratio: 4 / 3;
+    }
+
+    .aspect-romantic {
+        aspect-ratio: 3 / 4;
+    }
+
+    /* Custom transforms */
+    .transform-romantic {
+        @apply transition-transform duration-400 ease-romantic;
+    }
+
+    /* Blur utilities */
+    .backdrop-blur-romantic {
+        backdrop-filter: blur(16px) saturate(1.8);
+    }
+
+    /* Custom borders */
+    .border-romantic {
+        border-image: linear-gradient(135deg, #FFE5E5, #FFCCCB, #FFB6C1) 1;
+    }
+
+    .border-golden {
+        border-image: linear-gradient(135deg, #FFD700, #FFA500, #DAA520) 1;
+    }
+
+    /* Interactive utilities */
+    .hover-lift {
+        @apply transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-elevated;
+    }
+
+    .hover-glow {
+        @apply transition-all duration-300 hover:shadow-golden-glow;
+    }
+
+    .hover-romantic {
+        @apply transition-all duration-300 hover:shadow-romantic-glow hover:scale-105;
+    }
+
+    /* Visibility animations */
+    .fade-in-up {
+        @apply opacity-0 translate-y-4 transition-all duration-600 ease-out;
+    }
+
+    .fade-in-up.visible {
+        @apply opacity-100 translate-y-0;
+    }
+
+    .stagger-delay-1 {
+        animation-delay: 100ms;
+    }
+
+    .stagger-delay-2 {
+        animation-delay: 200ms;
+    }
+
+    .stagger-delay-3 {
+        animation-delay: 300ms;
+    }
+
+    .stagger-delay-4 {
+        animation-delay: 400ms;
+    }
+
+    .stagger-delay-5 {
+        animation-delay: 500ms;
+    }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+    .animate-shimmer,
+    .animate-drift,
+    .animate-float {
+        animation: none !important;
+    }
+}

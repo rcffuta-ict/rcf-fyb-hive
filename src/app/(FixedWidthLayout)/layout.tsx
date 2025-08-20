@@ -7,7 +7,7 @@ export default function FixedWidthLayout({
 }>) {
     return (
         <MainWrapper>
-            {children}
+            <section className="pt-32 ">{children}</section>
         </MainWrapper>
     );
 }
