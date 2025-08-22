@@ -223,6 +223,8 @@ const config: Config = {
         // Inner shadows for depth
         'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
         'inner-strong': 'inset 0 4px 8px 0 rgba(0, 0, 0, 0.12)',
+
+        'magic': '0 10px 40px rgba(147, 51, 234, 0.4), 0 0 60px rgba(147, 51, 234, 0.1)',
       },
       
       borderRadius: {

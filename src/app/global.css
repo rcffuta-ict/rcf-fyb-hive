@@ -327,6 +327,13 @@
         content: "🏆";
         @apply absolute -top-2 -right-2 text-lg animate-bounce-gentle;
     }
+
+    .shadow-magic {
+        box-shadow:
+            0 10px 40px rgba(147, 51, 234, 0.4),
+            0 0 60px rgba(147, 51, 234, 0.1),
+            0 4px 20px rgba(196, 196, 196, 0.1);
+    }
 }
 
 @layer utilities {

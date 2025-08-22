@@ -25,7 +25,7 @@ export default function RegistrationForm() {
                     />
                 </svg>
             ),
-            content: <FinalistForm />,
+            content: <FinalistForm user={{}}/>,
         },
         {
             title: "Register Associate",

@@ -1,37 +1,49 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { useState } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import { authStore } from "@/stores/authStore";
+import { observer } from "mobx-react-lite";
 
-export default function LoginPage() {
-    const [email, setEmail] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [message, setMessage] = useState({ text: "", type: "" });
+// 1. Define Zod schema
+const loginSchema = z.object({
+    email: z.string().email("Invalid email address"),
+});
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setMessage({ text: "", type: "" });
+// 2. Type inferred from Zod
+type LoginFormValues = z.infer<typeof loginSchema>;
 
+function LoginPage() {
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isLoading, isSubmitting },
+    } = useForm<LoginFormValues>({
+        resolver: zodResolver(loginSchema),
+    });
+
+
+    const onSubmit = async (data: LoginFormValues) => {
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            setMessage({
-                text: "Login link sent to your email! Please check your inbox.",
-                type: "success",
-            });
-            setEmail("");
-        } catch (error) {
-            setMessage({
-                text: "Failed to send login link. Please try again.",
-                type: "error",
-            });
-        } finally {
-            setIsLoading(false);
+            await authStore.login(data.email);
+            toast.success("Login link sent! Check your inbox.");
+            reset();
+        } catch {
+            toast.error(authStore.error || "Failed to send login link.");
         }
     };
 
+
+    const loading = isLoading || isSubmitting;
+
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pearl-900 via-luxury-900 to-pearl-800 p-6">
+        <div className="min-h-screen flex items-center justify-center p-6">
             <div className="w-full max-w-md">
                 {/* Login Card */}
                 <div className="bg-pearl-800/40 backdrop-blur-md border border-pearl-700/50 rounded-2xl shadow-2xl p-8">
@@ -62,7 +74,10 @@ export default function LoginPage() {
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-6"
+                    >
                         <div>
                             <label
                                 htmlFor="email"
@@ -74,19 +89,26 @@ export default function LoginPage() {
                                 id="email"
                                 type="email"
                                 placeholder="Enter your email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-4 py-3 border border-pearl-600 rounded-xl bg-pearl-700/50 text-pearl-100 placeholder:text-pearl-400 focus:outline-none focus:ring-2 focus:ring-champagne-gold/40 focus:border-champagne-gold transition-all duration-200"
-                                required
+                                {...register("email")}
+                                className={`w-full px-4 py-3 border rounded-xl bg-pearl-700/50 text-pearl-100 placeholder:text-pearl-400 focus:outline-none focus:ring-2 focus:ring-champagne-gold/40 focus:border-champagne-gold transition-all duration-200 ${
+                                    errors.email
+                                        ? "border-red-500 focus:ring-red-400"
+                                        : "border-pearl-600"
+                                }`}
                             />
+                            {errors.email && (
+                                <p className="text-red-400 text-sm mt-1">
+                                    {errors.email.message}
+                                </p>
+                            )}
                         </div>
 
                         <button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={loading}
                             className="w-full bg-gradient-to-r from-champagne-gold to-golden-600 hover:from-golden-600 hover:to-champagne-gold text-white font-medium py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
                         >
-                            {isLoading ? (
+                            {loading ? (
                                 <>
                                     <svg
                                         className="animate-spin -ml-1 mr-2 h-4 w-4"
@@ -114,18 +136,6 @@ export default function LoginPage() {
                                 "Send Login Link"
                             )}
                         </button>
-
-                        {message.text && (
-                            <div
-                                className={`rounded-lg p-3 text-sm ${
-                                    message.type === "success"
-                                        ? "bg-green-900/30 text-green-300 border border-green-700/50"
-                                        : "bg-red-900/30 text-red-300 border border-red-700/50"
-                                }`}
-                            >
-                                {message.text}
-                            </div>
-                        )}
                     </form>
 
                     {/* Divider */}
@@ -183,3 +193,6 @@ export default function LoginPage() {
         </div>
     );
 }
+
+
+export default observer(LoginPage);

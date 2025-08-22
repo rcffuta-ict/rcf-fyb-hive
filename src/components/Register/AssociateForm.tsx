@@ -3,16 +3,16 @@ import { Form, message } from "antd";
 import { useState } from "react";
 import { openNotificationWithIcon } from "@/utils/notification";
 import ImageUpload from "../ImageUpload";
-import TextInput from "../Form/TextInput";
+
 import { FormError } from "../Form/form.interface";
 import {submitData} from "@/utils/submit";
 import { GuestAccount, GuestModel, GuestObject } from "@/lib/nobox/record-structures/Guest";
 import axios from "axios";
-import CheckInput from "../Form/CheckInput";
 import { getNameByGender, parseConsent } from "@/utils/process-details";
 import { validateAssociatetForm } from "@/utils/validate-form";
 import { useRouter } from "next/navigation";
 import { findTicket } from "@/utils/guest-utils";
+import { CheckInput, TextInput } from "../Form";
 
 
 const dummyData:any = {

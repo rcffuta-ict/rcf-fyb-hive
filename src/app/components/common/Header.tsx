@@ -1,4 +1,6 @@
 "use client";
+import { authStore } from "@/stores/authStore";
+import { observer } from "mobx-react-lite";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -236,12 +238,25 @@ export default function Header() {
 }
 
 
-
-function UserHighlight() {
+const UserHighlight = observer(() => {
     const [isHovered, setIsHovered] = useState(false);
+    const auth = authStore;
+
+    const isLoggedIn = auth.isAuthenticated;
+    const userLabel =
+        auth.member?.firstname || auth.member?.email || "Dashboard";
+
+    const handleClick = (e: React.MouseEvent) => {
+        if (isLoggedIn) {
+            e.preventDefault(); // prevent Link navigation
+            auth.logout(); // log the user out
+        }
+    };
+
     return (
         <Link
-            href="/login"
+            href={isLoggedIn ? "/" : "/login"}
+            onClick={handleClick}
             className="group relative px-8 py-4 rounded-2xl bg-gradient-to-r from-champagne-gold via-golden-400 to-golden-500 text-white font-elegant font-semibold shadow-trophy-glow hover:shadow-golden-glow hover:scale-110 active:scale-95 transition-all duration-350 ease-bounce-in overflow-hidden animate-slide-left"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -249,10 +264,10 @@ function UserHighlight() {
             {/* Button content */}
             <div className="relative z-10 flex items-center space-x-3">
                 <span className="group-hover:animate-sparkle text-xl drop-shadow-lg transition-transform duration-300">
-                    🔐
+                    {isLoggedIn ? "👤" : "🔐"}
                 </span>
                 <span className="group-hover:drop-shadow-lg font-bold tracking-wide">
-                    Login
+                    {isLoggedIn ? userLabel : "Login"}
                 </span>
                 <span
                     className={`text-lg transition-all duration-300 ${
@@ -268,7 +283,7 @@ function UserHighlight() {
             {/* Enhanced shimmer effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
 
-            {/* Multiple pulse rings for extra elegance */}
+            {/* Multiple pulse rings */}
             <div className="absolute inset-0 rounded-2xl border-2 border-white/30 scale-100 group-hover:scale-125 group-hover:opacity-0 transition-all duration-800 ease-out"></div>
             <div
                 className="absolute inset-0 rounded-2xl border border-white/20 scale-100 group-hover:scale-150 group-hover:opacity-0 transition-all duration-1200 ease-out"
@@ -279,16 +294,16 @@ function UserHighlight() {
                 style={{ transitionDelay: "400ms" }}
             ></div>
 
-            {/* Background glow effect */}
+            {/* Background glow */}
             <div className="absolute inset-0 bg-gradient-to-r from-golden-600/0 via-champagne-gold/20 to-golden-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl blur-sm"></div>
 
-            {/* Floating sparkles on hover */}
+            {/* Floating sparkles */}
             <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
                 <div
                     className={`absolute top-2 left-4 w-1 h-1 bg-white rounded-full transition-all duration-500 ${
                         isHovered ? "opacity-100 animate-sparkle" : "opacity-0"
                     }`}
-                ></div>
+                />
                 <div
                     className={`absolute bottom-3 right-6 w-0.5 h-0.5 bg-white rounded-full transition-all duration-700 ${
                         isHovered ? "opacity-100 animate-twinkle" : "opacity-0"
@@ -304,4 +319,4 @@ function UserHighlight() {
             </div>
         </Link>
     );
-}
+});

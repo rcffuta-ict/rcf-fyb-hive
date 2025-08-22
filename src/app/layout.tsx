@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Header from "./components/common/Header";
 import Footer from "./components/common/Footer";
 import "./global.css";
+import { GlobalToastProvider } from "@/providers/ToastProvider";
 
 export const metadata: Metadata = {
     title: "FYB Hive | Redeemed Christian Fellowship FUTA",
@@ -16,14 +17,16 @@ export default function RootLayout({
     return (
         <html lang="en" className="scroll-smooth dark">
             <body className="bg-white-accent text-primary font-sans antialiased">
-                {/* Header */}
-                <Header/>
+                <GlobalToastProvider>
+                    {/* Header */}
+                    <Header/>
 
-                {/* Main content */}
-                <main className="min-h-screen">{children}</main>
+                    {/* Main content */}
+                    <main className="min-h-screen">{children}</main>
 
-                {/* Footer */}
-                <Footer/>
+                    {/* Footer */}
+                    <Footer/>
+                </GlobalToastProvider>
             </body>
         </html>
     );

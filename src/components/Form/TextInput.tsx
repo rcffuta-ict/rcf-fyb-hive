@@ -1,7 +1,6 @@
-import { Input } from "antd";
+import { Eye, EyeOff, Mail, Phone, User, X, Check } from "lucide-react";
 import { FormElement } from "./form.interface";
-
-
+import { useState } from "react";
 
 interface TextInputProps extends FormElement {
     name: string;
@@ -14,89 +13,171 @@ interface TextInputProps extends FormElement {
     toUpperCase?: boolean;
 }
 
-
-export default function TextInput(props: TextInputProps) {
+export function TextInput(props: TextInputProps) {
+    const [showPassword, setShowPassword] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
 
     function revealError() {
-        // const errorMessage = props.error ? props.error[props.name] : null;
-
         if (!props.error) return;
-
         if (!props.error[props.name]) return;
-
-        return (props.error[props.name]) || ` `;
+        return props.error[props.name] || "";
     }
 
-
-    // Function to format the phone number
     const formatPhoneNumber = (value: string) => {
-        // Remove all non-numeric characters
-        const digits = value.replace(/[^\d]/g, '');
-        
-        // Only return numeric value
-        // return digits.length <= 10 ? digits : digits.slice(1); // Remove the leading '0' if present
-
+        const digits = value.replace(/[^\d]/g, "");
         const n = Number(digits);
-
-        return n===0? '' : n.toString();
+        return n === 0 ? "" : n.toString();
     };
 
-    let type = 'text';
-    let addon;
+    let type = "text";
+    let IconComponent = User;
 
     if (props.email) {
-        type = 'email'
+        type = "email";
+        IconComponent = Mail;
     }
-
     if (props.tel) {
-        type = 'tel'
+        type = "tel";
+        IconComponent = Phone;
+    }
+    if (props.password) {
+        type = showPassword ? "text" : "password";
     }
 
-    if (props.password) {
-        type = 'password'
-    }
+    const hasError = revealError();
+    const value = props.getValue(props.name) as string;
 
     return (
-        <label
-            htmlFor={props.name}
-            className="form-input"
-        >
-            <span
-                className="text-capitalize fw-400 fs-14 lh-27"
+        <div className="group relative animate-fade-in">
+            <label
+                htmlFor={props.name}
+                className="block mb-2 font-elegant text-sm font-medium text-pearl-700 dark:text-pearl-200 transition-colors duration-300"
             >
                 {props.label}
-            </span>
+            </label>
 
-            <Input
-                placeholder={props.placeholder}
-                type={type}
-                addonBefore={props.tel ? '+234' : ''}
-                onChange={(e)=>{
-                    const value = e.target.value;
+            <div className="relative">
+                {/* Input Field */}
+                <div
+                    className={`
+          relative overflow-hidden rounded-2xl border-2 transition-all duration-400 ease-romantic
+          ${
+              isFocused
+                  ? "border-champagne-gold shadow-golden-glow bg-glass-warm backdrop-blur-md"
+                  : hasError
+                  ? "border-error shadow-error-glow bg-error-light/5"
+                  : "border-pearl-200 dark:border-pearl-700 bg-glass-warm backdrop-blur-sm"
+          }
+          ${
+              props.disable
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:border-champagne-gold/50 hover:shadow-soft"
+          }
+        `}
+                >
+                    {/* Shimmer Effect */}
+                    {isFocused && (
+                        <div className="absolute inset-0 bg-shimmer-gold bg-[length:200%_100%] opacity-20 animate-shimmer pointer-events-none" />
+                    )}
 
-                    if (type === 'email') {
-                        props.onChange(props.name, value.toLowerCase())
-                    }
-                    else if (type === 'tel') {
-                        props.onChange(props.name, formatPhoneNumber(value))
-                    }
+                    {/* Phone Number Prefix */}
+                    {props.tel && (
+                        <div className="absolute left-0 top-0 h-full flex items-center px-4 bg-champagne-gold/10 border-r border-champagne-gold/20 text-champagne-gold font-semibold">
+                            +234
+                        </div>
+                    )}
 
-                    else {
+                    {/* Icon */}
+                    {!props.tel && (
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-pearl-400 transition-colors duration-300 group-focus-within:text-champagne-gold">
+                            <IconComponent size={20} />
+                        </div>
+                    )}
 
-                        props.onChange(props.name, value);
-                    }
-                }}
-                disabled={props.disable}
-                // value={props.getValue(props.name) as string}
-                value={props.getValue(props.name) as string}
-                maxLength={props.maxLength || 200}
-                className={props.toUpperCase ? 'text-uppercase': ''}
-                // pattern={type === 'tel' ? "[\d\s\-\(\)]{10,15}": undefined}
-            />
+                    {/* Input */}
+                    <input
+                        id={props.name}
+                        type={type}
+                        placeholder={props.placeholder}
+                        disabled={props.disable}
+                        maxLength={props.maxLength || 200}
+                        value={value || ""}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        onChange={(e) => {
+                            const inputValue = e.target.value;
+                            if (type === "email") {
+                                props.onChange(
+                                    props.name,
+                                    inputValue.toLowerCase()
+                                );
+                            } else if (type === "tel") {
+                                props.onChange(
+                                    props.name,
+                                    formatPhoneNumber(inputValue)
+                                );
+                            } else {
+                                props.onChange(props.name, inputValue);
+                            }
+                        }}
+                        className={`
+              w-full h-14 bg-transparent border-none outline-none font-modern text-pearl-800 dark:text-pearl-100
+              ${props.tel ? "pl-20" : "pl-12"} pr-12 placeholder:text-pearl-400
+              ${props.toUpperCase ? "uppercase" : ""}
+              disabled:cursor-not-allowed
+            `}
+                    />
 
+                    {/* Password Toggle */}
+                    {props.password && (
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            disabled={props.disable}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-pearl-400 hover:text-champagne-gold transition-colors duration-300 disabled:cursor-not-allowed"
+                        >
+                            {showPassword ? (
+                                <EyeOff size={20} />
+                            ) : (
+                                <Eye size={20} />
+                            )}
+                        </button>
+                    )}
 
-            <b className="error-display">{revealError()}</b>
+                    {/* Clear Button */}
+                    {!props.password && value && !props.disable && (
+                        <button
+                            type="button"
+                            onClick={() => props.onChange(props.name, "")}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-pearl-400 hover:text-error transition-colors duration-300 opacity-0 group-hover:opacity-100"
+                        >
+                            <X size={18} />
+                        </button>
+                    )}
+                </div>
 
-        </label>
-    )
+                {/* Character Count */}
+                {props.maxLength && value && (
+                    <div className="absolute -bottom-6 right-0 text-xs text-pearl-400 font-medium">
+                        {value.length}/{props.maxLength}
+                    </div>
+                )}
+            </div>
+
+            {/* Error Message */}
+            {hasError && (
+                <div className="mt-2 flex items-center space-x-2 text-error animate-slide-down">
+                    <div className="w-1.5 h-1.5 bg-error rounded-full animate-pulse-romantic" />
+                    <span className="text-sm font-medium">{hasError}</span>
+                </div>
+            )}
+
+            {/* Success Indicator */}
+            {!hasError && value && !props.disable && (
+                <div className="absolute top-14 right-4 -translate-y-1/2 text-success animate-scale-in">
+                    <Check size={18} />
+                </div>
+            )}
+        </div>
+    );
 }
