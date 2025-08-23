@@ -226,8 +226,7 @@
     }
 
     .card-romantic {
-        /* FIXED: Using proper gradient classes */
-        @apply bg-gradient-to-br from-romance-50/80 to-rose-gold-200/20 border-romance-200/30 shadow-rose-glow;
+        @apply bg-gradient-to-br from-romance-50/60 to-rose-100/30 border-romance-100/40 shadow-soft backdrop-blur-md;
     }
 
     .card-luxury {

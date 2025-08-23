@@ -10,7 +10,7 @@ export default function RegistrationForm() {
     const tabs = [
         {
             title: "Register as Finalist",
-            subtitle: "For graduating students",
+            subtitle: "For graduating students of RCFFUTA",
             icon: (
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -25,11 +25,11 @@ export default function RegistrationForm() {
                     />
                 </svg>
             ),
-            content: <FinalistForm user={{}}/>,
+            content: <FinalistForm />,
         },
         {
             title: "Register Associate",
-            subtitle: "For alumni & supporters",
+            subtitle: "For non-graduating students of RCFFUTA",
             icon: (
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -139,12 +139,12 @@ export default function RegistrationForm() {
                 {/* Help Text */}
                 <div className="mt-6 text-center">
                     <p className="text-pearl-500 text-sm">
-                        Need help? Contact our support team at{" "}
+                        Need help? Contact our ICT team at{" "}
                         <a
-                            href="mailto:support@example.com"
+                            href="mailto:ic@rcffuta.com"
                             className="text-champagne-gold hover:text-golden-400 hover:underline"
                         >
-                            support@example.com
+                            ic@rcffuta.com
                         </a>
                     </p>
                 </div>

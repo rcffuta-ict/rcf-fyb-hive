@@ -1,4 +1,7 @@
 "use client"
+import { appToast } from "@/providers/ToastProvider";
+import { authStore } from "@/stores/authStore";
+import { observer } from "mobx-react-lite";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment, useState, useEffect } from "react";
@@ -44,8 +47,9 @@ const features = [
     },
 ];
 
-export default function HomePage() {
+function HomePage() {
     const [isVisible, setIsVisible] = useState(false);
+    const member = authStore.member;
 
     useEffect(() => {
         setIsVisible(true);
@@ -260,7 +264,7 @@ export default function HomePage() {
                                 delay: "0ms",
                             },
                             {
-                                href: "/vote",
+                                href: "#",
                                 icon: "👑",
                                 title: "Vote a Finalist",
                                 description:
@@ -271,7 +275,7 @@ export default function HomePage() {
                                 delay: "200ms",
                             },
                             {
-                                href: "/pair-date",
+                                href: "#",
                                 icon: "💕",
                                 title: "Pair Your Date",
                                 description:
@@ -289,6 +293,21 @@ export default function HomePage() {
                             >
                                 <Link
                                     href={action.href}
+                                    onClick={(e) => {
+                                        
+                                        if (action.href === "#") {
+                                            e.preventDefault();
+                                            appToast.notImplemented();
+                                            return
+                                        }
+
+                                        if (!member) {
+                                            e.preventDefault();
+                                            appToast.error(
+                                                "Please log in to continue"
+                                            );
+                                        }
+                                    }}
                                     className={`block relative bg-glass-warm backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center hover:scale-110 hover:${action.hoverShadow} transition-all duration-500 overflow-hidden`}
                                 >
                                     {/* Background gradient on hover */}
@@ -329,14 +348,14 @@ export default function HomePage() {
             </section>
 
             {/* Testimonials Section */}
-            
 
             {/* Final CTA Section */}
-            
         </Fragment>
     );
 }
 
+
+export default observer(HomePage);
 
 
 function Testimonials() {

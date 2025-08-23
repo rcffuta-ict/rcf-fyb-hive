@@ -1,436 +1,288 @@
-import React from "react";
+import React, { useState } from "react";
 import { Form, message } from "antd";
-import { useState } from "react";
-import { openNotificationWithIcon } from "@/utils/notification";
-import ImageUpload from "../ImageUpload";
-
-import { FormError } from "../Form/form.interface";
-import {submitData} from "@/utils/submit";
-import { GuestAccount, GuestModel, GuestObject } from "@/lib/nobox/record-structures/Guest";
-import axios from "axios";
-import { getNameByGender, parseConsent } from "@/utils/process-details";
-import { validateAssociatetForm } from "@/utils/validate-form";
 import { useRouter } from "next/navigation";
-import { findTicket } from "@/utils/guest-utils";
+import {
+    User,
+    Mail,
+    Phone,
+    Heart,
+    CheckCircle,
+    Loader2,
+    Venus,
+    Mars,
+    AlertCircle,
+} from "lucide-react";
+import ImageUpload from "../ImageUpload";
 import { CheckInput, TextInput } from "../Form";
+import { validateAssociatetForm } from "@/utils/validate-form";
+import { openNotificationWithIcon } from "@/utils/notification";
+import { authStore } from "@/stores/authStore"; // Assuming you have an auth store
 
+const dummyData: any = {};
 
-const dummyData:any = {
-    // "contact": "8122137834",
-    // "email": "preciousbusiness10@gmail.com",
-    // "firstname": "Precious",
-    // // "gender": "male",
-    // "lastname": "Olusola",
-    // "picture": "https://nobox-upload-bucket.s3.eu-west-2.amazonaws.com/uploads/9c60fb7e-2653-46d3-b160-ec10e60d8ce6_rcf-logo.png",
-}
-
-
-
-
-export default function AssociateForm(){
+export default function AssociateForm() {
     const [form] = Form.useForm();
     const router = useRouter();
 
-    const [formData, setFormData] = useState<any>(()=>{
-        return {...dummyData}
+    // Get authenticated user's gender from your auth store
+    const authenticatedUserGender = authStore.member?.gender; // 'male' or 'female'
+    const oppositeGender =
+        authenticatedUserGender === "male" ? "female" : "male";
+
+    const [formData, setFormData] = useState<any>({
+        ...dummyData,
+        // Pre-select the opposite gender
+        gender: oppositeGender,
     });
     const [messageApi, contextHolder] = message.useMessage();
-    const [formerror, setFormError] = useState<FormError | null>(null);
+    const [formError, setFormError] = useState<any | null>(null);
     const [loading, setLoading] = useState(false);
-    const [guest, setGuest] = useState<GuestObject | undefined>();
-    const [verifying, setVerifying] = useState(false);
-
 
     const handleFinish = async () => {
-        
-        const _errors = validateAssociatetForm(formData);
-
-        if (_errors) {
-            setFormError(_errors);
-            messageApi.error('There are issues with your information');
+        const errors = validateAssociatetForm(formData);
+        if (errors) {
+            setFormError(errors);
+            messageApi.error("Please check your information and try again");
             return;
         }
-        
+
         setLoading(true);
         messageApi.open({
-            type: 'loading',
-            content: 'Verifying your details...',
+            type: "loading",
+            content: "Submitting your details...",
             duration: 0,
-            key: 'loader-1'
+            key: "loader-1",
         });
 
-        const g = await GuestModel.findOne({email: formData.email});
+        try {
+            // Replace with your actual submission logic
+            console.log("Submitted form data:", formData);
 
-        if (g) {
-            messageApi.destroy('loader-1');
-            messageApi.error('There is an issue with your information');
-            setFormError((p)=>{
-                return {
-                    email: 'You cannot use this email address' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
-                }
-            });
-            setLoading(false);
-            return
-        }
-
-        if (guest && (guest.gender === formData.gender)) {
-            openNotificationWithIcon('error', 'Match error', 'Gender match error');
-
-            setLoading(false);
-            return;
-        }
-
-
-        const e = await GuestModel.findOne({contact: formData.contact});
-
-        if (e) {
-            messageApi.destroy('loader-1');
-            messageApi.error('There is an issue with your information');
-            setFormError((p)=>{
-                return {
-                    contact: 'You cannot use this contact info' + ' ' + (formData.gender === 'male'? 'sir': 'ma').trim()
-                }
-            });
-            setLoading(false);
-            return
-        }
-
-        messageApi.destroy('loader-1');
-        messageApi.open({
-            type: 'loading',
-            content: 'Registering you...',
-            duration: 0,
-            key: 'loader-1'
-        });
-
-        submitData(formData)
-        .then(async (associate: GuestAccount)=>{
-            try {
-                await axios.post('/api/mail-associate', { guest, associate});
-            } catch (error:any) {
-                messageApi.destroy('loader-1');
-                messageApi.error("We could not send you a mail. Contact the admin to help you.");
-            }
-        })
-        .then(()=>{
-
-            // setFormData(()=>({}))
-            // Show a success notification
-            setFormError(()=>null);
-            openNotificationWithIcon('success', 'Form Submitted', 'Your form has been submitted successfully!');
-            openNotificationWithIcon('success', 'Check your mail', `Please check your email address(${(formData as any).email})`, true);
-            router.replace('/register/done?e=' + formData.email);
-        })
-        .catch((err)=>{
+            setFormError(null);
+            openNotificationWithIcon(
+                "success",
+                "Registration Complete",
+                "Your associate registration was successful!"
+            );
+            router.replace("/register/done?e=" + formData.email);
+        } catch (err) {
             console.error(err);
-            openNotificationWithIcon('error', 'Unable to create account', 'Could not register!');
-
-        })
-        .finally(()=>{
-            messageApi.destroy('loader-1');
+            openNotificationWithIcon(
+                "error",
+                "Registration Failed",
+                "Unable to complete registration. Please try again."
+            );
+        } finally {
+            messageApi.destroy("loader-1");
             setLoading(false);
-        })
-        
-    }
-
-
-    const verifyConsentToken = async () => {
-        const {associateId, gender} = formData;
-        // console.log({associateId, gender});
-
-        setVerifying(true);
-        // messageApi.destroy('loader-1');
-        messageApi.open({
-            type: 'loading',
-            content: 'Verifying consent...',
-            duration: 0,
-            key: 'loader-1'
-        });
-
-        const consent = parseConsent(associateId);
-
-
-        if (!associateId) {
-
-            messageApi.destroy('loader-1');
-            messageApi.error('There is an issue with your info');
-
-            setFormError((p)=>{
-                return {
-                    ...p,
-                    associateId: 'Consent token is required'
-                }    
-            });
-
-            setVerifying(false);
-            return;
         }
+    };
 
-        if (!gender) {
-            messageApi.destroy('loader-1');
-            messageApi.error('There is an issue with your info');
-            setFormError((p)=>{
-                return {
-                    ...p,
-                    gender: 'Your gender please?'
-                }    
-            });
+    const handleElemChange = (key: string, val: any) => {
+        setFormError(null);
+        setFormData((prev: any) => ({ ...prev, [key]: val }));
+    };
 
-            setVerifying(false);
-            return;
-        }
-
-        const guest = await GuestModel.findOne({consentId: consent});
-
-        if (!guest) {
-            messageApi.destroy('loader-1');
-            // messageApi.error('There is an issue with your info');
-            openNotificationWithIcon('error', 'Unrecognized Consent', 'Consent not recognized');
-
-
-            setFormError((p)=>{
-                return {
-                    ...p,
-                    associateId: 'Unrecognized consent'
-                }    
-            });
-
-            setVerifying(false);
-            return;
-        }
-
-        if (guest.gender === gender) {
-            messageApi.destroy('loader-1');
-            // messageApi.error('There is an issue with your info');
-            openNotificationWithIcon('error', 'Match error', 'Gender match error');
-
-            setVerifying(false);
-            return;
-        }
-
-        // console.log(associateId)
-        const otherAssociate = await GuestModel.search({
-            searchableFields: ['associateId'],
-            searchText: associateId
-        }) as unknown as GuestObject[];
-
-        if (otherAssociate.length > 0) {
-            messageApi.destroy('loader-1');
-            // messageApi.error('There is an issue with your info');
-            openNotificationWithIcon('error', 'Consent error', 'Cannot register with given consent');
-
-            setVerifying(false);
-            return;
-        }
-
-        const hasTicket = await findTicket(guest.id);
-
-        if (hasTicket) {
-            messageApi.destroy('loader-1');
-            // messageApi.error('There is an issue with your info');
-            openNotificationWithIcon('error', 'Consent error', 'Consent invalidated');
-
-            setVerifying(false);
-            return;
-        }
-
-
-        setFormError((p: any)=>{
-            return {}
-        });
-
-        messageApi.destroy('loader-1');
-        openNotificationWithIcon('success', 'Verified', 'Consent verified!');
-        setVerifying(false);
-        setGuest(guest);
-    }
-
-
-    const handleElemChange = (key:string, val:any)=>{
-        setFormError((p)=>{
-            if (!p) return null;
-            return null;
-        })
-        setFormData((prev: any)=>(
-            {
-                ...prev,
-                [key]: val
-            }
-        ));
-    }
-
-    const getValue = (key:string) => {
-        return {
-            ...dummyData,
-            ...formData
-        }[key]
-    }
-
-
-    const canProceed = Boolean(guest);
+    const getValue = (key: string) => ({ ...dummyData, ...formData }[key]);
 
     return (
         <>
             {contextHolder}
-            <Form
-                form={form}
-                layout="vertical"
-                onFinish={handleFinish}
-                // initialValues={formData}
-            >
-                <div className="form-group">
-
-                    <ImageUpload
-                        name="picture"
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        error={formerror}
-                        disable={loading}
-                    />
-
-
-                    <div className="form-group group-col">
-                        <TextInput
-                            name="associateId"
-                            label="Finalist consent token"
-                            placeholder="FYB-XXXXXX"
-                            maxLength={10}
-                            onChange={handleElemChange}
-                            getValue={getValue}
-                            required
-                            error={formerror}
-                            disable={loading}
-                            toUpperCase
-                        />
-                        
-                        <CheckInput
-                            label="Select your gender"
-                            name="gender"
-                            onChange={handleElemChange}
-                            getValue={getValue}
-                            error={formerror}
-                            // disable={!canProceed && !loading}
-                            disable={loading}
-                            options={[
-                                {
-                                    id:'gender-male',
-                                    label: 'Male',
-                                    icon: 'icon-male',
-                                    value: 'male'
-                                },
-                                {
-                                    id:'gender-female',
-                                    label: 'Female',
-                                    icon: 'icon-female',
-                                    value: 'female'
-                                }
-                            ]}
-                        />
-
-                        
+            <div className="max-w-4xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-8">
+                {/* Header */}
+                <div className="text-center mb-8">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-champagne-gold to-rose-gold rounded-full flex items-center justify-center shadow-golden-glow">
+                        <Heart className="w-10 h-10 text-white" />
                     </div>
-
-                </div>
-                <br/>
-
-
-                <div className="rest-form" data-disabled={!canProceed}>
-
-                    <div className="form-group">
-                        <TextInput
-                            name="firstname"
-                            label="First Name"
-                            onChange={handleElemChange}
-                            getValue={getValue}
-                            required
-                            error={formerror}
-                            disable={!canProceed && !loading}
-                        />
-
-                        <TextInput
-                            name="lastname"
-                            label="Last Name"
-                            onChange={handleElemChange}
-                            getValue={getValue}
-                            required
-                            error={formerror}
-                            disable={!canProceed && !loading}
-                        />
+                    <h1 className="text-3xl font-luxury font-bold text-pearl-800 dark:text-pearl-100 mb-2">
+                        Associate Registration
+                    </h1>
+                    <p className="text-pearl-600 dark:text-pearl-300">
+                        Invite your {oppositeGender} associate to join our
+                        elegant evening
+                    </p>
+                    <div className="mt-2 text-sm text-champagne-gold bg-champagne-gold/10 px-4 py-2 rounded-xl inline-block">
+                        You are registering as a {authenticatedUserGender}
                     </div>
-
-                    <br/>
-
-                    <div className="form-group">
-                        <TextInput
-                            name="email"
-                            label="Email"
-                            onChange={handleElemChange}
-                            getValue={getValue}
-                            required
-                            error={formerror}
-                            disable={!canProceed && !loading}
-                            email
-                        />
-
-                        <TextInput
-                            name="contact"
-                            label="Phone Number"
-                            onChange={handleElemChange}
-                            getValue={getValue}
-                            required
-                            error={formerror}
-                            disable={!canProceed && !loading}
-                            tel
-                        />
-
-                    </div>
-
-                    <br/>
-
-
-                    <TextInput
-                        name="relationsipWithAssociate"
-                        label={`Relationship with ${getNameByGender(guest)}?`}
-                        onChange={handleElemChange}
-                        getValue={getValue}
-                        required
-                        error={formerror}
-                        disable={!canProceed && !loading}
-                    />
-
                 </div>
 
+                <Form form={form} layout="vertical" onFinish={handleFinish}>
+                    {/* Profile Picture Section */}
+                    <div className="text-center mb-8">
+                        <div className="flex flex-col items-center">
+                            <label className="block text-sm font-medium text-pearl-700 dark:text-pearl-200 mb-4 font-elegant">
+                                Associate&apos;s Photo{" "}
+                                <span className="text-rose-gold-500">*</span>
+                            </label>
 
-                <br/>
+                            {!formData.picture && (
+                                <div className="flex items-center justify-center text-error text-sm mt-3">
+                                    <AlertCircle className="w-4 h-4 mr-1.5" />
+                                    Profile picture required for dinner party
+                                </div>
+                            )}
 
+                            <div className="mt-4 w-full max-w-xs mx-auto flex flex-col items-center">
+                                <ImageUpload
+                                    name="picture"
+                                    onChange={handleElemChange}
+                                    getValue={getValue}
+                                    circular={true}
+                                    showPreview={true}
+                                />
+                            </div>
 
-                <div
-                    className="steps-action"
-                >
-                    <button
-                        className="btn btn-primary text-uppercase btn-submit fw-700 fs-18"
-                        // onClick={handl}
-                        title='Submit'
-                        type='submit'
-                        disabled={loading}
-                        data-hide={!Boolean(guest)}
-                    >
-                        {loading ? 'Loading...': 'Submit'}
-                    </button>
+                            {formError?.picture && (
+                                <div className="flex items-center justify-center text-error text-sm mt-3 animate-slide-down">
+                                    <AlertCircle className="w-4 h-4 mr-1.5" />
+                                    {formError.picture}
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
-                    <button
-                        className="btn btn-primary btn-verify text-uppercase btn-submit fw-700 fs-18"
-                        // onClick={handl}
-                        title='Verify'
-                        type='button'
-                        onClick={verifyConsentToken}
-                        disabled={loading || verifying}
-                        data-hide={Boolean(guest)}
-                    >
-                        {verifying ? 'Verifying...': 'Verify'}
-                    </button>
-                </div>
-            </Form>
+                    {/* Gender Information - Auto-selected based on authenticated user */}
+                    <div className="card mb-8">
+                        <h3 className="text-xl font-luxury font-semibold text-pearl-800 dark:text-pearl-100 mb-6 flex items-center">
+                            <Heart className="w-5 h-5 mr-2 text-champagne-gold-500" />
+                            Associate&apos;s Gender
+                        </h3>
+                        <div className="p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
+                            <div className="flex items-center justify-center space-x-4">
+                                <div
+                                    className={`flex items-center space-x-3 px-6 py-3 rounded-2xl border-2 ${
+                                        formData.gender === "female"
+                                            ? "border-rose-gold bg-rose-gold/10 text-rose-gold"
+                                            : "border-pearl-200 text-pearl-600"
+                                    }`}
+                                >
+                                    {formData.gender === "female" ? (
+                                        <Venus className="w-6 h-6" />
+                                    ) : (
+                                        <Mars className="w-6 h-6" />
+                                    )}
+                                    <span className="font-semibold">
+                                        {formData.gender === "female"
+                                            ? "Female"
+                                            : "Male"}{" "}
+                                        Associate
+                                    </span>
+                                </div>
+                            </div>
+                            <p className="text-center text-pearl-500 dark:text-pearl-400 mt-3 text-sm">
+                                As a {authenticatedUserGender}, you can only
+                                register a {oppositeGender} associate
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Personal Information Section */}
+                    <div className="space-y-6">
+                        <div className="card">
+                            <h3 className="text-xl font-luxury font-semibold text-pearl-800 dark:text-pearl-100 mb-6 flex items-center">
+                                <User className="w-5 h-5 mr-2 text-champagne-gold-500" />
+                                Personal Information
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <TextInput
+                                    name="firstname"
+                                    label="First Name"
+                                    onChange={handleElemChange}
+                                    getValue={getValue}
+                                    required
+                                    error={formError}
+                                    disable={loading}
+                                    icon={<User className="w-4 h-4" />}
+                                />
+                                <TextInput
+                                    name="lastname"
+                                    label="Last Name"
+                                    onChange={handleElemChange}
+                                    getValue={getValue}
+                                    required
+                                    error={formError}
+                                    disable={loading}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <h3 className="text-xl font-luxury font-semibold text-pearl-800 dark:text-pearl-100 mb-6 flex items-center">
+                                <Mail className="w-5 h-5 mr-2 text-champagne-gold-500" />
+                                Contact Information
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <TextInput
+                                    name="email"
+                                    label="Email Address"
+                                    onChange={handleElemChange}
+                                    getValue={getValue}
+                                    required
+                                    error={formError}
+                                    disable={loading}
+                                    email
+                                    icon={<Mail className="w-4 h-4" />}
+                                />
+                                <TextInput
+                                    name="contact"
+                                    label="Phone Number"
+                                    onChange={handleElemChange}
+                                    getValue={getValue}
+                                    required
+                                    error={formError}
+                                    disable={loading}
+                                    tel
+                                    // icon={<Phone className="w-4 h-4" />}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <h3 className="text-xl font-luxury font-semibold text-pearl-800 dark:text-pearl-100 mb-6 flex items-center">
+                                <Heart className="w-5 h-5 mr-2 text-champagne-gold-500" />
+                                Relationship Details
+                            </h3>
+                            <TextInput
+                                name="relationshipWithAssociate"
+                                label="Your Relationship with this Associate"
+                                placeholder="e.g., Friend, Family Member, Colleague"
+                                onChange={handleElemChange}
+                                getValue={getValue}
+                                required
+                                error={formError}
+                                disable={loading}
+                                icon={<Heart className="w-4 h-4" />}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="mt-8 text-center">
+                        <button
+                            className="btn btn-primary btn-lg transform-romantic hover-lift px-8"
+                            type="submit"
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <div className="flex items-center space-x-2">
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <span>Registering Associate...</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center space-x-2">
+                                    <CheckCircle className="w-5 h-5" />
+                                    <span>Register Associate</span>
+                                </div>
+                            )}
+                        </button>
+
+                        <p className="text-pearl-500 dark:text-pearl-400 mt-4 text-sm">
+                            By registering, you confirm this person is your{" "}
+                            {oppositeGender} associate
+                        </p>
+                    </div>
+                </Form>
+            </div>
         </>
-    )
+    );
 }

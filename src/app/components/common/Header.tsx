@@ -1,12 +1,14 @@
 "use client";
+import { appToast } from "@/providers/ToastProvider";
 import { authStore } from "@/stores/authStore";
 import { observer } from "mobx-react-lite";
 import Link from "next/link";
 import { useState } from "react";
 
-export default function Header() {
+function Header() {
     // const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark mode
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const member = authStore.member;
     
 
     // const toggleDarkMode = () => {
@@ -60,19 +62,19 @@ export default function Header() {
                                 glow: "rose",
                             },
                             {
-                                href: "/awards",
+                                href: "#",
                                 label: "Awards",
                                 icon: "🏆",
                                 glow: "golden",
                             },
                             {
-                                href: "/tables",
+                                href: "#",
                                 label: "Tables",
                                 icon: "🍽️",
                                 glow: "luxury",
                             },
                             {
-                                href: "/about",
+                                href: "#",
                                 label: "About",
                                 icon: "✨",
                                 glow: "romance",
@@ -83,6 +85,20 @@ export default function Header() {
                                 href={item.href}
                                 className="group relative px-4 py-3 rounded-xl transition-all duration-350 hover:bg-glass-warm hover:shadow-rose-glow hover:scale-105 animate-slide-up"
                                 style={{ animationDelay: `${index * 100}ms` }}
+                                onClick={(e) => {
+                                    if (item.href === "#") {
+                                        e.preventDefault();
+                                        appToast.comingSoon();
+                                        return;
+                                    }
+
+                                    if (!member) {
+                                        e.preventDefault();
+                                        appToast.error(
+                                            "Please log in to continue"
+                                        );
+                                    }
+                                }}
                             >
                                 <div className="flex items-center space-x-2">
                                     <span className="text-xl group-hover:animate-bounce-gentle transition-transform filter drop-shadow-lg">
@@ -105,9 +121,7 @@ export default function Header() {
                         ))}
                     </nav>
 
-                    <UserHighlight/>
-
-                    
+                    <UserHighlight />
 
                     {/* Enhanced Mobile menu button */}
                     <button
@@ -190,22 +204,31 @@ export default function Header() {
                                     icon: "💕",
                                 },
                                 {
-                                    href: "/awards",
+                                    href: "#",
                                     label: "Awards",
                                     icon: "🏆",
                                 },
                                 {
-                                    href: "/tables",
+                                    href: "#",
                                     label: "Tables",
                                     icon: "🍽️",
                                 },
-                                { href: "/about", label: "About", icon: "✨" },
+                                { href: "#", label: "About", icon: "✨" },
                             ].map((item) => (
                                 <Link
                                     key={item.href}
                                     href={item.href}
                                     className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-glass-gold transition-all duration-300"
-                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    onClick={(e) => {
+                                        setIsMobileMenuOpen(false);
+                                        if (item.href === "#") {
+                                            e.preventDefault();
+
+                                            appToast.reservation(
+                                                "Coming soon!"
+                                            );
+                                        }
+                                    }}
                                 >
                                     <span className="text-lg">{item.icon}</span>
                                     <span className="text-pearl-200 font-elegant">
@@ -214,7 +237,7 @@ export default function Header() {
                                 </Link>
                             ))}
                             <div className="pt-4 border-t border-white/10">
-                            <UserHighlight/>
+                                {/* <UserHighlight /> */}
                                 {/* <button
                                     // onClick={toggleDarkMode}
                                     className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-glass-gold transition-all duration-300 w-full"
@@ -237,6 +260,7 @@ export default function Header() {
     );
 }
 
+export default observer(Header);
 
 const UserHighlight = observer(() => {
     const [isHovered, setIsHovered] = useState(false);

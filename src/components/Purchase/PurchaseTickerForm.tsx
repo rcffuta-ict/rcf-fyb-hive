@@ -2,16 +2,18 @@
 import React from 'react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import GuestCard from "../Form/GuestCard";
-import { GuestObject } from "@/lib/nobox/record-structures/Guest";
+// import { GuestObject } from "@/lib/nobox/record-structures/Guest";
 import { useRouter } from "next/navigation";
 import PaymentDetailsModal from "./PayDetailsModal";
-import { TicketModel, TicketObject } from "@/lib/nobox/record-structures/Ticket";
+// import { TicketModel, TicketObject } from "@/lib/nobox/record-structures/Ticket";
 import { message } from "antd";
 import { findTicket } from "@/utils/guest-utils";
 import { assignTicketId } from '@/utils/submit';
+import { wait } from '@rcffuta/ict-lib';
 
 type ID = 'g-1' | 'g-2';
 
+type GuestObject = any;
 
 const verifyGuest = async (guest: GuestObject) => {
     const val = await findTicket(guest.id);
@@ -81,14 +83,16 @@ export default function TicketForm() {
         const _ticket = await assignTicketId();
 
         try {
-            const dt = await TicketModel.insertOne({
-                guestFId: _right.id,
-                guestMId: _left.id,
+            // const dt = await TicketModel.insertOne({
+            //     guestFId: _right.id,
+            //     guestMId: _left.id,
     
-                amount: 5000,
+            //     amount: 5000,
 
-                ticketId: _ticket.ticketId,
-            });
+            //     ticketId: _ticket.ticketId,
+            // });
+
+            await wait(3)
     
             // console.log(dt);
 
