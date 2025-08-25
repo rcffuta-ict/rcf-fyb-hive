@@ -66,12 +66,12 @@ function Header() {
                                 icon: "🍽️",
                                 glow: "luxury",
                             },
-                            {
-                                href: "#",
-                                label: "About",
-                                icon: "✨",
-                                glow: "romance",
-                            },
+                            // {
+                            //     href: "#",
+                            //     label: "About",
+                            //     icon: "✨",
+                            //     glow: "romance",
+                            // },
                         ].map((item, index) => (
                             <Link
                                 key={index}
@@ -191,7 +191,7 @@ function Header() {
                                     label: "Tables",
                                     icon: "🍽️",
                                 },
-                                { href: "#", label: "About", icon: "✨" },
+                                // { href: "#", label: "About", icon: "✨" },
                             ].map((item) => (
                                 <Link
                                     key={item.href}
@@ -240,31 +240,38 @@ const UserHighlight = observer(() => {
         <Link
             href={isLoggedIn ? "/" : "/login"}
             onClick={handleClick}
-            className="group relative px-6 py-3 rounded-2xl bg-gradient-to-r from-champagne-gold via-golden-400 to-golden-500 text-white font-elegant font-semibold shadow-trophy-glow hover:shadow-golden-glow hover:scale-110 active:scale-95 transition-all duration-350 ease-bounce-in overflow-hidden animate-slide-left"
+            className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl 
+             bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 
+             text-white font-semibold shadow-md hover:shadow-lg 
+             transition-all duration-300 ease-out hover:scale-[1.03] active:scale-[0.97]"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            title={isLoggedIn ? "Log out":"Log in"}
         >
-            {/* Button content */}
-            <div className="relative z-10 flex items-center space-x-2">
-                <span className="group-hover:animate-sparkle text-lg drop-shadow-lg transition-transform duration-300">
-                    {isLoggedIn ? "👤" : "🔐"}
-                </span>
-                <span className="group-hover:drop-shadow-lg font-bold tracking-wide text-sm">
-                    {isLoggedIn ? userLabel : "Login"}
-                </span>
-                <span
-                    className={`text-sm transition-all duration-300 ${
-                        isHovered
-                            ? "translate-x-1 opacity-100"
-                            : "translate-x-0 opacity-0"
-                    }`}
-                >
-                    →
-                </span>
-            </div>
+            {/* Icon */}
+            <span className="text-lg">{isLoggedIn ? "👤" : "🔐"}</span>
 
-            {/* Enhanced shimmer effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+            {/* Text */}
+            <span className="text-sm tracking-wide">
+                {isLoggedIn ? userLabel : "Login"}
+            </span>
+
+            {/* Arrow animation */}
+            <span
+                className={`text-sm transition-all duration-300 ${
+                    isHovered ? "translate-x-1 opacity-100" : "opacity-0"
+                }`}
+            >
+                →
+            </span>
+
+            {/* Subtle shimmer */}
+            {/* <div
+                className="absolute inset-0 rounded-xl bg-gradient-to-r 
+                  from-transparent via-white/20 to-transparent 
+                  -translate-x-full group-hover:translate-x-full 
+                  transition-transform duration-1000 ease-out pointer-events-none"
+            ></div> */}
         </Link>
     );
 });

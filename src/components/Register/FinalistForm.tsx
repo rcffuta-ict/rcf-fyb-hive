@@ -20,12 +20,12 @@ import {
     Loader2,
     CheckCircle,
 } from "lucide-react";
-import { openNotificationWithIcon } from "@/utils/notification";
 import { authStore } from "@/stores/authStore";
 import { observer } from "mobx-react-lite";
 import { Member, wait } from "@rcffuta/ict-lib";
 import ImageUpload from "../ImageUpload";
 import {appToast} from "@/providers/ToastProvider"
+import NotEligible from "@/app/components/ui/NotEligible";
 
 // Zod validation schema - only picture is required for editing
 const profileSchema = z.object({
@@ -133,6 +133,9 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
         return "Student";
     };
 
+
+    // return <NotEligible/>
+
     return (
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20">
             {/* Header */}
@@ -208,7 +211,7 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
                             {errors.picture && (
                                 <div className="flex items-center justify-center text-error text-sm mt-3 animate-slide-down">
                                     <AlertCircle className="w-4 h-4 mr-1.5" />
-                                    {errors.picture.message}
+                                    {errors.picture?.message}
                                 </div>
                             )}
                         </div>

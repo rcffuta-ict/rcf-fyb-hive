@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
     return (
         <footer className="relative border-t border-white/10 bg-gradient-to-b from-pearl-900/90 via-luxury-900/80 to-pearl-900 backdrop-blur-xl overflow-hidden">
@@ -72,7 +74,7 @@ export default function Footer() {
                     </div>
 
                     {/* Powered by section */}
-                    <div className="bg-glass-warm backdrop-blur-md border border-white/10 rounded-2xl px-8 py-4 shadow-glass hover:shadow-golden-glow/20 transition-all duration-400 hover:scale-105">
+                    <Link href={"https://ict.rcffuta.com"} className="bg-glass-warm backdrop-blur-md border border-white/10 rounded-2xl px-8 py-4 shadow-glass hover:shadow-golden-glow/20 transition-all duration-400 hover:scale-105">
                         <p className="text-pearl-300 text-base font-elegant">
                             Powered by{" "}
                             <span className="font-bold bg-gradient-to-r from-champagne-gold via-golden-400 to-golden-500 bg-clip-text text-transparent hover:animate-shimmer cursor-default">
@@ -82,11 +84,11 @@ export default function Footer() {
                                 ⚡
                             </span>
                         </p>
-                    </div>
+                    </Link>
 
                     {/* Social links or additional info */}
                     <div className="flex items-center space-x-6 text-pearl-400 text-sm">
-                        <div className="flex items-center space-x-2 hover:text-champagne-gold transition-colors duration-300 cursor-pointer">
+                        {/* <div className="flex items-center space-x-2 hover:text-champagne-gold transition-colors duration-300 cursor-pointer">
                             <span className="animate-sparkle">📧</span>
                             <span className="font-elegant">Contact</span>
                         </div>
@@ -94,12 +96,12 @@ export default function Footer() {
                         <div className="flex items-center space-x-2 hover:text-romance-400 transition-colors duration-300 cursor-pointer">
                             <span className="animate-pulse-romantic">💝</span>
                             <span className="font-elegant">Support</span>
-                        </div>
-                        <div className="w-px h-4 bg-pearl-600"></div>
-                        <div className="flex items-center space-x-2 hover:text-luxury-400 transition-colors duration-300 cursor-pointer">
+                        </div> */}
+                        {/* <div className="w-px h-4 bg-pearl-600"></div> */}
+                        <Link href={"/privacy"} className="flex items-center space-x-2 hover:text-luxury-400 transition-colors duration-300 cursor-pointer">
                             <span className="animate-twinkle">🔒</span>
                             <span className="font-elegant">Privacy</span>
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Copyright */}

@@ -22,6 +22,8 @@ import { openNotificationWithIcon } from "@/utils/notification";
 import { authStore } from "@/stores/authStore";
 import { TextField } from "../Form";
 import { appToast } from "@/providers/ToastProvider";
+import MustRegisterFirst from "@/app/components/ui/MustRegisterFirst";
+import Loading from "@/app/components/ui/Loading";
 
 // Zod schema
 const associateSchema = z.object({
@@ -81,6 +83,9 @@ export default function AssociateForm() {
             setLoading(false);
         }
     };
+
+
+    // return <Loading/>
 
     return (
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-5">

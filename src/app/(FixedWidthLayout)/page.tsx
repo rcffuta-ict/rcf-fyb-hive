@@ -5,6 +5,7 @@ import { observer } from "mobx-react-lite";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment, useState, useEffect } from "react";
+import Spacer from "../components/ui/Spacer";
 
 
 const testimonials = [
@@ -63,7 +64,7 @@ function HomePage() {
     return (
         <Fragment>
             {/* Hero Section - Completely Redesigned */}
-            <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+            <section className="relative flex items-center justify-center overflow-hidden">
                 {/* Background Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br from-pearl-900 via-luxury-900 to-romance-900"></div>
                 <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-champagne-gold/10 rounded-full blur-3xl animate-float-slow"></div>
@@ -86,8 +87,9 @@ function HomePage() {
                     ))}
                 </div>
 
-                <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
+                <div className="relative z-10 max-w-6xl mx-auto px-6 py-6 text-center">
                     {/* Hero Image with Enhanced Styling */}
+                    <Spacer />
                     <div
                         className={`transition-all duration-1000 ${
                             isVisible
@@ -98,13 +100,18 @@ function HomePage() {
                         <div className="relative inline-block mb-8">
                             <div className="absolute inset-0 bg-champagne-gold/20 rounded-full blur-2xl animate-glow-pulse"></div>
                             <div className="relative bg-glass-warm backdrop-blur-xl p-8 rounded-full border border-white/20 shadow-golden-glow">
-                                <Image
+                                {/* <Image
                                     src="/images/illustr-1.png"
                                     alt="Welcome to FYB Hive"
                                     width={250}
                                     height={250}
                                     className="animate-float"
-                                />
+                                /> */}
+                                <div className="w-28 h-28  bg-gradient-to-br from-champagne-gold via-golden-400 to-golden-600 rounded-full flex items-center justify-center shadow-golden-glow animate-glow-pulse">
+                                    <span className="text-white font-bold text-5xl drop-shadow-lg">
+                                        🌹
+                                    </span>
+                                </div>
                             </div>
                             {/* Decorative rings */}
                             <div className="absolute inset-0 border-2 border-champagne-gold/30 rounded-full animate-ping"></div>
@@ -122,16 +129,21 @@ function HomePage() {
                     >
                         <h1 className="text-6xl md:text-8xl font-luxury font-bold leading-none mb-6">
                             <span className="block bg-gradient-to-r from-pearl-100 via-champagne-gold to-pearl-100 bg-clip-text text-transparent animate-shimmer">
-                                Welcome to
+                                Final Year Brethren
                             </span>
                             <span className="block mt-4 bg-gradient-to-r from-romance-300 via-rose-gold to-luxury-300 bg-clip-text text-transparent">
-                                FYB Hive
+                                Dinner &apos;25
                             </span>
                         </h1>
 
-                        {/* Subtitle with elegant styling */}
                         <p className="text-xl md:text-2xl font-elegant text-pearl-300 mb-4 tracking-wide">
-                            RCF FUTA Finalists&#39; Celebration Hub
+                            Where Excellence Meets Elegance
+                        </p>
+
+                        <p className="max-w-2xl mx-auto text-lg md:text-xl leading-relaxed font-elegant text-pearl-200 my-5">
+                            A once-in-a-lifetime evening celebrating the Final
+                            Year Brethren — 500 Level achievers marking the
+                            climax of their university journey.
                         </p>
 
                         {/* Decorative line */}
@@ -237,17 +249,18 @@ function HomePage() {
             <section className="relative py-24">
                 <div className="absolute inset-0 bg-gradient-to-br from-luxury-900/40 via-pearl-900/60 to-romance-900/40"></div>
                 <div className="relative z-10 max-w-6xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-luxury font-bold bg-gradient-to-r from-pearl-100 to-champagne-gold bg-clip-text text-transparent mb-4">
-                            Your Journey Starts Here
+                    <div className="max-w-4xl mx-auto px-6 text-center my-10">
+                        <h2 className="text-4xl md:text-5xl font-luxury font-bold bg-gradient-to-r from-champagne-gold to-romance-400 bg-clip-text text-transparent mb-6">
+                            What is the FYB Dinner?
                         </h2>
-                        <div className="flex items-center justify-center space-x-4 mb-8">
-                            <div className="w-20 h-px bg-gradient-to-r from-transparent to-romance-400"></div>
-                            <span className="text-3xl animate-pulse-romantic">
-                                💫
-                            </span>
-                            <div className="w-20 h-px bg-gradient-to-l from-transparent to-romance-400"></div>
-                        </div>
+                        <p className="text-xl text-pearl-300 font-elegant leading-relaxed">
+                            The Final Year Brethren (FYB) Dinner &apos;25 is a
+                            yearly event celebrating the 500 Level brethren —
+                            those in the last lap of their university life. It’s
+                            a night of elegance, excellence, and unforgettable
+                            memories where we honor your journey, achievements,
+                            and friendships forged along the way.
+                        </p>
                     </div>
 
                     <div className="grid gap-8 md:grid-cols-3">
@@ -294,11 +307,10 @@ function HomePage() {
                                 <Link
                                     href={action.href}
                                     onClick={(e) => {
-                                        
                                         if (action.href === "#") {
                                             e.preventDefault();
                                             appToast.notImplemented();
-                                            return
+                                            return;
                                         }
 
                                         if (!member) {

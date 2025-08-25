@@ -15,6 +15,7 @@ import {
     Construction,
     Coffee,
 } from "lucide-react";
+import { slugify } from "@/lib/function";
 
 interface Props {
     children: React.ReactNode;
@@ -99,7 +100,7 @@ export const appToast = {
     dismiss: (id?: string) => hotToast.dismiss(id),
 
     // Theme-specific toasts with cleaner backgrounds
-    romantic: (message: string, id?:string) =>
+    romantic: (message: string, id?: string) =>
         hotToast(message, {
             icon: <Heart className="text-rose-500" size={22} />,
             style: {
@@ -109,10 +110,10 @@ export const appToast = {
                 boxShadow: "0 4px 20px rgba(236, 72, 153, 0.15)",
                 backdropFilter: "blur(10px)",
             },
-            id: id || message
+            id: id || slugify(message),
         }),
 
-    celebration: (message: string) =>
+    celebration: (message: string, id?: string) =>
         hotToast(message, {
             icon: <Sparkles className="text-amber-500" size={22} />,
             style: {
@@ -122,9 +123,10 @@ export const appToast = {
                 boxShadow: "0 4px 20px rgba(245, 158, 11, 0.15)",
                 backdropFilter: "blur(10px)",
             },
+            id: id || slugify(message),
         }),
 
-    dining: (message: string) =>
+    dining: (message: string, id?: string) =>
         hotToast(message, {
             icon: <Utensils className="text-amber-600" size={22} />,
             style: {
@@ -134,9 +136,10 @@ export const appToast = {
                 boxShadow: "0 4px 20px rgba(217, 119, 6, 0.15)",
                 backdropFilter: "blur(10px)",
             },
+            id: id || slugify(message),
         }),
 
-    reservation: (message: string) =>
+    reservation: (message: string, id?: string) =>
         hotToast(message, {
             icon: <Wine className="text-purple-600" size={22} />,
             style: {
@@ -146,10 +149,14 @@ export const appToast = {
                 boxShadow: "0 4px 20px rgba(147, 51, 234, 0.15)",
                 backdropFilter: "blur(10px)",
             },
+            id: id || slugify(message),
         }),
 
     // New: Coming Soon / Not Implemented toasts
-    comingSoon: (message: string = "This feature is coming soon!") =>
+    comingSoon: (
+        message: string = "This feature is coming soon!",
+        id?: string
+    ) =>
         hotToast(message, {
             icon: <Clock className="text-blue-500" size={22} />,
             style: {
@@ -160,9 +167,13 @@ export const appToast = {
                 backdropFilter: "blur(10px)",
             },
             duration: 3000,
+            id: id || slugify(message),
         }),
 
-    notImplemented: (message: string = "This feature is not yet implemented") =>
+    notImplemented: (
+        message: string = "This feature is not yet implemented",
+        id?: string
+    ) =>
         hotToast(message, {
             icon: <Construction className="text-gray-500" size={22} />,
             style: {
@@ -173,10 +184,14 @@ export const appToast = {
                 backdropFilter: "blur(10px)",
             },
             duration: 3000,
+            id: id || slugify(message),
         }),
 
     // More elegant version
-    inProgress: (message: string = "We're still working on this!") =>
+    inProgress: (
+        message: string = "We're still working on this!",
+        id?: string
+    ) =>
         hotToast(message, {
             icon: <Coffee className="text-indigo-600" size={22} />,
             style: {
@@ -187,6 +202,7 @@ export const appToast = {
                 backdropFilter: "blur(10px)",
             },
             duration: 3000,
+            id: id || slugify(message),
         }),
 
     // Custom promise toast
@@ -202,7 +218,8 @@ export const appToast = {
         message: string,
         icon: React.ReactNode = (
             <Sparkles className="text-golden-500" size={22} />
-        )
+        ),
+        id?: string
     ) =>
         hotToast(message, {
             icon: icon as Renderable,
@@ -213,10 +230,11 @@ export const appToast = {
                 boxShadow: "0 4px 25px rgba(250, 214, 165, 0.2)",
                 backdropFilter: "blur(12px)",
             },
+            id: id || slugify(message),
         }),
 
     // Minimal toast for subtle notifications
-    minimal: (message: string) =>
+    minimal: (message: string, id?: string) =>
         hotToast(message, {
             style: {
                 background: "rgba(255, 255, 255, 0.92)",
@@ -227,5 +245,6 @@ export const appToast = {
                 fontSize: "0.9rem",
             },
             duration: 2000,
+            id: id || slugify(message),
         }),
 };
