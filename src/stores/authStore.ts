@@ -1,9 +1,11 @@
 import { makeAutoObservable, runInAction, toJS,  } from "mobx";
-import { getMemberFromStoredToken, loginMember, Member, resolveMemberFromPath } from "@rcffuta/ict-lib";
+import { findLiveTenure, findUnitById, getAllUnits, getMemberFromStoredToken, loginMember, Member, MemberObject, resolveMemberFromPath, TenureObject, TenurePopulated, UnitObject } from "@rcffuta/ict-lib";
 
 
 export class AuthStore {
-    _member: Member | null = null;
+    _member: MemberObject | null = null;
+    _tenureProfile: TenurePopulated | null = null;
+    _unit: UnitObject | null = null;
     isLoading = false;
     error: string | null = null;
 
@@ -13,12 +15,28 @@ export class AuthStore {
     }
 
 
-    get member(): Member | null {
+    get member(): MemberObject | null {
         return toJS(this._member);
     }
 
-    set member(data: Member | null){
+    set member(data: MemberObject | null){
         this._member = data;
+    }
+
+    get unit(): UnitObject | null {
+        return toJS(this._unit);
+    }
+
+    set unit(data: UnitObject | null){
+        this._unit = data;
+    }
+
+    get tenureProfile(): TenurePopulated | null {
+        return toJS(this._tenureProfile);
+    }
+
+    set tenureProfile(data: TenurePopulated | null){
+        this._tenureProfile = data;
     }
 
     async init() {
@@ -31,8 +49,11 @@ export class AuthStore {
             if (!success || !member) {
                 throw new Error(message || "No valid stored token");
             }
+
+            // const {data: units} = await getAllUnits();
             runInAction(() => {
                 this.member = member;
+                // this.units = units || [];
             });
         } catch (error) {
             console.warn("No valid stored token found or failed to fetch member:", error);
@@ -65,13 +86,31 @@ export class AuthStore {
         this.error = null;
 
         try {
+            const {message: tmg, success:tsx, data:tenure} = await findLiveTenure();
+
+            let unit: UnitObject | null = null;
+
+            if (!tsx) {
+                throw new Error(tmg || "Could not resolve tenure profile");
+            }
+
             const {message, success, data} = await resolveMemberFromPath(undefined, false);
 
             if (!success || !data) {
                 throw new Error(message || "SSO verification failed");
             }
+
+            if (data.unitId) {
+
+                const {data: duit} = await findUnitById(data.unitId || "");
+
+                unit = duit || null;
+            }
+            
             runInAction(() => {
                 this.member = data;
+                this.tenureProfile = tenure;
+                this.unit = unit;
             });
             return data;
         } catch (err: any) {

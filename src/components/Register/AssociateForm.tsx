@@ -18,12 +18,10 @@ import {
     PhoneCallIcon,
 } from "lucide-react";
 import ImageUpload from "../ImageUpload";
-import { openNotificationWithIcon } from "@/utils/notification";
 import { authStore } from "@/stores/authStore";
 import { TextField } from "../Form";
 import { appToast } from "@/providers/ToastProvider";
-import MustRegisterFirst from "@/app/components/ui/MustRegisterFirst";
-import Loading from "@/app/components/ui/Loading";
+import NotAvailableYet from "@/app/components/ui/NotAvailableYet";
 
 // Zod schema
 const associateSchema = z.object({
@@ -85,7 +83,7 @@ export default function AssociateForm() {
     };
 
 
-    // return <Loading/>
+    return <NotAvailableYet/>;
 
     return (
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-5">
@@ -135,7 +133,7 @@ export default function AssociateForm() {
                             {errors.picture && (
                                 <div className="flex items-center justify-center text-error text-sm mt-3 animate-slide-down">
                                     <AlertCircle className="w-4 h-4 mr-1.5" />
-                                    {errors.picture.message}
+                                    {errors?.picture?.message}
                                 </div>
                             )}
                         </div>
