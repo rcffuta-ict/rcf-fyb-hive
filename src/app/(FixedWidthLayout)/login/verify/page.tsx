@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { observer } from "mobx-react-lite";
 import { useRouter } from "next/navigation";
 import { authStore } from "@/stores/authStore";
+import { appToast } from "@/providers/ToastProvider";
 
 function VerifySSOPage() {
 
@@ -15,20 +16,29 @@ function VerifySSOPage() {
 
     useEffect(() => {
         async function verify() {
-            if (status === "loading") return; // Prevent multiple calls{
+            // if (status === "loading") return; // Prevent multiple calls{
+
+            console.debug("Starting SSO verification...");
             try {
                 await authStore.verify();
-                toast.success("Login verified! Redirecting...");
+                appToast.elegant("Login verified! Redirecting...",);
                 setStatus("success");
-                setTimeout(() => router.push("/"), 1500);
+                setTimeout(() => router.push("/"), 2500);
             } catch {
                 setStatus("error");
-                toast.error(authStore.error || "SSO verification failed.");
+                appToast.error(authStore.error || "SSO verification failed.");
             }
         }
         verify();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status]);
+
+    }, [status, router]);
+
+    console.debug("Auth Store State:", {
+        isLoading: authStore.isLoading,
+        isAuthenticated: authStore.isAuthenticated,
+        member: authStore.member,
+        error: authStore.error,
+    });
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pearl-900 via-luxury-900 to-pearl-800 p-6">

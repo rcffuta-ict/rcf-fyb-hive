@@ -1,310 +1,190 @@
-import {
-    Eye,
-    EyeOff,
-    Mail,
-    Phone,
-    User,
-    X,
-    Check,
-    Lock,
-    Hash,
-    Calendar,
-    MapPin,
-    BookOpen,
-    Heart,
-} from "lucide-react";
-import { FormElement } from "./form.interface";
-import { ReactNode, useState } from "react";
+import React, { forwardRef, useId, useState } from "react";
 
-interface TextInputProps extends FormElement {
+type BaseProps = {
     name: string;
     label: string;
-    placeholder?: string;
-    email?: boolean;
-    tel?: boolean;
-    password?: boolean;
-    number?: boolean;
-    date?: boolean;
-    textarea?: boolean;
+    hint?: string;
+    error?: string; // string message to show
+    icon?: React.ReactNode; // left icon
+    prefix?: string; // e.g. "+234"
     maxLength?: number;
-    toUpperCase?: boolean;
-    icon?: React.ReactNode;
+    textarea?: boolean;
     rows?: number;
-}
+    className?: string;
+} & React.InputHTMLAttributes<HTMLInputElement>;
 
-export function TextInput(props: TextInputProps) {
-    const [showPassword, setShowPassword] = useState(false);
-    const [isFocused, setIsFocused] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
+export const TextField = forwardRef<
+    HTMLInputElement | HTMLTextAreaElement,
+    BaseProps
+>(
+    (
+        {
+            name,
+            label,
+            hint,
+            error,
+            icon,
+            prefix,
+            maxLength,
+            textarea,
+            rows = 4,
+            className,
+            ...inputProps
+        },
+        ref
+    ) => {
+        const autoId = useId();
+        const id = inputProps.id ?? `${name}-${autoId}`;
+        const describedByIds: string[] = [];
+        if (hint) describedByIds.push(`${id}-hint`);
+        if (error) describedByIds.push(`${id}-error`);
 
-    function revealError() {
-        if (!props.error) return;
-        if (!props.error[props.name]) return;
-        return props.error[props.name] || "";
-    }
+        const leftPad = prefix ? "pl-16" : icon ? "pl-12" : "pl-4";
 
-    const formatPhoneNumber = (value: string) => {
-        const digits = value.replace(/[^\d]/g, "");
-        const n = Number(digits);
-        return n === 0 ? "" : n.toString();
-    };
-
-    // Determine input type and icon
-    let type = "text";
-    let IconComponent: ReactNode = props.icon;
-
-    if (props.email) {
-        type = "email";
-        IconComponent = <Mail/>;
-    } else if (props.tel) {
-        type = "tel";
-        // IconComponent = <Phone/>;
-    } else if (props.password) {
-        type = showPassword ? "text" : "password";
-        IconComponent = <Lock/>;
-    } else if (props.number) {
-        type = "number";
-        IconComponent = <Hash/>;
-    } else if (props.date) {
-        type = "date";
-        IconComponent = <Calendar/>;
-    }
-
-    const hasError = revealError();
-    const value = props.getValue(props.name) as string;
-    const hasValue = Boolean(value);
-    const isDisabled = props.disable;
-
-    // Calculate textarea height
-    const textareaHeight = props.rows ? props.rows * 24 : 100;
-
-    return (
-        <div className="group relative animate-fade-in">
-            <label
-                htmlFor={props.name}
-                className={`block mb-3 font-elegant text-sm font-medium transition-colors duration-300 ${
-                    hasError
-                        ? "text-error"
-                        : isDisabled
-                        ? "text-pearl-400"
-                        : "text-pearl-700 dark:text-pearl-200"
-                }`}
-            >
-                {props.label}
-                {props.required && (
-                    <span className="text-rose-gold-500 ml-1">*</span>
-                )}
-            </label>
-
-            <div
-                className="relative"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-            >
-                {/* Input Container */}
-                <div
-                    className={`
-                        relative overflow-hidden rounded-2xl border-2 transition-all duration-400 ease-romantic
-                        backdrop-blur-sm
-                        ${
-                            isFocused
-                                ? "border-champagne-gold shadow-golden-glow bg-glass-gold/20"
-                                : hasError
-                                ? "border-error/70 shadow-rose-glow bg-error-light/10"
-                                : "border-pearl-200/70 dark:border-pearl-600/50 bg-glass-warm"
-                        }
-                        ${
-                            isDisabled
-                                ? "opacity-60 cursor-not-allowed"
-                                : "hover:border-champagne-gold/60 hover:shadow-soft cursor-text"
-                        }
-                        ${hasValue && !hasError ? "border-success/50" : ""}
-                    `}
+        return (
+            <div className={`w-full ${className ?? ""}`}>
+                <label
+                    htmlFor={id}
+                    className="mb-2 block text-sm font-medium text-pearl-700 dark:text-pearl-200"
                 >
-                    {/* Animated Background Effect */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-champagne-gold-30/10 to-transparent animate-shimmer" />
-                    </div>
+                    {label}
+                    {inputProps.required && (
+                        <span className="ml-1 text-rose-gold-500">*</span>
+                    )}
+                </label>
 
-                    {/* Phone Number Prefix */}
-                    {props.tel && (
-                        <div className="absolute left-0 top-0 h-full flex items-center px-4 bg-champagne-gold/15 border-r border-champagne-gold/30 text-champagne-gold font-semibold text-sm">
-                            +234
-                        </div>
+                <div
+                    className={[
+                        "relative rounded-xl border bg-white/70 dark:bg-luxury-800/70",
+                        error
+                            ? "border-red-400 focus-within:border-red-500"
+                            : "border-pearl-300 dark:border-pearl-600 focus-within:border-champagne-gold",
+                    ].join(" ")}
+                >
+                    {/* Left icon (non-interactive) */}
+                    {icon && (
+                        <span
+                            aria-hidden="true"
+                            className={`pointer-events-none absolute inset-y-0 left-3 flex items-center text-pearl-400 ${
+                                prefix ? "left-12" : ""
+                            }`}
+                        >
+                            {icon}
+                        </span>
                     )}
 
-                    {/* Icon */}
-                    <div
-                        className={`
-                        absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-300
-                        ${
-                            isFocused
-                                ? "text-champagne-gold scale-110"
-                                : "text-pearl-400"
-                        }
-                        ${hasError ? "text-error" : ""}
-                        ${hasValue && !hasError ? "text-success" : ""}
-                        ${props.tel ? "left-16" : ""}
-                        ${props.textarea ? "top-6 translate-y-0" : ""}
-                    `}
-                    >
-                        {IconComponent}
-                    </div>
+                    {/* Prefix (e.g. +234) */}
+                    {prefix && (
+                        <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-y-0 left-3 flex items-center rounded-l-xl bg-pearl-100/60 px-2 text-xs font-semibold text-pearl-700 dark:bg-pearl-800/40 dark:text-pearl-200"
+                        >
+                            {prefix}
+                        </span>
+                    )}
 
-                    {/* Input/Textarea */}
-                    {props.textarea ? (
+                    {/* The actual control */}
+                    {textarea ? (
                         <textarea
-                            id={props.name}
-                            placeholder={props.placeholder}
-                            disabled={isDisabled}
-                            maxLength={props.maxLength || 1000}
-                            value={value || ""}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                            onChange={(e) => {
-                                props.onChange(props.name, e.target.value);
-                            }}
-                            rows={props.rows || 4}
-                            className={`
-                                w-full bg-transparent border-none outline-none font-modern 
-                                text-pearl-800 dark:text-pearl-100 resize-none
-                                ${props.tel ? "pl-20" : "pl-12"} 
-                                pr-12 py-4 placeholder:text-pearl-400/70
-                                ${props.toUpperCase ? "uppercase" : ""}
-                                disabled:cursor-not-allowed
-                                scrollbar-thin scrollbar-thumb-pearl-300 scrollbar-track-transparent
-                            `}
-                            style={{ minHeight: textareaHeight }}
+                            ref={ref as React.Ref<HTMLTextAreaElement>}
+                            id={id}
+                            name={name}
+                            rows={rows}
+                            maxLength={maxLength}
+                            aria-invalid={!!error || undefined}
+                            aria-describedby={
+                                describedByIds.join(" ") || undefined
+                            }
+                            className={`block w-full resize-y bg-transparent py-3 pr-12 ${leftPad} text-pearl-900 placeholder:text-pearl-400 outline-none dark:text-pearl-100`}
+                            {...(inputProps as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
                         />
                     ) : (
                         <input
-                            id={props.name}
-                            type={type}
-                            placeholder={props.placeholder}
-                            disabled={isDisabled}
-                            maxLength={props.maxLength || 200}
-                            value={value || ""}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                            onChange={(e) => {
-                                const inputValue = e.target.value;
-                                if (type === "email") {
-                                    props.onChange(
-                                        props.name,
-                                        inputValue.toLowerCase()
-                                    );
-                                } else if (type === "tel") {
-                                    props.onChange(
-                                        props.name,
-                                        formatPhoneNumber(inputValue)
-                                    );
-                                } else {
-                                    props.onChange(props.name, inputValue);
-                                }
-                            }}
-                            className={`
-                                w-full h-14 bg-transparent border-none outline-none font-modern 
-                                text-pearl-800 dark:text-pearl-100
-                                ${props.tel ? "pl-20" : "pl-12"} 
-                                pr-12 placeholder:text-pearl-400/70
-                                ${props.toUpperCase ? "uppercase" : ""}
-                                disabled:cursor-not-allowed
-                            `}
+                            ref={ref as React.Ref<HTMLInputElement>}
+                            id={id}
+                            name={name}
+                            maxLength={maxLength}
+                            aria-invalid={!!error || undefined}
+                            aria-describedby={
+                                describedByIds.join(" ") || undefined
+                            }
+                            className={`block w-full bg-transparent py-3 pr-12 ${leftPad} text-pearl-900 placeholder:text-pearl-400 outline-none dark:text-pearl-100`}
+                            {...(inputProps as React.InputHTMLAttributes<HTMLInputElement>)}
                         />
                     )}
-
-                    {/* Action Buttons Container */}
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-1">
-                        {/* Password Toggle */}
-                        {props.password && (
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                disabled={isDisabled}
-                                className="p-1.5 rounded-lg transition-all duration-300 hover:bg-champagne-gold/20 hover:text-champagne-gold disabled:cursor-not-allowed"
-                            >
-                                {showPassword ? (
-                                    <EyeOff size={18} />
-                                ) : (
-                                    <Eye size={18} />
-                                )}
-                            </button>
-                        )}
-
-                        {/* Clear Button */}
-                        {!props.password && hasValue && !isDisabled && (
-                            <button
-                                type="button"
-                                onClick={() => props.onChange(props.name, "")}
-                                className="p-1.5 rounded-lg transition-all duration-300 opacity-0 group-hover:opacity-100 hover:bg-error/20 hover:text-error"
-                            >
-                                <X size={16} />
-                            </button>
-                        )}
-
-                        {/* Success Checkmark */}
-                        {hasValue && !hasError && !isDisabled && (
-                            <div className="text-success animate-scale-in">
-                                <Check size={18} />
-                            </div>
-                        )}
-                    </div>
                 </div>
 
-                {/* Character Count */}
-                {props.maxLength && hasValue && (
-                    <div className="absolute -bottom-6 right-0 text-xs text-pearl-400 font-medium">
-                        {value.length}/{props.maxLength}
-                    </div>
+                {/* Hint & error (assistive tech friendly) */}
+                {hint && !error && (
+                    <p
+                        id={`${id}-hint`}
+                        className="mt-1 text-xs text-pearl-500"
+                    >
+                        {hint}
+                    </p>
+                )}
+                {error && (
+                    <p
+                        id={`${id}-error`}
+                        className="mt-1 text-sm text-red-600"
+                        role="alert"
+                        aria-live="polite"
+                    >
+                        {error}
+                    </p>
                 )}
 
-                {/* Floating Label Animation */}
-                {hasValue && isFocused && (
-                    <div className="absolute -top-2 left-3 px-2 bg-white dark:bg-luxury-800 text-xs text-champagne-gold font-medium animate-fade-in">
-                        {props.label}
+                {/* Char counter */}
+                {maxLength && (
+                    <div
+                        className="mt-1 text-right text-xs text-pearl-400"
+                        aria-live="polite"
+                    >
+                        {/* You can compute length outside with RHF if needed */}
                     </div>
                 )}
             </div>
+        );
+    }
+);
 
-            {/* Error Message */}
-            {hasError && (
-                <div className="mt-3 flex items-center space-x-2 text-error animate-slide-down">
-                    <div className="w-1.5 h-1.5 bg-error rounded-full animate-pulse-romantic" />
-                    <span className="text-sm font-medium">{hasError}</span>
-                </div>
-            )}
+TextField.displayName = "TextField";
 
-            {/* Helper Text */}
-            {!hasError && props.placeholder && !hasValue && (
-                <p className="mt-2 text-xs text-pearl-400/70 italic">
-                    {props.placeholder}
-                </p>
-            )}
+
+export const PasswordField = forwardRef<
+    HTMLInputElement,
+    Omit<BaseProps, "type" | "textarea">
+>(({ icon, ...props }, ref) => {
+    const [show, setShow] = useState(false);
+    const type = show ? "text" : "password";
+
+    return (
+        <div className="relative">
+            <TextField ref={ref} {...props} type={type} icon={icon} />
+            <button
+                type="button"
+                onClick={() => setShow((s) => !s)}
+                aria-label={show ? "Hide password" : "Show password"}
+                aria-pressed={show}
+                className="absolute right-3 top-9 -translate-y-1/2 rounded-md p-1 text-pearl-500 hover:bg-pearl-100/60 dark:hover:bg-pearl-800/40"
+            >
+                {show ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path
+                            fill="currentColor"
+                            d="M12 6c5 0 9 6 9 6s-4 6-9 6s-9-6-9-6s4-6 9-6m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8"
+                        />
+                    </svg>
+                ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path
+                            fill="currentColor"
+                            d="M2 5.27L3.28 4L20 20.72L18.73 22l-2.46-2.46A11.74 11.74 0 0 1 12 18c-5 0-9-6-9-6a19.77 19.77 0 0 1 5.32-5.18zM12 6c5 0 9 6 9 6a19.64 19.64 0 0 1-3.52 4.14L15.9 14.56A4 4 0 0 0 9.43 8.1L7.86 6.53A11.6 11.6 0 0 1 12 6Z"
+                        />
+                    </svg>
+                )}
+            </button>
         </div>
     );
-}
-
-// Additional specialized input components using the base TextInput
-export function EmailInput(props: Omit<TextInputProps, "email">) {
-    return <TextInput {...props} email />;
-}
-
-export function PhoneInput(props: Omit<TextInputProps, "tel">) {
-    return <TextInput {...props} tel />;
-}
-
-export function PasswordInput(props: Omit<TextInputProps, "password">) {
-    return <TextInput {...props} password />;
-}
-
-export function NumberInput(props: Omit<TextInputProps, "number">) {
-    return <TextInput {...props} number />;
-}
-
-export function DateInput(props: Omit<TextInputProps, "date">) {
-    return <TextInput {...props} date />;
-}
-
-export function TextAreaInput(props: Omit<TextInputProps, "textarea">) {
-    return <TextInput {...props} textarea />;
-}
+});
+PasswordField.displayName = "PasswordField";

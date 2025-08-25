@@ -93,7 +93,7 @@ export default function RegistrationForm() {
                                             : "text-pearl-400 hover:text-pearl-200 hover:bg-pearl-700/20"
                                     }`}
                                 >
-                                    <div className="flex items-start space-x-3">
+                                    <div className="flex flex-col items-center space-y-4 space-x-3">
                                         <div
                                             className={`flex-shrink-0 p-2 rounded-lg transition-colors duration-300 ${
                                                 currentTab === index
@@ -103,7 +103,7 @@ export default function RegistrationForm() {
                                         >
                                             {tab.icon}
                                         </div>
-                                        <div>
+                                        <div className="text-center">
                                             <h3 className="font-medium text-sm mb-1">
                                                 {tab.title}
                                             </h3>
@@ -129,10 +129,8 @@ export default function RegistrationForm() {
                     </div>
 
                     {/* Tab Content */}
-                    <div className="p-8">
-                        <div className="transition-all duration-300 ease-in-out">
-                            {tabs[currentTab].content}
-                        </div>
+                    <div className="transition-all duration-300 ease-in-out px-1 py-5">
+                        {tabs[currentTab].content}
                     </div>
                 </div>
 

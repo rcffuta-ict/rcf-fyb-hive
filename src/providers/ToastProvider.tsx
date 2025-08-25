@@ -1,6 +1,6 @@
 "use client";
 
-import { Toaster, toast as hotToast } from "react-hot-toast";
+import { Renderable, Toaster, toast as hotToast } from "react-hot-toast";
 import React from "react";
 import {
     CheckCircle,
@@ -90,90 +90,101 @@ export const GlobalToastProvider: React.FC<Props> = ({ children }) => {
 // Custom toast functions with elegant icons
 export const appToast = {
     // Basic toasts
-    success: (message: string) => hotToast.success(message),
-    error: (message: string) => hotToast.error(message),
-    loading: (message: string) => hotToast.loading(message),
+    success: (message: string, id?: string) =>
+        hotToast.success(message, { id: id || message }),
+    error: (message: string, id?: string) =>
+        hotToast.error(message, { id: id || message }),
+    loading: (message: string, id?: string) =>
+        hotToast.loading(message, { id: id || message }),
     dismiss: (id?: string) => hotToast.dismiss(id),
 
-    // Theme-specific toasts
-    romantic: (message: string) =>
+    // Theme-specific toasts with cleaner backgrounds
+    romantic: (message: string, id?:string) =>
         hotToast(message, {
-            icon: <Heart className="text-rose-gold-400" size={24} />,
+            icon: <Heart className="text-rose-500" size={22} />,
             style: {
-                background: "rgba(255, 105, 180, 0.15)",
-                color: "#FF69B4",
-                border: "1px solid rgba(255, 105, 180, 0.3)",
-                boxShadow: "0 0 25px rgba(255, 105, 180, 0.4)",
+                background: "rgba(255, 255, 255, 0.95)",
+                color: "#EC4899",
+                border: "1px solid rgba(236, 72, 153, 0.2)",
+                boxShadow: "0 4px 20px rgba(236, 72, 153, 0.15)",
+                backdropFilter: "blur(10px)",
             },
+            id: id || message
         }),
 
     celebration: (message: string) =>
         hotToast(message, {
-            icon: <Sparkles className="text-champagne-gold-400" size={24} />,
+            icon: <Sparkles className="text-amber-500" size={22} />,
             style: {
-                background: "rgba(255, 215, 0, 0.15)",
-                color: "#FFD700",
-                border: "1px solid rgba(255, 215, 0, 0.3)",
-                boxShadow: "0 0 25px rgba(255, 215, 0, 0.4)",
+                background: "rgba(255, 255, 255, 0.95)",
+                color: "#F59E0B",
+                border: "1px solid rgba(245, 158, 11, 0.2)",
+                boxShadow: "0 4px 20px rgba(245, 158, 11, 0.15)",
+                backdropFilter: "blur(10px)",
             },
         }),
 
     dining: (message: string) =>
         hotToast(message, {
-            icon: <Utensils className="text-champagne-gold-400" size={24} />,
+            icon: <Utensils className="text-amber-600" size={22} />,
             style: {
-                background: "rgba(218, 165, 32, 0.15)",
-                color: "#DAA520",
-                border: "1px solid rgba(218, 165, 32, 0.3)",
-                boxShadow: "0 0 25px rgba(218, 165, 32, 0.4)",
+                background: "rgba(255, 255, 255, 0.95)",
+                color: "#D97706",
+                border: "1px solid rgba(217, 119, 6, 0.2)",
+                boxShadow: "0 4px 20px rgba(217, 119, 6, 0.15)",
+                backdropFilter: "blur(10px)",
             },
         }),
 
     reservation: (message: string) =>
         hotToast(message, {
-            icon: <Wine className="text-luxury-400" size={24} />,
+            icon: <Wine className="text-purple-600" size={22} />,
             style: {
-                background: "rgba(147, 51, 234, 0.15)",
+                background: "rgba(255, 255, 255, 0.95)",
                 color: "#9333EA",
-                border: "1px solid rgba(147, 51, 234, 0.3)",
-                boxShadow: "0 0 25px rgba(147, 51, 234, 0.4)",
+                border: "1px solid rgba(147, 51, 234, 0.2)",
+                boxShadow: "0 4px 20px rgba(147, 51, 234, 0.15)",
+                backdropFilter: "blur(10px)",
             },
         }),
 
     // New: Coming Soon / Not Implemented toasts
     comingSoon: (message: string = "This feature is coming soon!") =>
         hotToast(message, {
-            icon: <Clock className="text-champagne-gold-400" size={24} />,
+            icon: <Clock className="text-blue-500" size={22} />,
             style: {
-                background: "rgba(250, 214, 165, 0.15)",
-                color: "#B8860B",
-                border: "1px solid rgba(186, 134, 11, 0.3)",
-                boxShadow: "0 0 25px rgba(250, 214, 165, 0.4)",
+                background: "rgba(255, 255, 255, 0.95)",
+                color: "#3B82F6",
+                border: "1px solid rgba(59, 130, 246, 0.2)",
+                boxShadow: "0 4px 20px rgba(59, 130, 246, 0.15)",
+                backdropFilter: "blur(10px)",
             },
             duration: 3000,
         }),
 
     notImplemented: (message: string = "This feature is not yet implemented") =>
         hotToast(message, {
-            icon: <Construction className="text-pearl-400" size={24} />,
+            icon: <Construction className="text-gray-500" size={22} />,
             style: {
-                background: "rgba(158, 158, 158, 0.15)",
-                color: "#9E9E9E",
-                border: "1px solid rgba(158, 158, 158, 0.3)",
-                boxShadow: "0 0 25px rgba(158, 158, 158, 0.4)",
+                background: "rgba(255, 255, 255, 0.95)",
+                color: "#6B7280",
+                border: "1px solid rgba(107, 114, 128, 0.2)",
+                boxShadow: "0 4px 20px rgba(107, 114, 128, 0.15)",
+                backdropFilter: "blur(10px)",
             },
             duration: 3000,
         }),
 
-    // Optional: More playful version
+    // More elegant version
     inProgress: (message: string = "We're still working on this!") =>
         hotToast(message, {
-            icon: <Coffee className="text-luxury-400" size={24} />,
+            icon: <Coffee className="text-indigo-600" size={22} />,
             style: {
-                background: "rgba(147, 51, 234, 0.15)",
-                color: "#9333EA",
-                border: "1px solid rgba(147, 51, 234, 0.3)",
-                boxShadow: "0 0 25px rgba(147, 51, 234, 0.4)",
+                background: "rgba(255, 255, 255, 0.95)",
+                color: "#4F46E5",
+                border: "1px solid rgba(79, 70, 229, 0.2)",
+                boxShadow: "0 4px 20px rgba(79, 70, 229, 0.15)",
+                backdropFilter: "blur(10px)",
             },
             duration: 3000,
         }),
@@ -185,4 +196,36 @@ export const appToast = {
     ) => {
         return hotToast.promise(promise, messages);
     },
+
+    // Additional elegant toast variants
+    elegant: (
+        message: string,
+        icon: React.ReactNode = (
+            <Sparkles className="text-golden-500" size={22} />
+        )
+    ) =>
+        hotToast(message, {
+            icon: icon as Renderable,
+            style: {
+                background: "rgba(255, 255, 255, 0.98)",
+                color: "#78350F",
+                border: "1px solid rgba(250, 214, 165, 0.3)",
+                boxShadow: "0 4px 25px rgba(250, 214, 165, 0.2)",
+                backdropFilter: "blur(12px)",
+            },
+        }),
+
+    // Minimal toast for subtle notifications
+    minimal: (message: string) =>
+        hotToast(message, {
+            style: {
+                background: "rgba(255, 255, 255, 0.92)",
+                color: "#374151",
+                border: "1px solid rgba(209, 213, 219, 0.3)",
+                boxShadow: "0 2px 15px rgba(0, 0, 0, 0.08)",
+                backdropFilter: "blur(8px)",
+                fontSize: "0.9rem",
+            },
+            duration: 2000,
+        }),
 };

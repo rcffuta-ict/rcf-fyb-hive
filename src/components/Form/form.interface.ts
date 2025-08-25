@@ -9,6 +9,6 @@ export interface FormElement {
     onChange: (key:string, val:any) => void;
     getValue: (key: string) => string | boolean;
     required?: boolean;
-    error?: FormError | null;
+    error?: string | null;
     disable?: boolean;
 }

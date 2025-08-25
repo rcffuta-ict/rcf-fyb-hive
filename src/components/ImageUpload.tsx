@@ -10,6 +10,9 @@ import {
     User,
 } from "lucide-react";
 import Image from "next/image";
+import { deleteProfileImage, uploadProfileImage } from "@/actions/storage.action";
+import { appToast } from "@/providers/ToastProvider";
+import { extractPublicId } from "cloudinary-build-url";
 
 interface ElegantImageUploadProps {
     name: string;
@@ -21,6 +24,10 @@ interface ElegantImageUploadProps {
     error?: Record<string, string>;
     label?: string;
 }
+
+
+const folder = "fybHive"
+
 
 const ImageUpload: React.FC<ElegantImageUploadProps> = ({
     name,
@@ -36,7 +43,10 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
     const [dragActive, setDragActive] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [uploadSuccess, setUploadSuccess] = useState(false);
+    const [publicId, setPublicId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
 
     const imageUrl: string =
         typeof getValue(name) === "string" ? (getValue(name) as string) : "";
@@ -74,23 +84,31 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
         const validationError = validateFile(file);
         if (validationError) {
             setUploadError(validationError);
+            appToast.error(validationError);
             return;
         }
+
+        const formData = new FormData();
+        formData.append("file", file);
 
         setLoading(true);
         setUploadError(null);
         setUploadSuccess(false);
+        appToast.loading("Updating your image...");
 
         try {
             // Convert to base64 for preview and storage
-            const base64 = await getBase64Preview(file);
-            onChange(name, base64);
+            const result: any = await uploadProfileImage(formData, folder);
+            onChange(name, result.secure_url);
             setUploadSuccess(true);
+            setPublicId(result.public_id);
 
-            setTimeout(() => setUploadSuccess(false), 3000);
+            // setTimeout(() => setUploadSuccess(false), 3000);
+            appToast.success("Image updated successfully");
         } catch (err: any) {
             console.error(err);
-            setUploadError("Failed to process image");
+            setUploadError("Failed to process image: " +err.message);
+            appToast.error("Failed to upload image. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -119,10 +137,37 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
         if (files.length > 0) handleFileSelect(files[0]);
     };
 
-    const removeImage = () => {
-        onChange(name, "");
-        setUploadError(null);
-        setUploadSuccess(false);
+    const removeImage = async (link?: string) => {
+        let pid: string = publicId as string;
+
+        if (!pid) {
+            if (link) {
+                pid = extractPublicId(link);
+            }
+        }
+
+        if (isDeleting) return;
+
+        setIsDeleting(true);
+
+        appToast.loading("Removing image...", pid);
+        try {
+            await deleteProfileImage(pid);
+            onChange(name, "");
+            setUploadError(null);
+            setUploadSuccess(false);
+            setPublicId(null);
+            appToast.success("Deleted Image", pid);
+        } catch (err) {
+            appToast.error("Delete failed", pid);
+            console.error("Failed to delete image:", err);
+        } finally {
+            setIsDeleting(false);
+        }
+
+        
+        
+        
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -221,12 +266,6 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
                                 <X size={16} />
                             </button>
                         </div>
-
-                        {uploadSuccess && (
-                            <div className="absolute top-2 right-2 bg-success text-white rounded-full p-1 animate-scale-in shadow-elevated">
-                                <Check size={14} />
-                            </div>
-                        )}
                     </>
                 ) : (
                     <>

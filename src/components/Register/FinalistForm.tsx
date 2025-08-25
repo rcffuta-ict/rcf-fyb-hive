@@ -12,9 +12,7 @@ import {
     Mail,
     Users,
     Crown,
-    Camera,
     AlertCircle,
-    BookOpen,
     GraduationCap,
     Venus,
     Mars,
@@ -25,8 +23,9 @@ import {
 import { openNotificationWithIcon } from "@/utils/notification";
 import { authStore } from "@/stores/authStore";
 import { observer } from "mobx-react-lite";
-import { Member } from "@rcffuta/ict-lib";
+import { Member, wait } from "@rcffuta/ict-lib";
 import ImageUpload from "../ImageUpload";
+import {appToast} from "@/providers/ToastProvider"
 
 // Zod validation schema - only picture is required for editing
 const profileSchema = z.object({
@@ -51,6 +50,7 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
         setValue,
         formState: { errors },
         reset,
+        getValues
     } = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
@@ -70,12 +70,11 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
 
         try {
             // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            console.debug({data})
+            await wait(3)
 
-            openNotificationWithIcon(
-                "success",
-                "Profile Updated",
-                "Your profile picture has been updated successfully!"
+            appToast.romantic(
+                "Your dinner profile has been created successfully!",
             );
 
             setIsEditing(false);
@@ -84,9 +83,7 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
                 onUpdate(data);
             }
         } catch (error) {
-            openNotificationWithIcon(
-                "error",
-                "Update Failed",
+            appToast.error(
                 "Could not update your profile picture. Please try again."
             );
         } finally {
@@ -116,7 +113,7 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
             return (
                 <span className="inline-flex items-center px-4 py-2 rounded-2xl font-medium bg-pearl-100/50 dark:bg-pearl-800/50 text-pearl-600 dark:text-pearl-300 border border-pearl-200 dark:border-pearl-700">
                     <User className="w-4 h-4 mr-2" />
-                    Member
+                    Non Worker
                 </span>
             );
         }
@@ -202,7 +199,7 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
                                     onChange={(name, value) =>
                                         setValue("picture", value as string)
                                     }
-                                    getValue={(name) => user.picture || ""}
+                                    getValue={(name) => getValues().picture}
                                     circular={true}
                                     showPreview={true}
                                 />
@@ -243,27 +240,35 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
                                 Contact Information
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="flex items-center space-x-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
-                                    <div className="bg-champagne-gold/10 p-3 rounded-full">
-                                        <Mail className="w-5 h-5 text-champagne-gold-500" />
-                                    </div>
-                                    <div>
+                                <div className="flex flex-col items-start space-x-4 space-y-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="bg-champagne-gold/10 p-3 rounded-full">
+                                            <Mail className="w-5 h-5 text-champagne-gold-500" />
+                                        </div>
+
                                         <p className="text-sm text-pearl-500 dark:text-pearl-400">
                                             Email
                                         </p>
+                                    </div>
+
+                                    <div>
                                         <p className="text-pearl-700 dark:text-pearl-200 font-medium">
                                             {user.email}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
-                                    <div className="bg-champagne-gold/10 p-3 rounded-full">
-                                        <Phone className="w-5 h-5 text-champagne-gold-500" />
-                                    </div>
-                                    <div>
+                                <div className="flex flex-col items-start space-x-4 space-y-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="bg-champagne-gold/10 p-3 rounded-full">
+                                            <Phone className="w-5 h-5 text-champagne-gold-500" />
+                                        </div>
+
                                         <p className="text-sm text-pearl-500 dark:text-pearl-400">
                                             Phone
                                         </p>
+                                    </div>
+
+                                    <div>
                                         <p className="text-pearl-700 dark:text-pearl-200 font-medium">
                                             {user.contacts}
                                         </p>
@@ -273,13 +278,13 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
                         </div>
 
                         {/* Personal Details */}
-                        <div className="card">
+                        {/* <div className="card">
                             <h3 className="text-xl font-luxury font-semibold text-pearl-800 dark:text-pearl-100 mb-6 flex items-center">
                                 <BookOpen className="w-5 h-5 mr-2 text-champagne-gold-500" />
                                 Personal Details
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="flex items-center space-x-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
+                                <div className="flex flex-col md:flex-row items-start md:items-center space-x-4 space-y-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
                                     <div className="bg-champagne-gold/10 p-3 rounded-full">
                                         {user.gender === "male" ? (
                                             <Mars className="w-5 h-5 text-blue-500" />
@@ -301,7 +306,7 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
+                                <div className="flex flex-col md:flex-row items-start md:items-center space-x-4 space-y-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
                                     <div className="bg-champagne-gold/10 p-3 rounded-full">
                                         <GraduationCap className="w-5 h-5 text-champagne-gold-500" />
                                     </div>
@@ -315,47 +320,45 @@ function UserProfileDisplay({ onUpdate }: UserProfileProps) {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Ministry Information */}
-                        {user.unitId && (
-                            <div className="card">
-                                <h3 className="text-xl font-luxury font-semibold text-pearl-800 dark:text-pearl-100 mb-6 flex items-center">
-                                    <Briefcase className="w-5 h-5 mr-2 text-champagne-gold-500" />
-                                    Ministry Information
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="card">
+                            <h3 className="text-xl font-luxury font-semibold text-pearl-800 dark:text-pearl-100 mb-6 flex items-center">
+                                <Briefcase className="w-5 h-5 mr-2 text-champagne-gold-500" />
+                                Fellowship Information
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="flex items-center space-x-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
+                                    <div className="bg-champagne-gold/10 p-3 rounded-full">
+                                        <Users className="w-5 h-5 text-champagne-gold-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-pearl-500 dark:text-pearl-400">
+                                            Unit
+                                        </p>
+                                        <p className="text-pearl-700 dark:text-pearl-200 font-medium">
+                                            {user.unitId || "Not specified"}
+                                        </p>
+                                    </div>
+                                </div>
+                                {user.teamId && (
                                     <div className="flex items-center space-x-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
-                                        <div className="bg-champagne-gold/10 p-3 rounded-full">
-                                            <Users className="w-5 h-5 text-champagne-gold-500" />
+                                        <div className="bg-golden-500/10 p-3 rounded-full">
+                                            <Crown className="w-5 h-5 text-golden-500" />
                                         </div>
                                         <div>
                                             <p className="text-sm text-pearl-500 dark:text-pearl-400">
-                                                Unit
+                                                Team
                                             </p>
                                             <p className="text-pearl-700 dark:text-pearl-200 font-medium">
-                                                {user.unitId || "Not specified"}
+                                                {user.teamId}
                                             </p>
                                         </div>
                                     </div>
-                                    {user.teamId && (
-                                        <div className="flex items-center space-x-4 p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
-                                            <div className="bg-golden-500/10 p-3 rounded-full">
-                                                <Crown className="w-5 h-5 text-golden-500" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm text-pearl-500 dark:text-pearl-400">
-                                                    Team
-                                                </p>
-                                                <p className="text-pearl-700 dark:text-pearl-200 font-medium">
-                                                    {user.teamId}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* Submit Button */}

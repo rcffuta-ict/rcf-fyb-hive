@@ -5,9 +5,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import Link from "next/link";
-import toast from "react-hot-toast";
 import { authStore } from "@/stores/authStore";
 import { observer } from "mobx-react-lite";
+import { appToast } from "@/providers/ToastProvider";
+import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
 // 1. Define Zod schema
 const loginSchema = z.object({
@@ -18,6 +19,10 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 function LoginPage() {
+    const [formMessage, setFormMessage] = useState<{
+        type: "success" | "error" | null;
+        message: string;
+    }>({ type: null, message: "" });
 
     const {
         register,
@@ -28,17 +33,44 @@ function LoginPage() {
         resolver: zodResolver(loginSchema),
     });
 
-
     const onSubmit = async (data: LoginFormValues) => {
+        setFormMessage({ type: null, message: "" });
+
         try {
-            await authStore.login(data.email);
-            toast.success("Login link sent! Check your inbox.");
-            reset();
-        } catch {
-            toast.error(authStore.error || "Failed to send login link.");
+            const {
+                message,
+                success,
+                data: obj,
+            } = await authStore.login(data.email);
+
+            if (!success) {
+                throw new Error(message || "Failed to send login link");
+            }
+
+            // Set success message in form component
+            setFormMessage({
+                type: "success",
+                message: message || "Login link sent! Check your inbox.",
+            });
+
+            appToast.elegant("Login link sent! Check your inbox.");
+            // console.debug("Login link sent:", obj);
+            // reset();
+        } catch (error: any) {
+            const errorMessage =
+                error.message ||
+                authStore.error ||
+                "Failed to send login link.";
+
+            // Set error message in form component
+            setFormMessage({
+                type: "error",
+                message: errorMessage,
+            });
+
+            appToast.error(errorMessage);
         }
     };
-
 
     const loading = isLoading || isSubmitting;
 
@@ -72,6 +104,28 @@ function LoginPage() {
                             Sign in to your account
                         </p>
                     </div>
+
+                    {/* Form Messages */}
+                    {formMessage.type && (
+                        <div
+                            className={`mb-6 p-4 rounded-xl border ${
+                                formMessage.type === "success"
+                                    ? "bg-green-500/10 border-green-500/30 text-green-400"
+                                    : "bg-red-500/10 border-red-500/30 text-red-400"
+                            }`}
+                        >
+                            <div className="flex items-center space-x-3">
+                                {formMessage.type === "success" ? (
+                                    <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                                ) : (
+                                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                )}
+                                <p className="text-sm font-medium">
+                                    {formMessage.message}
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Form */}
                     <form
@@ -110,26 +164,7 @@ function LoginPage() {
                         >
                             {loading ? (
                                 <>
-                                    <svg
-                                        className="animate-spin -ml-1 mr-2 h-4 w-4"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        />
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        />
-                                    </svg>
+                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
                                     Sending link...
                                 </>
                             ) : (
@@ -193,6 +228,5 @@ function LoginPage() {
         </div>
     );
 }
-
 
 export default observer(LoginPage);

@@ -1,9 +1,9 @@
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable, runInAction, toJS,  } from "mobx";
 import { getMemberFromStoredToken, loginMember, Member, resolveMemberFromPath } from "@rcffuta/ict-lib";
 
 
 export class AuthStore {
-    member: Member | null = null;
+    _member: Member | null = null;
     isLoading = false;
     error: string | null = null;
 
@@ -12,6 +12,14 @@ export class AuthStore {
         this.init();
     }
 
+
+    get member(): Member | null {
+        return toJS(this._member);
+    }
+
+    set member(data: Member | null){
+        this._member = data;
+    }
 
     async init() {
         try {
@@ -41,7 +49,6 @@ export class AuthStore {
 
         try {
             const token = await loginMember({ email, verifyPath: "/login/verify" });
-            console.debug("SSO token:", token);
             return token;
         } catch (err: any) {
             this.error = "Failed to send login link";

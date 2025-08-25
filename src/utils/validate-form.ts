@@ -1,4 +1,4 @@
-import { FormError } from "@/components/Form/form.interface";
+ import { FormError } from "@/components/Form/form.interface";
 
 export function validateFinalistForm(_data: any) {
     const _formError: FormError = {};
