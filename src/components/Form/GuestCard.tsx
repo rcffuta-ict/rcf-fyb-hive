@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { TextInput } from "./TextInput";
 import {
     User,
     UserCheck,
@@ -11,6 +10,7 @@ import {
     Heart,
     Users,
 } from "lucide-react";
+import { TextField } from "./TextInput";
 
 interface GuestCardProps {
     female?: boolean;
@@ -180,17 +180,17 @@ export default function GuestCard(props: GuestCardProps) {
                     </div>
                 )}
 
-                <TextInput
-                    disable={loading || props.isAltered}
+                <TextField
+                    disabled={loading || props.isAltered}
                     name={name}
                     label={loading ? "Verifying guest..." : label}
                     placeholder="FYB-XXXXXX"
                     maxLength={MAX_CHARACTER}
-                    onChange={handleElemChange}
-                    getValue={getValue}
-                    error={{ [name]: props.isAltered ? null : error }}
+                    // onChange={handleElemChange}
+                    // getValue={getValue}
+                    // error={{ [name]: props.isAltered ? null : error }}
                     required
-                    toUpperCase
+                    // toUpperCase
                 />
             </div>
         </div>
