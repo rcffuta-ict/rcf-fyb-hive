@@ -462,7 +462,7 @@ const config: Config = {
     require("@tailwindcss/typography"),
     require("@tailwindcss/forms"),
     require("@tailwindcss/aspect-ratio"),
-    require("tailwind-scrollbar")({ nocompatible: true }),
+    // require("tailwind-scrollbar")({ nocompatible: true }),
     
     // Custom plugin for romantic utilities
     function({ addUtilities, theme }: any) {

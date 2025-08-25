@@ -47,7 +47,6 @@
     "@types/react-slick": "^0.23.13",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
-    "tailwind-scrollbar": "^4.0.2",
     "typescript": "^5",
     "zod": "^3.25.76"
   }
