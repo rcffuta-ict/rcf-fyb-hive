@@ -232,7 +232,13 @@ const UserHighlight = observer(() => {
     const handleClick = (e: React.MouseEvent) => {
         if (isLoggedIn) {
             e.preventDefault();
-            auth.logout();
+            let userResponse = confirm("Are you sure you want to logout?");
+
+            if (userResponse) {
+                // Code to execute if the user clicked "OK" (Yes)
+                auth.logout();
+                appToast.success("Logged out successfully");
+            }
         }
     };
 
@@ -283,8 +289,15 @@ const MobileUserHighlight = observer(() => {
     const handleClick = (e: React.MouseEvent) => {
         if (isLoggedIn) {
             e.preventDefault();
-            auth.logout();
-            appToast.success("Logged out successfully");
+
+            let userResponse = confirm("Are you sure you want to logout?");
+
+            if (userResponse) {
+                // Code to execute if the user clicked "OK" (Yes)
+                auth.logout();
+                appToast.success("Logged out successfully");
+            }
+
         }
     };
 

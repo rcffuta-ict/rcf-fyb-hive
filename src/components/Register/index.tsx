@@ -139,7 +139,7 @@ export default function RegistrationForm() {
                     <p className="text-pearl-500 text-sm">
                         Need help? Contact our ICT team at{" "}
                         <a
-                            href="mailto:ic@rcffuta.com"
+                            href="mailto:ict@rcffuta.com"
                             className="text-champagne-gold hover:text-golden-400 hover:underline"
                         >
                             ic@rcffuta.com
