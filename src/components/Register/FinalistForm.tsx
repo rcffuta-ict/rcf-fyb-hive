@@ -230,7 +230,7 @@ function UserProfileDisplay() {
                                     Level
                                 </p>
                                 <p className="text-pearl-700 dark:text-pearl-200 font-medium">
-                                    {level?.label || "Not Specified"}
+                                    {level?.generationId === user.levelId ? (level?.label || "Not Specified"):"Not 500 level"}
                                 </p>
                             </div>
                         </div>
