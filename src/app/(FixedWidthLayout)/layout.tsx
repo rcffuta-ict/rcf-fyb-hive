@@ -1,16 +1,16 @@
-import React from "react";
+import { ReactNode } from "react";
 import AutoInit from "@/components/AutoInit";
 import MainWrapper from "@/components/MainWrapper";
 
-export default function FixedWidthLayout({
-    children,
-}: Readonly<{
-    children: React.ReactNode;
-}>) {
+interface LayoutProps {
+    children: ReactNode;
+}
+
+export default function FixedWidthLayout({ children }: LayoutProps) {
     return (
         <MainWrapper>
             {children}
-            <AutoInit/>
+            <AutoInit />
         </MainWrapper>
     );
 }

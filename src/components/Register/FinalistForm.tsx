@@ -70,6 +70,9 @@ function UserProfileDisplay() {
         );
     })();
 
+    if (!user) return <NotEligible />;
+    if (!isLegitFinalist) return <NotEligible />;
+
     const onSubmit = async (data: ProfileFormData) => {
         try {
             const dinnerProfile = {
@@ -121,8 +124,8 @@ function UserProfileDisplay() {
             <Venus className="w-5 h-5 text-pink-500" />
         );
     
-    if (!user) return <NotEligible />;
-    if (!isLegitFinalist) return <NotEligible />;
+    
+    
     return (
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20">
             {/* Header */}
