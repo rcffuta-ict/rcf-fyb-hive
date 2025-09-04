@@ -37,7 +37,7 @@ const associateSchema = z.object({
 type AssociateFormData = z.infer<typeof associateSchema>;
 
 export default function AssociateForm() {
-    const router = useRouter();
+    // const router = useRouter();
     const authenticatedUserGender = authStore.member?.gender as
         | "male"
         | "female";

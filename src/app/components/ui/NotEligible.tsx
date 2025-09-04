@@ -26,12 +26,15 @@ export default function NotEligible({
             </h2>
 
             <p className="text-pearl-600 dark:text-pearl-300 mb-6">
-                You are not eligible to perform this operation. If you believe
-                this is a mistake, kindly reach out to the{" "}
+                You’re currently not eligible to perform this action. Please
+                make sure you&apos;re logged in — you can check your login status by
+                clicking the padlock icon in the header. <br />
+                <br />
+                If you believe this is an error, kindly contact the{" "}
                 <span className="font-semibold text-champagne-gold-600 dark:text-champagne-gold-400">
                     {coordinatorName}
-                </span>
-                .
+                </span>{" "}
+                for assistance.
             </p>
 
             <div className="space-y-4">

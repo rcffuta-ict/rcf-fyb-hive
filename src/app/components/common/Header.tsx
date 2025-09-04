@@ -3,6 +3,7 @@ import { appToast } from "@/providers/ToastProvider";
 import { authStore } from "@/stores/authStore";
 import { observer } from "mobx-react-lite";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 function Header() {
@@ -224,6 +225,7 @@ export default observer(Header);
 const UserHighlight = observer(() => {
     const [isHovered, setIsHovered] = useState(false);
     const auth = authStore;
+    const router = useRouter()
 
     const isLoggedIn = auth.isAuthenticated;
     const userLabel =
@@ -238,6 +240,7 @@ const UserHighlight = observer(() => {
                 // Code to execute if the user clicked "OK" (Yes)
                 auth.logout();
                 appToast.success("Logged out successfully");
+                router.replace("/")
             }
         }
     };
@@ -285,6 +288,7 @@ const UserHighlight = observer(() => {
 const MobileUserHighlight = observer(() => {
     const auth = authStore;
     const isLoggedIn = auth.isAuthenticated;
+    const router = useRouter();
 
     const handleClick = (e: React.MouseEvent) => {
         if (isLoggedIn) {
@@ -296,6 +300,7 @@ const MobileUserHighlight = observer(() => {
                 // Code to execute if the user clicked "OK" (Yes)
                 auth.logout();
                 appToast.success("Logged out successfully");
+                router.replace("/");
             }
 
         }

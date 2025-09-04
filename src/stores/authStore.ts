@@ -1,5 +1,6 @@
 import { makeAutoObservable, runInAction, toJS,  } from "mobx";
 import { findLiveTenure, findUnitById, getAllUnits, getMemberFromStoredToken, loginMember, Member, MemberObject, resolveMemberFromPath, TenureObject, TenurePopulated, UnitObject } from "@rcffuta/ict-lib";
+import { appToast } from "@/providers/ToastProvider";
 
 
 export class AuthStore {
@@ -11,7 +12,6 @@ export class AuthStore {
 
     constructor() {
         makeAutoObservable(this);
-        this.init();
     }
 
 
@@ -41,6 +41,12 @@ export class AuthStore {
 
     async init() {
         try {
+            let unit: UnitObject | null = null;
+            const {message: tmg, success:tsx, data:tenure} = await findLiveTenure();
+            
+            if (!tsx) {
+                throw new Error(tmg || "Could not resolve tenure profile");
+            }
             const {
                 message,
                 success,
@@ -50,9 +56,19 @@ export class AuthStore {
                 throw new Error(message || "No valid stored token");
             }
 
+
+            if (member.unitId) {
+
+                const {data: duit} = await findUnitById(member.unitId || "");
+
+                unit = duit || null;
+            }
+
             // const {data: units} = await getAllUnits();
             runInAction(() => {
+                this.tenureProfile = tenure;
                 this.member = member;
+                this.unit = unit;
                 // this.units = units || [];
             });
         } catch (error) {
@@ -86,13 +102,10 @@ export class AuthStore {
         this.error = null;
 
         try {
-            const {message: tmg, success:tsx, data:tenure} = await findLiveTenure();
+            
 
             let unit: UnitObject | null = null;
 
-            if (!tsx) {
-                throw new Error(tmg || "Could not resolve tenure profile");
-            }
 
             const {message, success, data} = await resolveMemberFromPath(undefined, false);
 
@@ -109,9 +122,10 @@ export class AuthStore {
             
             runInAction(() => {
                 this.member = data;
-                this.tenureProfile = tenure;
+                // this.tenureProfile = tenure;
                 this.unit = unit;
             });
+            appToast.elegant("Login verified! Redirecting...");
             return data;
         } catch (err: any) {
             runInAction(() => {
@@ -125,9 +139,11 @@ export class AuthStore {
         }
     }
 
+
     // Logout / clear
     logout() {
         this.member = null;
+        this.unit = null;
     }
 
     get isAuthenticated() {

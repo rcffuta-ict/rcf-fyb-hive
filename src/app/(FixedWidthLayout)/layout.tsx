@@ -1,3 +1,5 @@
+import React from "react";
+import AutoInit from "@/components/AutoInit";
 import MainWrapper from "@/components/MainWrapper";
 
 export default function FixedWidthLayout({
@@ -8,6 +10,7 @@ export default function FixedWidthLayout({
     return (
         <MainWrapper>
             {children}
+            <AutoInit/>
         </MainWrapper>
     );
 }

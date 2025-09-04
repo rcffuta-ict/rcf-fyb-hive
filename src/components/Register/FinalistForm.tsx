@@ -21,10 +21,8 @@ import {
 import { authStore } from "@/stores/authStore";
 import { profileStore } from "@/stores/profileStore";
 import { observer } from "mobx-react-lite";
-import { Member, MemberObject } from "@rcffuta/ict-lib";
 import ImageUpload from "../ImageUpload";
 import { appToast } from "@/providers/ToastProvider";
-import MustRegisterFirst from "@/app/components/ui/MustRegisterFirst";
 import NotEligible from "@/app/components/ui/NotEligible";
 
 // Zod schema – picture is mandatory for dinner profile
@@ -37,11 +35,10 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 function UserProfileDisplay() {
-    const user = useMemo(() => authStore.member || ({} as MemberObject), []);
-    const unit = useMemo(() => authStore.unit, []);
-    const isLegitFinalist = useMemo(() => authStore.tenureProfile?.finalists?.includes(user.id), [
-        user,
-    ]);
+    const user = authStore.member;
+    const unit = authStore.unit;
+    const profile = authStore.tenureProfile;
+
 
     const {
         handleSubmit,
@@ -52,15 +49,26 @@ function UserProfileDisplay() {
     } = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            picture: user.picture || "",
+            picture: user?.picture || "",
         },
     });
 
     useEffect(() => {
         reset({
-            picture: user.picture || "",
+            picture: user?.picture || "",
         });
-    }, [user, reset]);
+    }, [user?.picture, reset]);
+
+    const level = profile?.levels.find((e) => e.label === "500");
+
+    const isLegitFinalist = (() => {
+        const finalists = profile?.finalists || [];
+
+        if (!user) return false;
+        return (
+            level?.generationId === user.levelId || finalists.includes(user.id)
+        );
+    })();
 
     const onSubmit = async (data: ProfileFormData) => {
         try {
@@ -113,8 +121,8 @@ function UserProfileDisplay() {
             <Venus className="w-5 h-5 text-pink-500" />
         );
     
-    if (!user) return <MustRegisterFirst/>
-    if (!isLegitFinalist) return <NotEligible/>
+    if (!user) return <NotEligible />;
+    if (!isLegitFinalist) return <NotEligible />;
     return (
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20">
             {/* Header */}
@@ -214,16 +222,14 @@ function UserProfileDisplay() {
                                     {unit?.name || "Not specified"}
                                 </p>
                             </div>
-                            {user.teamId && (
-                                <div className="p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
-                                    <p className="text-sm text-pearl-500 dark:text-pearl-400">
-                                        Team
-                                    </p>
-                                    <p className="text-pearl-700 dark:text-pearl-200 font-medium">
-                                        {user.teamId}
-                                    </p>
-                                </div>
-                            )}
+                            <div className="p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
+                                <p className="text-sm text-pearl-500 dark:text-pearl-400">
+                                    Level
+                                </p>
+                                <p className="text-pearl-700 dark:text-pearl-200 font-medium">
+                                    {level?.label || "Not Specified"}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
