@@ -288,7 +288,7 @@ function HomePage() {
                                 delay: "200ms",
                             },
                             {
-                                href: "#",
+                                href: "/table",
                                 icon: "💕",
                                 title: "Pair Your Date",
                                 description:

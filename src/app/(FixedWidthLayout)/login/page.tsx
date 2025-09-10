@@ -54,7 +54,6 @@ function LoginPage() {
             });
 
             appToast.elegant("Login link sent! Check your inbox.");
-            // console.debug("Login link sent:", obj);
             // reset();
         } catch (error: any) {
             const errorMessage =

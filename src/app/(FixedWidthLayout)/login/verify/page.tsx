@@ -29,7 +29,6 @@ function VerifySSOPage() {
                     router.push("/");
                 }, 2000);
             } catch (err: any) {
-                // console.debug(err);
                 setError(err.message || "SSO verification failed.");
                 setStatus("error");
             }

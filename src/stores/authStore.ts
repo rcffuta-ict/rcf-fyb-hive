@@ -1,6 +1,7 @@
 import { makeAutoObservable, runInAction, toJS,  } from "mobx";
 import { findLiveTenure, findUnitById, getAllUnits,MemberProfile, getMemberFromStoredToken, loginMember, resolveMemberFromPath, TenurePopulated, UnitObject } from "@rcffuta/ict-lib";
 import { appToast } from "@/providers/ToastProvider";
+import { profileStore } from "./profileStore";
 
 
 export class AuthStore {
@@ -33,6 +34,8 @@ export class AuthStore {
     private async runInit(member?: MemberProfile) {
         const {message: tmg, success:tsx, data:tenure} = await findLiveTenure();
 
+        let email: string | null = null;
+
         if (tsx) {
             this._tenureProfile = tenure;
         }else {
@@ -43,17 +46,25 @@ export class AuthStore {
             const {
                 message,
                 success,
-                data: member,
+                data: mem,
             } = await getMemberFromStoredToken();
 
             if (success) {
-                this.member = member;
+                this.member = mem;
+                email = mem.email;
             }else {
                 console.log(message || "No valid stored token");
             }
         }else {
             this.member = member;
+            email = member.email;
         }
+
+        if (email) {
+            profileStore.loadProfile(email);
+        }
+
+
     }
 
     async init() {
