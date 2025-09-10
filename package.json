@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.1",
-    "@rcffuta/ict-lib": "3.3.2",
+    "@rcffuta/ict-lib": "3.4.1",
     "antd": "^5.20.1",
     "autoprefixer": "^10.4.21",
     "axios": "^1.7.7",
