@@ -46,7 +46,6 @@ function LoginPage() {
             if (!success) {
                 throw new Error(message || "Failed to send login link");
             }
-            console.debug({obj})
 
             // Set success message in form component
             setFormMessage({
@@ -55,7 +54,6 @@ function LoginPage() {
             });
 
             appToast.elegant("Login link sent! Check your inbox.");
-            // console.debug("Login link sent:", obj);
             // reset();
         } catch (error: any) {
             const errorMessage =

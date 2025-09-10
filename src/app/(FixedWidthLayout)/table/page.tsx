@@ -11,6 +11,7 @@ import { appToast } from "@/providers/ToastProvider";
 import NotEligible, { NoDinnerProfile } from "@/app/components/ui/NotEligible";
 import { profileStore } from "@/stores/profileStore";
 import { DinnerProfileRecord, getDinnerProfile } from "@rcffuta/ict-lib";
+import Image from "next/image";
 
 // Zod schema for consent token
 const consentSchema = z.object({
@@ -50,7 +51,7 @@ const ProfileCard = observer(
         return (
             <div className="bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-6 text-center">
                 <div className="relative mx-auto mb-4 w-40 h-40 rounded-lg overflow-hidden border-4 border-champagne-gold-300 shadow-golden-glow">
-                    <img
+                    <Image
                         src={
                             isPlaceholder
                                 ? placeholderImage
@@ -61,7 +62,8 @@ const ProfileCard = observer(
                                 ? "Guest"
                                 : `${user?.firstname} ${user?.lastname}`
                         }
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
+                        fill
                     />
                 </div>
 
@@ -218,17 +220,8 @@ function DinnerInvitationPage() {
     const handleConsentSubmit = async (data: ConsentFormData) => {
         setLoading(true);
         try {
-            // Simulate API call to validate consent token and create pair
-            // await new Promise((resolve) => setTimeout(resolve, 1500));
             await profileStore.pairProfile(data.consentToken);
 
-            // Generate a pair token (in real app, this would come from backend)
-            // const generatedToken = `PR-${Math.random()
-            //     .toString(36)
-            //     .substr(2, 5)
-            //     .toUpperCase()}`;
-            // setPairToken(generatedToken);
-            
             setShowPaymentSection(true);
             setError(false)
 
@@ -296,8 +289,6 @@ function DinnerInvitationPage() {
             </div>
         )
     }
-
-    console.debug({ dinnerProfile, dateProfile, paid, showPaymentSection });
 
 
 
@@ -454,7 +445,8 @@ function DinnerInvitationPage() {
                                 <div className="flex items-center justify-center">
                                     <CheckCircle className="w-5 h-5 text-success mr-2" />
                                     <span className="text-success-700 dark:text-success-300">
-                                        Pair confirmed! Proceed to payment.
+                                        Pair confirmed!{" "}
+                                        {!paid && "Proceed to payment."}
                                     </span>
                                 </div>
                             </div>
@@ -550,8 +542,11 @@ function DinnerInvitationPage() {
                                             <span className="font-bold mr-2">
                                                 2.
                                             </span>
-                                            Include your pair token <strong>{pairToken}</strong> in the
-                                            payment description
+                                            <span>
+                                                Include your pair token{" "}
+                                                <strong>{pairToken}</strong> in the
+                                                payment description
+                                            </span>
                                         </li>
                                         <li className="flex items-start">
                                             <span className="font-bold mr-2">
@@ -590,7 +585,9 @@ function DinnerInvitationPage() {
                                 </button>
 
                                 <p className="text-sm text-pearl-400 mt-4">
-                                    Payment verification will take it up from there, we&apos;ll let you know when we&apos;ve confirmed
+                                    Payment verification will take it up from
+                                    there, we&apos;ll let you know when
+                                    we&apos;ve confirmed
                                 </p>
                             </div>
                         </div>

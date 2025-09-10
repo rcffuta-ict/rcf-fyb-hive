@@ -24,16 +24,16 @@ class ProfileStore {
         return toJS(this._date_profile);
     }
 
-    set profile(value: DinnerProfileRecord | null) {
-        this._profile = value;
-    }
+    // set profile(value: DinnerProfileRecord | null) {
+    //     this._profile = value;
+    // }
     get table(): TableRecord | null {
         return toJS(this._table);
     }
 
-    set table(value: TableRecord | null) {
-        this._table = value;
-    }
+    // set table(value: TableRecord | null) {
+    //     this._table = value;
+    // }
 
     /**
      * Create a new DinnerProfile (Finalist or Associate)
@@ -58,7 +58,7 @@ class ProfileStore {
 
             runInAction(() => {
                 // this.profiles.push(profile);
-                this.profile = profile;
+                this._profile = profile;
                 this.success = "Profile successfully created!";
             });
         } catch (err: any) {
@@ -76,7 +76,7 @@ class ProfileStore {
         const {message, success, data} = await getMemberDinnerProfile(email);
 
         if (success) {
-            console.debug({data})
+
             const {
                 attendee,
                 tables
@@ -86,8 +86,6 @@ class ProfileStore {
             const table = selectTableRecord(tables);
 
             this._table = table;
-
-            console.debug({attendee,tables, table, })
 
             if (table) {
 
@@ -172,7 +170,7 @@ class ProfileStore {
      * Reset store state (useful on logout)
      */
     reset() {
-        this.profile = null;
+        this._profile = null;
         this.loading = false;
         this.error = null;
         this.success = null;
