@@ -36,8 +36,9 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 function UserProfileDisplay() {
     const user = authStore.member;
-    const unit = authStore.unit;
+    const unit = user?.unit;
     const profile = authStore.tenureProfile;
+    const level = user?.level;
 
 
     const {
@@ -59,14 +60,14 @@ function UserProfileDisplay() {
         });
     }, [user?.picture, reset]);
 
-    const level = profile?.levels.find((e) => e.label === "500");
+    
 
     const isLegitFinalist = (() => {
         const finalists = profile?.finalists || [];
 
         if (!user) return false;
         return (
-            level?.generationId === user.levelId || finalists.includes(user.id)
+            level?.label === "500" || finalists.includes(user.id)
         );
     })();
 
@@ -84,10 +85,11 @@ function UserProfileDisplay() {
                 gender: user.gender as "male" | "female",
                 isWorker: !!user.unitId,
                 unitId: user.unitId,
-                unit: unit?.name || undefined,
+                unit: unit?.unit?.name || undefined,
                 isFinalist: true, // default finalist
             };
 
+            console.debug({dinnerProfile})
             await profileStore.createProfile(dinnerProfile);
 
             if (profileStore.error) {
@@ -222,7 +224,7 @@ function UserProfileDisplay() {
                                     Unit
                                 </p>
                                 <p className="text-pearl-700 dark:text-pearl-200 font-medium">
-                                    {unit?.name || "Not specified"}
+                                    {unit?.unit?.name || "Not specified"}
                                 </p>
                             </div>
                             <div className="p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
@@ -230,7 +232,10 @@ function UserProfileDisplay() {
                                     Level
                                 </p>
                                 <p className="text-pearl-700 dark:text-pearl-200 font-medium">
-                                    {level?.generationId === user.levelId ? (level?.label || "Not Specified"):"Not 500 level"}
+                                    {/* {level?. === user.levelId ? (level?.label || "Not Specified"):"Not 500 level"} */}
+                                    {
+                                        level?.label ? level.label + " Level": "Not Specified"
+                                    }
                                 </p>
                             </div>
                         </div>

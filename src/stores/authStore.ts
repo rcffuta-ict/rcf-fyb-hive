@@ -1,12 +1,11 @@
 import { makeAutoObservable, runInAction, toJS,  } from "mobx";
-import { findLiveTenure, findUnitById, getAllUnits, getMemberFromStoredToken, loginMember, Member, MemberObject, resolveMemberFromPath, TenureObject, TenurePopulated, UnitObject } from "@rcffuta/ict-lib";
+import { findLiveTenure, findUnitById, getAllUnits,MemberProfile, getMemberFromStoredToken, loginMember, resolveMemberFromPath, TenurePopulated, UnitObject } from "@rcffuta/ict-lib";
 import { appToast } from "@/providers/ToastProvider";
 
 
 export class AuthStore {
-    _member: MemberObject | null = null;
+    _member: MemberProfile | null = null;
     _tenureProfile: TenurePopulated | null = null;
-    _unit: UnitObject | null = null;
     isLoading = false;
     error: string | null = null;
 
@@ -15,20 +14,12 @@ export class AuthStore {
     }
 
 
-    get member(): MemberObject | null {
+    get member(): MemberProfile | null {
         return toJS(this._member);
     }
 
-    set member(data: MemberObject | null){
+    set member(data: MemberProfile | null){
         this._member = data;
-    }
-
-    get unit(): UnitObject | null {
-        return toJS(this._unit);
-    }
-
-    set unit(data: UnitObject | null){
-        this._unit = data;
     }
 
     get tenureProfile(): TenurePopulated | null {
@@ -39,44 +30,34 @@ export class AuthStore {
         this._tenureProfile = data;
     }
 
-    async init() {
-        try {
-            let unit: UnitObject | null = null;
-            const {message: tmg, success:tsx, data:tenure} = await findLiveTenure();
-            
-            if (!tsx) {
-                throw new Error(tmg || "Could not resolve tenure profile");
-            }
+    private async runInit(member?: MemberProfile) {
+        const {message: tmg, success:tsx, data:tenure} = await findLiveTenure();
+
+        if (tsx) {
+            this._tenureProfile = tenure;
+        }else {
+            console.error(tmg || "Could not resolve tenure profile");
+        }
+
+        if (!member) {
             const {
                 message,
                 success,
                 data: member,
             } = await getMemberFromStoredToken();
-            if (!success || !member) {
-                throw new Error(message || "No valid stored token");
-            }
 
-
-            if (member.unitId) {
-
-                const {data: duit} = await findUnitById(member.unitId || "");
-
-                unit = duit || null;
-            }
-
-            // const {data: units} = await getAllUnits();
-            runInAction(() => {
-                this.tenureProfile = tenure;
+            if (success) {
                 this.member = member;
-                this.unit = unit;
-                // this.units = units || [];
-            });
-        } catch (error) {
-            console.warn("No valid stored token found or failed to fetch member:", error);
-            runInAction(() => {
-                this.member = null;
-            });
+            }else {
+                console.log(message || "No valid stored token");
+            }
+        }else {
+            this.member = member;
         }
+    }
+
+    async init() {
+        this.runInit();
     }
 
   // Trigger sending login link
@@ -102,29 +83,13 @@ export class AuthStore {
         this.error = null;
 
         try {
-            
-
-            let unit: UnitObject | null = null;
-
-
             const {message, success, data} = await resolveMemberFromPath(undefined, false);
 
             if (!success || !data) {
                 throw new Error(message || "SSO verification failed");
             }
-
-            if (data.unitId) {
-
-                const {data: duit} = await findUnitById(data.unitId || "");
-
-                unit = duit || null;
-            }
             
-            runInAction(() => {
-                this.member = data;
-                // this.tenureProfile = tenure;
-                this.unit = unit;
-            });
+            this.runInit(data);
             appToast.elegant("Login verified! Redirecting...");
             return data;
         } catch (err: any) {
@@ -143,7 +108,6 @@ export class AuthStore {
     // Logout / clear
     logout() {
         this.member = null;
-        this.unit = null;
     }
 
     get isAuthenticated() {
