@@ -62,7 +62,7 @@ function Header() {
                                 glow: "golden",
                             },
                             {
-                                href: "#",
+                                href: "/table",
                                 label: "Tables",
                                 icon: "🍽️",
                                 glow: "luxury",
@@ -188,8 +188,8 @@ function Header() {
                                     icon: "🏆",
                                 },
                                 {
-                                    href: "#",
-                                    label: "Tables",
+                                    href: "/table",
+                                    label: "Table",
                                     icon: "🍽️",
                                 },
                                 // { href: "#", label: "About", icon: "✨" },
