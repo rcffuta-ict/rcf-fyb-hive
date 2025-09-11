@@ -120,7 +120,7 @@ export default function AssociateForm() {
                                 render={({ field }) => (
                                     <ImageUpload
                                         name="picture"
-                                        onChange={(_, val) =>
+                                        onChange={(val) =>
                                             field.onChange(val)
                                         }
                                         getValue={() => field.value}
