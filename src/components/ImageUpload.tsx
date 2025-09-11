@@ -1,8 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     Upload,
     Loader2,
-    ImageIcon,
     X,
     Check,
     AlertCircle,
@@ -10,34 +9,40 @@ import {
     User,
 } from "lucide-react";
 import Image from "next/image";
-import { deleteProfileImage, uploadProfileImage } from "@/actions/storage.action";
+import {
+    deleteProfileImage,
+    uploadProfileImage,
+} from "@/actions/storage.action";
 import { appToast } from "@/providers/ToastProvider";
 import { extractPublicId } from "cloudinary-build-url";
+import { observer } from "mobx-react-lite";
 
 interface ElegantImageUploadProps {
     name: string;
-    onChange: (name: string, value: string | File) => void;
-    getValue: (name: string) => string | File | null;
+    onChange: (value: string | File) => void;
+    getValue?: () => string;
     circular?: boolean;
     showPreview?: boolean;
     disable?: boolean;
     error?: Record<string, string>;
     label?: string;
+    value?: string;
+    defaultValue?: string;
 }
 
-
-const folder = "fybHive"
-
+const folder = "fybHive";
 
 const ImageUpload: React.FC<ElegantImageUploadProps> = ({
     name,
     onChange,
     getValue,
-    circular = true, // Default to circular for profile pictures
+    circular = true,
     showPreview = true,
     disable = false,
     error,
     label,
+    value,
+    defaultValue,
 }) => {
     const [loading, setLoading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
@@ -47,9 +52,10 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
     const [isDeleting, setIsDeleting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const url = getValue?.() ?? value ?? defaultValue ?? "";
 
-    const imageUrl: string =
-        typeof getValue(name) === "string" ? (getValue(name) as string) : "";
+    const [imageUrl, setImageUrl] = useState<string>(url);
+
 
     const validateFile = (file: File): string | null => {
         const acceptedTypes = [
@@ -72,14 +78,6 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
         return null;
     };
 
-    const getBase64Preview = (file: File): Promise<string> => {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target?.result as string);
-            reader.readAsDataURL(file);
-        });
-    };
-
     const handleFileSelect = async (file: File) => {
         const validationError = validateFile(file);
         if (validationError) {
@@ -94,20 +92,18 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
         setLoading(true);
         setUploadError(null);
         setUploadSuccess(false);
-        appToast.loading("Updating your image...");
+        appToast.loading("Uploading image...");
 
         try {
-            // Convert to base64 for preview and storage
             const result: any = await uploadProfileImage(formData, folder);
-            onChange(name, result.secure_url);
+            onChange(result.secure_url);
+            setImageUrl(result.secure_url); // Update local state
             setUploadSuccess(true);
             setPublicId(result.public_id);
-
-            // setTimeout(() => setUploadSuccess(false), 3000);
-            appToast.success("Image updated successfully");
+            appToast.success("Image uploaded successfully");
         } catch (err: any) {
             console.error(err);
-            setUploadError("Failed to process image: " +err.message);
+            setUploadError("Failed to upload image: " + err.message);
             appToast.error("Failed to upload image. Please try again.");
         } finally {
             setLoading(false);
@@ -140,90 +136,80 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
     const removeImage = async (link?: string) => {
         let pid: string = publicId as string;
 
-        if (!pid) {
-            if (link) {
-                pid = extractPublicId(link);
-            }
+        if (!pid && link) {
+            pid = extractPublicId(link);
         }
 
-        if (isDeleting) return;
+        if (isDeleting || !pid) return;
 
         setIsDeleting(true);
+        appToast.loading("Removing image...");
 
-        appToast.loading("Removing image...", pid);
         try {
             await deleteProfileImage(pid);
-            onChange(name, "");
+            onChange("");
+            setImageUrl(""); // Clear local state
             setUploadError(null);
             setUploadSuccess(false);
             setPublicId(null);
-            appToast.success("Deleted Image", pid);
+            appToast.success("Image removed successfully");
         } catch (err) {
-            appToast.error("Delete failed", pid);
+            appToast.error("Failed to remove image");
             console.error("Failed to delete image:", err);
         } finally {
             setIsDeleting(false);
         }
 
-        
-        
-        
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const openFileDialog = () => {
-        fileInputRef.current?.click();
+        if (!disable && !loading) {
+            fileInputRef.current?.click();
+        }
     };
 
     const hasImage = !!imageUrl;
     const errorMessage = error?.[name] || uploadError;
 
     return (
-        <div className="group relative animate-fade-in">
-            {label && (
-                <label className="block mb-3 font-elegant text-sm font-medium text-pearl-700 dark:text-pearl-200 transition-colors duration-300">
-                    {label}
-                </label>
-            )}
+        <div className="group relative">
+            {label && <label className="input-label mb-3">{label}</label>}
 
             <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/jpg"
                 onChange={handleInputChange}
-                className="hidden opacity-0"
+                className="hidden"
                 disabled={disable || loading}
             />
 
             <div
                 className={`
-                    relative overflow-hidden transition-all duration-400 ease-romantic cursor-pointer
-                    ${
-                        circular
-                            ? "w-40 h-40 rounded-full"
-                            : "w-full aspect-video rounded-3xl"
-                    }
+                    relative overflow-hidden transition-all duration-300 ease-in-out cursor-pointer rounded-xl
+                    ${circular ? "w-40 h-40 " : "w-full aspect-video"}
                     ${
                         dragActive
-                            ? "border-4 border-dashed border-champagne-gold bg-champagne-gold/20 shadow-golden-glow scale-105"
+                            ? "border-2 border-dashed border-primary bg-primary/10"
                             : hasImage
-                            ? "border-2 border-champagne-gold/30 bg-glass-warm backdrop-blur-sm"
+                            ? "border border-stroke dark:border-strokedark"
                             : errorMessage
-                            ? "border-2 border-dashed border-error/50 bg-error-light/10"
-                            : "border-4 border-champagne-gold-200/50 bg-gradient-to-br from-pearl-100 to-pearl-200"
+                            ? "border-2 border-dashed border-red-500 bg-red-50 dark:bg-red-900/20"
+                            : "border-2 border-dashed border-stroke dark:border-strokedark bg-alabaster dark:bg-blackho"
                     }
                     ${
                         disable
                             ? "opacity-50 cursor-not-allowed"
-                            : "hover:shadow-golden-glow hover:scale-105"
+                            : "hover:border-primary hover:shadow-solid-5"
                     }
                     ${loading ? "pointer-events-none" : ""}
-                    shadow-lg
+                    shadow-solid-2
                 `}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
-                onClick={!disable && !loading ? openFileDialog : undefined}
+                onClick={openFileDialog}
             >
                 {hasImage ? (
                     <>
@@ -231,16 +217,13 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
                             src={imageUrl}
                             alt="Upload preview"
                             fill
-                            className={`object-cover transition-all duration-300 ${
-                                circular ? "rounded-full" : "rounded-2xl"
-                            }`}
+                            className={
+                                "object-cover transition-all duration-300 rounded-xl"
+                            }
                         />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <Camera className="w-8 h-8 text-white" />
-                        </div>
 
-                        {/* Action buttons on hover */}
-                        <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3">
+                        {/* Action buttons overlay */}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
                             <button
                                 type="button"
                                 onClick={(e) => {
@@ -248,91 +231,96 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
                                     openFileDialog();
                                 }}
                                 disabled={disable || loading}
-                                className="btn btn-ghost btn-sm text-white hover:text-champagne-gold bg-black/50 backdrop-blur-sm"
+                                className="p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors"
                                 title="Change image"
                             >
-                                <Upload size={16} />
+                                <Upload size={16} className="text-white" />
                             </button>
                             <button
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    removeImage();
+                                    removeImage(imageUrl);
                                 }}
-                                disabled={disable || loading}
-                                className="btn btn-ghost btn-sm text-white hover:text-error bg-black/50 backdrop-blur-sm"
+                                disabled={disable || loading || isDeleting}
+                                className="p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors"
                                 title="Remove image"
                             >
-                                <X size={16} />
+                                {isDeleting ? (
+                                    <Loader2
+                                        size={16}
+                                        className="text-white animate-spin"
+                                    />
+                                ) : (
+                                    <X size={16} className="text-white" />
+                                )}
                             </button>
                         </div>
                     </>
                 ) : (
-                    <>
-                        <div className="w-full h-full flex items-center justify-center">
-                            {loading ? (
-                                <Loader2 className="w-12 h-12 text-champagne-gold animate-spin" />
-                            ) : dragActive ? (
-                                <Upload className="w-12 h-12 text-champagne-gold animate-bounce-gentle" />
-                            ) : errorMessage ? (
-                                <AlertCircle className="w-12 h-12 text-error" />
-                            ) : (
-                                <User className="w-12 h-12 text-pearl-400" />
-                            )}
-                        </div>
-
-                        {/* Hover overlay for empty state */}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <Camera className="w-8 h-8 text-white" />
-                        </div>
-                    </>
+                    <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                        {loading ? (
+                            <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+                        ) : dragActive ? (
+                            <>
+                                <Upload className="w-8 h-8 text-primary mb-2" />
+                                <span className="text-sm text-primary font-medium">
+                                    Drop to upload
+                                </span>
+                            </>
+                        ) : errorMessage ? (
+                            <>
+                                <AlertCircle className="w-8 h-8 text-red-500 mb-2" />
+                                <span className="text-sm text-red-500 font-medium">
+                                    Upload failed
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                <User className="w-8 h-8 text-waterloo dark:text-manatee mb-2" />
+                                <span className="text-sm text-waterloo dark:text-manatee text-center">
+                                    Click to upload
+                                    <br />
+                                    <span className="text-xs">
+                                        or drag and drop
+                                    </span>
+                                </span>
+                            </>
+                        )}
+                    </div>
                 )}
 
                 {loading && (
-                    <div className="absolute inset-0 bg-luxury-900/20 backdrop-blur-sm rounded-inherit flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-champagne-gold animate-spin" />
+                    <div className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
                     </div>
                 )}
             </div>
 
             {/* Status messages */}
-            <div className="mt-4 text-center">
-                {!hasImage && !errorMessage && !loading && (
-                    <p className="text-sm text-pearl-500 dark:text-pearl-400">
-                        Click to upload your photo
-                        <br />
-                        <span className="text-xs">
-                            JPEG, PNG, WEBP up to 5MB
-                        </span>
-                    </p>
-                )}
-
-                {dragActive && (
-                    <p className="text-sm text-champagne-gold animate-pulse-romantic">
-                        Drop your image here
-                    </p>
-                )}
-
+            <div className="mt-3 text-center min-h-[20px]">
                 {errorMessage && (
-                    <div className="flex items-center justify-center space-x-2 text-error animate-slide-down mt-2">
+                    <div className="flex items-center justify-center gap-2 text-red-500">
                         <AlertCircle size={14} />
-                        <span className="text-sm font-medium">
-                            {errorMessage}
-                        </span>
+                        <span className="text-sm">{errorMessage}</span>
                     </div>
                 )}
 
                 {uploadSuccess && !errorMessage && (
-                    <div className="flex items-center justify-center space-x-2 text-success animate-slide-down mt-2">
+                    <div className="flex items-center justify-center gap-2 text-meta">
                         <Check size={14} />
-                        <span className="text-sm font-medium">
-                            Image uploaded successfully!
-                        </span>
+                        <span className="text-sm">Upload successful!</span>
                     </div>
+                )}
+
+                {!hasImage && !errorMessage && !loading && !uploadSuccess && (
+                    <p className="text-xs text-waterloo dark:text-manatee mt-1">
+                        JPEG, PNG, WEBP (Max 5MB)
+                    </p>
                 )}
             </div>
         </div>
     );
 };
 
-export default ImageUpload;
+export default (ImageUpload);
