@@ -44,9 +44,7 @@ const ProfileCard = observer(
         error?: boolean;
     }) => {
         const placeholderImage =
-            gender === "male"
-                ? "/api/placeholder/300/300?text=Male+Guest"
-                : "/api/placeholder/300/300?text=Female+Guest";
+            gender === "male" ? "/images/male.svg" : "/images/female.svg";
 
         return (
             <div className="bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-6 text-center">

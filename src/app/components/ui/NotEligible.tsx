@@ -72,11 +72,11 @@ interface NoDinnerProfileProps {
 }
 
 export function NoDinnerProfile({
-    coordinatorName = "Dinner Event Coordinator",
-    coordinatorEmail,
-    coordinatorPhone,
-    eventDate = "December 15, 2023",
-    registrationDeadline = "December 10, 2023",
+    coordinatorName = "500 Level Coordinator",
+    coordinatorEmail = "",
+    coordinatorPhone = "",
+    eventDate = "September 26, 2025",
+    registrationDeadline = "September 20, 2025",
 }: NoDinnerProfileProps) {
     return (
         <div className="max-w-xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-8 text-center">
@@ -91,9 +91,9 @@ export function NoDinnerProfile({
             </h2>
 
             <p className="text-pearl-600 dark:text-pearl-300 mb-6">
-                You haven&apos;t created your dinner profile yet. To participate in
-                the fellowship dinner and register a companion, you need to set
-                up your dinner profile first.
+                You haven&apos;t created your dinner profile yet. To participate
+                in the fellowship dinner and register a companion, you need to
+                set up your dinner profile first.
             </p>
 
             <div className="bg-champagne-gold-50 dark:bg-champagne-gold-900/20 rounded-xl p-4 mb-6">
@@ -147,7 +147,7 @@ export function NoDinnerProfile({
 
             <div className="border-t border-pearl-200 dark:border-pearl-700 pt-6">
                 <p className="text-pearl-500 dark:text-pearl-400 text-sm mb-4">
-                    Need help? Contact the 300 level coordinator:
+                    Need help? Contact the {coordinatorName}:
                 </p>
 
                 <div className="space-y-3">
@@ -174,10 +174,7 @@ export function NoDinnerProfile({
             </div>
 
             <div className="mt-6 pt-4 border-t border-pearl-200 dark:border-pearl-700">
-                <a
-                    href="/register"
-                    className="btn btn-primary w-full"
-                >
+                <a href="/register" className="btn btn-primary w-full">
                     Create Dinner Profile
                 </a>
             </div>
