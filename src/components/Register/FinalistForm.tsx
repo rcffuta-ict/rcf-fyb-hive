@@ -9,7 +9,6 @@ import {
     Phone,
     Mail,
     Users,
-    Crown,
     AlertCircle,
     GraduationCap,
     Venus,
@@ -122,23 +121,25 @@ function UserProfileDisplay() {
     const profile = authStore.tenureProfile;
     const level = user?.level;
 
+    const dinnerProfile = profileStore.profile;
+
     const {
         handleSubmit,
         setValue,
         formState: { errors },
         reset,
-        getValues,
         watch,
     } = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            picture: user?.picture || "",
+            picture: dinnerProfile?.picture || "",
         },
     });
 
     const pictureValue = watch("picture");
 
     useEffect(() => {
+        // Reset form with user's picture when component mounts or user changes
         reset({
             picture: user?.picture || "",
         });
@@ -200,7 +201,7 @@ function UserProfileDisplay() {
                 </p>
             </div>
 
-            <div className="p-8">
+            <div className="p-2 lg:p-8">
                 <form
                     onSubmit={handleSubmit(createDinnerProfile)}
                     className="space-y-8"
@@ -214,11 +215,15 @@ function UserProfileDisplay() {
 
                         <div className="mt-4 w-full max-w-xs mx-auto flex flex-col items-center">
                             <ImageUpload
+                                // key={pictureValue} // Force re-render when value changes
                                 name="picture"
-                                onChange={(name, value) =>
-                                    setValue("picture", value as string)
+                                onChange={(value) =>
+                                    setValue("picture", value as string, {
+                                        shouldValidate: true,
+                                    })
                                 }
-                                getValue={() => pictureValue}
+                                value={pictureValue}
+                                defaultValue={dinnerProfile?.picture}
                                 circular={true}
                                 showPreview={true}
                             />

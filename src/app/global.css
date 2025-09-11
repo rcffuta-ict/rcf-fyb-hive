@@ -248,7 +248,7 @@
 
     /* Card components */
     .card {
-        @apply bg-glass-warm backdrop-blur-xl border border-white/20 rounded-3xl shadow-glass p-6 transition-all duration-400 ease-romantic;
+        @apply bg-glass-warm backdrop-blur-xl border border-white/20 rounded-3xl shadow-glass px-2 py-6 lg:p-6 transition-all duration-400 ease-romantic;
     }
 
     .card:hover {
