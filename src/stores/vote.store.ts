@@ -1,7 +1,7 @@
 // stores/voteStore.ts
 import { makeAutoObservable, runInAction, toJS } from "mobx";
 import { appToast } from "@/providers/ToastProvider";
-import { loadVotes, saveVote, VoteRecord, DinnerProfileRecord, getDinnerProfile } from "@rcffuta/ict-lib";
+import { loadVotes, saveVote, VoteRecord, DinnerProfileRecord, getDinnerProfile, VoteContestant } from "@rcffuta/ict-lib";
 
 interface VotingState {
   votes: Map<string, string>;
@@ -9,7 +9,7 @@ interface VotingState {
   loading: boolean;
   error: string | null;
   isSubmitting: boolean;
-  contestants: Map<string, DinnerProfileRecord>;
+  contestants: Map<string, VoteContestant>;
   progress: number;
   lastVotedCategory: string | null;
 }
@@ -93,7 +93,7 @@ class VoteStore {
     this.setProgress(0);
   };
 
-  setContestants(records: DinnerProfileRecord[]) {
+  setContestants(records: VoteContestant[]) {
     runInAction(() => {
       records.forEach(each => {
         this.state.contestants.set(each.email, each);
@@ -141,7 +141,7 @@ class VoteStore {
       }
     } catch (error: any) {
       this.setError(error.message || "Failed to load voting session");
-      appToast.error("Failed to load your previous votes.");
+      // appToast.error("Failed to load your previous votes.");
     } finally {
       this.setLoading(false);
     }

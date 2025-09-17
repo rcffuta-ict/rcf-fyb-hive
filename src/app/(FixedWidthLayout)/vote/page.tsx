@@ -12,6 +12,10 @@ import {
     Trophy,
     ChevronLeft,
     ChevronRight,
+    Calendar,
+    Clock,
+    AlertCircle,
+    RefreshCw,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { authStore } from "@/stores/authStore";
@@ -23,7 +27,7 @@ import {
 } from "@/components/voting/ContestantCards";
 import CategoryNavigation from "@/components/voting/CategoryNavigation";
 import VotingHeader from "@/components/voting/VotingHeader";
-import { wait } from "@rcffuta/ict-lib";
+import { loadContestants, wait } from "@rcffuta/ict-lib";
 import { getAllEmails } from "@/lib/function";
 
 // Confetti effect function
@@ -36,11 +40,183 @@ const launchConfetti = () => {
     });
 };
 
+// Loading Component
+const VotingLoadingState = () => (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pearl-50 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 p-4">
+        <div className="max-w-md mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-8 text-center animate-fade-in">
+            {/* Animated Spinner */}
+            <div className="flex justify-center mb-6">
+                <div className="relative">
+                    <div className="bg-champagne-gold/10 text-champagne-gold-600 dark:text-champagne-gold-400 p-4 rounded-full">
+                        <Loader2 className="w-12 h-12 animate-spin" />
+                    </div>
+                    <Sparkles className="w-6 h-6 text-rose-gold-400 absolute -top-2 -right-2 animate-pulse" />
+                </div>
+            </div>
+
+            {/* Title */}
+            <h2 className="text-2xl font-luxury font-bold text-pearl-800 dark:text-pearl-100 mb-3">
+                Preparing Your Ballot
+            </h2>
+
+            {/* Message */}
+            <p className="text-pearl-600 dark:text-pearl-300">
+                We&apos;re setting up your voting experience
+                <span className="block font-semibold text-champagne-gold-600 dark:text-champagne-gold-400 mt-2">
+                    This won&apos;t take long ✨
+                </span>
+            </p>
+
+            {/* Progress Dots */}
+            <div className="flex justify-center space-x-2 mt-6">
+                {[1, 2, 3].map((dot) => (
+                    <div
+                        key={dot}
+                        className="w-2 h-2 bg-champagne-gold-300 rounded-full animate-pulse"
+                        style={{ animationDelay: `${dot * 0.2}s` }}
+                    />
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
+// Enhanced Error Component
+const VotingErrorState = ({
+    message,
+    onRetry,
+}: {
+    message: string;
+    onRetry: () => void;
+}) => (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pearl-50 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 p-4">
+        <div className="max-w-md mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-8 text-center animate-fade-in">
+            {/* Error Icon */}
+            <div className="flex justify-center mb-6">
+                <div className="bg-rose-gold-100/20 text-rose-gold-600 dark:text-rose-gold-400 p-4 rounded-full">
+                    <AlertCircle className="w-12 h-12" />
+                </div>
+            </div>
+
+            {/* Title */}
+            <h2 className="text-2xl font-luxury font-bold text-pearl-800 dark:text-pearl-100 mb-3">
+                Something Went Wrong
+            </h2>
+
+            {/* Error Message */}
+            <p className="text-pearl-600 dark:text-pearl-300 mb-6">{message}</p>
+
+            {/* Retry Button */}
+            <button
+                onClick={onRetry}
+                className="btn btn-primary transform-romantic hover-lift"
+            >
+                <RefreshCw className="w-5 h-5 mr-2" />
+                Try Again
+            </button>
+
+            {/* Support Text */}
+            <p className="text-sm text-pearl-500 dark:text-pearl-400 mt-4">
+                If this persists, please contact support
+            </p>
+        </div>
+    </div>
+);
+
+// Enhanced Voting Not Commenced State
+const VotingNotCommencedState = () => (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pearl-50 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 p-4">
+        <div className="max-w-md mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-8 text-center animate-fade-in">
+            {/* Calendar Icon */}
+            <div className="flex justify-center mb-6">
+                <div className="bg-champagne-gold-100/20 text-champagne-gold-600 dark:text-champagne-gold-400 p-4 rounded-full">
+                    <Calendar className="w-12 h-12" />
+                </div>
+            </div>
+
+            {/* Title */}
+            <h2 className="text-2xl font-luxury font-bold text-pearl-800 dark:text-pearl-100 mb-3">
+                Voting Not Started Yet
+            </h2>
+
+            {/* Message */}
+            <p className="text-pearl-600 dark:text-pearl-300 mb-6">
+                The dinner awards voting hasn&apos;t commenced yet. Please check
+                back later for updates.
+            </p>
+
+            {/* Countdown/Info */}
+            <div className="bg-glass-warm backdrop-blur-sm rounded-xl p-4 mb-6">
+                <div className="flex items-center justify-center text-pearl-500 dark:text-pearl-400">
+                    <Clock className="w-5 h-5 mr-2" />
+                    <span className="text-sm">
+                        Stay tuned for the announcement
+                    </span>
+                </div>
+            </div>
+
+            {/* Action Button */}
+            <button
+                onClick={() => window.location.reload()}
+                className="btn btn-outline transform-romantic hover-lift"
+            >
+                Check Again
+            </button>
+        </div>
+    </div>
+);
+
+// Enhanced Voting Completed State
+const VotingCompletedState = () => (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-success-50/80 to-success-100/60 dark:from-success-900/30 dark:to-success-800/20 p-4">
+        <div className="max-w-md mx-auto bg-gradient-to-br from-white/95 to-success-50/30 dark:from-luxury-900/95 dark:to-success-900/20 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-success-200/30 p-8 text-center animate-fade-in">
+            {/* Success Icon with Sparkles */}
+            <div className="relative flex justify-center mb-6">
+                <div className="bg-success-100/30 text-success-600 dark:text-success-400 p-4 rounded-full">
+                    <CheckCircle className="w-12 h-12" />
+                </div>
+                <Sparkles className="w-6 h-6 text-champagne-gold-400 absolute -top-2 -right-2 animate-bounce" />
+            </div>
+
+            {/* Title */}
+            <h2 className="text-2xl font-luxury font-bold text-success-800 dark:text-success-200 mb-3">
+                Voting Complete!
+            </h2>
+
+            {/* Message */}
+            <p className="text-success-600 dark:text-success-300 mb-6">
+                Thank you for participating in the dinner awards voting.
+                Your votes has helped a lot, thank you.
+            </p>
+
+            {/* Additional Info */}
+            <div className="bg-success-50/50 dark:bg-success-900/30 rounded-xl p-4 mb-6">
+                <Trophy className="w-8 h-8 text-success-600 dark:text-success-400 mx-auto mb-2" />
+                <p className="text-sm text-success-700 dark:text-success-300">
+                    Results will be announced at the dinner ceremony
+                </p>
+            </div>
+
+            {/* Action Button */}
+            {/* <button
+                onClick={() => window.location.reload()}
+                className="btn btn-primary transform-romantic hover-lift"
+            >
+                View Voting Summary
+            </button> */}
+        </div>
+    </div>
+);
+
 function VotingPage() {
     const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
     const [isSessionCompleted, setIsSessionCompleted] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
+    const [loadingState, setLoadingState] = useState<
+        "idle" | "loading" | "error"
+    >("loading");
+    const [errorMessage, setErrorMessage] = useState<string>("");
 
     const currentCategory = VOTE_CONFIG[currentCategoryIndex];
     const user = authStore.member;
@@ -48,27 +224,46 @@ function VotingPage() {
     const userMail = user?.email;
 
     const contestants = voteStore.contestants;
+    const hasContestants = contestants.length > 0;
 
     // Initialize voting session
-    useEffect(() => {
-        const initializeVoting = async () => {
-            if (userId && userMail) {
-                await voteStore.loadVotingSession(userMail);
+    const initializeVoting = useCallback(async () => {
+        if (!userId || !userMail) return;
 
-                try {
-                    const allHandles = getAllEmails(VOTE_CONFIG);
-                    // Load contestants logic here
-                    voteStore.setContestants([]);
-                } catch (error) {
-                    console.error("Failed to load contestants:", error);
-                }
+        setLoadingState("loading");
 
-                setIsInitialized(true);
+        try {
+            const allHandles = getAllEmails(VOTE_CONFIG);
+
+            const {
+                message,
+                success,
+                data
+            } = await loadContestants(allHandles);
+
+            if (!success) {
+                // throw new Error(message);
+                voteStore.setContestants([]);
+            } else {
+                voteStore.setContestants(data);
             }
-        };
 
-        initializeVoting();
+            // console.debug({data})
+
+
+            setIsInitialized(true);
+            setLoadingState("idle");
+        } catch (error: any) {
+            setErrorMessage(
+                error.message || "Failed to load voting session"
+            );
+            setLoadingState("error");
+        }
     }, [userId, userMail]);
+
+    useEffect(() => {
+        initializeVoting();
+    }, [initializeVoting]);
 
     const handleSelectChoice = useCallback(
         (choice: string | string[]) => {
@@ -132,62 +327,29 @@ function VotingPage() {
         return () => window.removeEventListener("keydown", handleKeyPress);
     }, [handleNextCategory, handlePrevCategory]);
 
-    if (voteStore.loading && !isInitialized) {
+    // Show loading state
+    if (loadingState === "loading") {
+        return <VotingLoadingState />;
+    }
+
+    // Show error state
+    if (loadingState === "error") {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pearl-50 to-rose-50/30">
-                <div className="text-center">
-                    <div className="relative">
-                        <Loader2 className="w-16 h-16 animate-spin text-champagne-gold-400 mx-auto mb-4" />
-                        <Sparkles className="w-8 h-8 text-rose-gold-400 absolute -top-2 -right-2 animate-pulse" />
-                    </div>
-                    <h2 className="text-xl font-luxury text-pearl-700 mb-2">
-                        Preparing Your Ballot
-                    </h2>
-                    <p className="text-pearl-600">
-                        Loading your voting session...
-                    </p>
-                </div>
-            </div>
+            <VotingErrorState
+                message={errorMessage}
+                onRetry={initializeVoting}
+            />
         );
     }
 
+    // Show voting not commenced state if no contestants
+    if (!hasContestants && isInitialized) {
+        return <VotingNotCommencedState />;
+    }
+
+    // Show completed state
     if (isSessionCompleted) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-success-50 to-success-100">
-                <div className="text-center max-w-2xl mx-4">
-                    <div className="relative mb-6">
-                        <CheckCircle className="w-20 h-20 text-success mx-auto mb-2" />
-                        <div className="absolute -top-2 -right-2">
-                            <Sparkles className="w-8 h-8 text-champagne-gold-400 animate-bounce" />
-                        </div>
-                    </div>
-
-                    <h1 className="text-4xl font-luxury font-bold text-success-800 mb-4">
-                        Voting Complete!
-                    </h1>
-
-                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mb-6">
-                        <Trophy className="w-12 h-12 text-champagne-gold-600 mx-auto mb-4" />
-                        <p className="text-lg text-pearl-700 mb-4">
-                            Thank you for participating in the fellowship awards
-                            voting. Your votes help recognize excellence in our
-                            community.
-                        </p>
-                        <p className="text-pearl-600">
-                            Results will be announced at the annual dinner
-                            ceremony.
-                        </p>
-                    </div>
-
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="btn btn-primary"
-                    >
-                        View Voting Summary
-                    </button>
-                </div>
-            </div>
-        );
+        return <VotingCompletedState />;
     }
 
     return (
@@ -257,14 +419,14 @@ function VotingPage() {
                                           );
                                       return (
                                           <IndividualContestantCard
-                                              key={contestant.id}
+                                              key={contestant.email}
                                               contestant={contestant}
                                               selected={
-                                                  selection === contestant.id
+                                                  selection === contestant.email
                                               }
                                               onSelect={() =>
                                                   handleSelectChoice(
-                                                      contestant.id
+                                                      contestant.email
                                                   )
                                               }
                                               canDownload={true}
@@ -283,25 +445,17 @@ function VotingPage() {
                                           voteStore.getVoteForCategory(
                                               currentCategory.id
                                           );
+                                          const mails = groupContestants.map(
+                                              (c) => c.email
+                                          ).toString();
 
                                       return (
                                           <GroupContestantCard
                                               key={index}
                                               contestants={groupContestants}
-                                              selected={
-                                                  selection ===
-                                                  JSON.stringify(
-                                                      groupContestants.map(
-                                                          (c) => c.id
-                                                      )
-                                                  )
-                                              }
+                                              selected={selection === mails}
                                               onSelect={() =>
-                                                  handleSelectChoice(
-                                                      groupContestants.map(
-                                                          (c) => c.id
-                                                      )
-                                                  )
+                                                  handleSelectChoice(mails)
                                               }
                                               canDownload={true}
                                           />
@@ -353,7 +507,7 @@ function VotingPage() {
 
                         {voteStore.votedCategories > 0 && (
                             <p className="text-sm text-pearl-500 text-center">
-                                You&#39;ve completed {voteStore.votedCategories} out
+                                You&lsquo;ve completed {voteStore.votedCategories} out
                                 of {VOTE_CONFIG.length} categories
                             </p>
                         )}

@@ -70,11 +70,11 @@ export const IndividualContestantCard = observer(
 
                 {/* Contestant Image */}
                 <div className="relative mx-auto mb-4 w-32 h-32 rounded-lg overflow-hidden border-2 border-champagne-gold-300 shadow-golden-glow">
-                    <Image
+                    <img
                         src={contestant.picture}
                         alt={`${contestant.firstname} ${contestant.lastname}`}
                         className="w-full h-full object-cover"
-                        fill
+                        // fill
                     />
                 </div>
 

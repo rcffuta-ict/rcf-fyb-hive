@@ -2,6 +2,7 @@ import { makeAutoObservable, runInAction, toJS,  } from "mobx";
 import { findLiveTenure, findUnitById, getAllUnits,MemberProfile, getMemberFromStoredToken, loginMember, resolveMemberFromPath, TenurePopulated, UnitObject } from "@rcffuta/ict-lib";
 import { appToast } from "@/providers/ToastProvider";
 import { profileStore } from "./profileStore";
+import { voteStore } from "./vote.store";
 
 
 export class AuthStore {
@@ -62,6 +63,7 @@ export class AuthStore {
 
         if (email) {
             profileStore.loadProfile(email);
+            voteStore.loadVotingSession(email);
         }
 
 
