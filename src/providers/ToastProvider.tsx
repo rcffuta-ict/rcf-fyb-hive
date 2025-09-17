@@ -26,7 +26,7 @@ export const GlobalToastProvider: React.FC<Props> = ({ children }) => {
         <>
             {children}
             <Toaster
-                position="bottom-left"
+                position="bottom-center"
                 toastOptions={{
                     // Default style
                     style: {
