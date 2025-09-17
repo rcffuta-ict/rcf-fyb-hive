@@ -47,6 +47,8 @@ function LoginPage() {
                 throw new Error(message || "Failed to send login link");
             }
 
+            // console.debug({obj})
+
             // Set success message in form component
             setFormMessage({
                 type: "success",
