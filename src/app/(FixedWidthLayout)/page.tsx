@@ -277,7 +277,7 @@ function HomePage() {
                                 delay: "0ms",
                             },
                             {
-                                href: "#",
+                                href: "/vote",
                                 icon: "👑",
                                 title: "Vote a Finalist",
                                 description:
