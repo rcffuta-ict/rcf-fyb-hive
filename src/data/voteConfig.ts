@@ -5,7 +5,7 @@ export const VOTE_CONFIG: VoteCofigType[] = [
     name: "Most Jovial Image",
     description: "Recognizes the most cheerful and lively personality",
     type: "individual" as const,
-    candidates: ["babajidetemiloluwa49@gmail.com", "ransomedpaul224@gmail.com", "fatimehinblessing@gmail.com", "harfojunior@gmail.com", "boluwarinadeagbo@gmail.com", "davidolalude@gmail.com"]
+    candidates: []
   },
   {
     id: "clique-of-the-year",
@@ -13,8 +13,8 @@ export const VOTE_CONFIG: VoteCofigType[] = [
     description: "Awards the most united and supportive friend group",
     type: "group" as const,
     candidates: [
-      ["babajidetemiloluwa49@gmail.com", "ransomedpaul224@gmail.com", "fatimehinblessing@gmail.com"],
-      ["harfojunior@gmail.com", "boluwarinadeagbo@gmail.com", "davidolalude@gmail.com"]
+      [],
+      []
     ]
   },
   // Add all other categories...
