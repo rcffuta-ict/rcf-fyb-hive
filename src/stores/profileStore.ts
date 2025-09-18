@@ -1,10 +1,13 @@
-import {DinnerProfileRecord, DinnerProfile, createDinnerProfile, wait, getMemberDinnerProfile, TableRecord, getDinnerProfile, createTable} from "@rcffuta/ict-lib";
+import {DinnerProfileRecord, DinnerProfile, createDinnerProfile, wait, getMemberDinnerProfile, TableRecord, getDinnerProfile, createTable, searchDinnerProfile} from "@rcffuta/ict-lib";
 import { makeAutoObservable, runInAction, toJS } from "mobx";
+import { createHistogram } from "perf_hooks";
 
 class ProfileStore {
     private _profile: DinnerProfileRecord | null = null;
     private _date_profile: DinnerProfileRecord | null = null;
     private _table: TableRecord | null = null;
+
+    private _allProfiles: DinnerProfileRecord[] = [];
 
     status: string = "";
 
@@ -22,6 +25,10 @@ class ProfileStore {
     }
     get dateProfile(): DinnerProfileRecord | null {
         return toJS(this._date_profile);
+    }
+
+    get allProfiles() {
+        return toJS(this._allProfiles);
     }
 
     // set profile(value: DinnerProfileRecord | null) {
@@ -106,6 +113,14 @@ class ProfileStore {
         } {
             console.error(message);
         }
+    }
+    async loadAllProfiles() {
+        const {success, data} = await searchDinnerProfile();
+
+        if (success) {
+
+            this._allProfiles = data;
+        } 
     }
 
     async pairProfile(consentToken: string) {
