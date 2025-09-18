@@ -56,7 +56,7 @@ function Header() {
                                 glow: "rose",
                             },
                             {
-                                href: "#",
+                                href: "/vote",
                                 label: "Awards",
                                 icon: "🏆",
                                 glow: "golden",
@@ -183,7 +183,7 @@ function Header() {
                                     icon: "💕",
                                 },
                                 {
-                                    href: "#",
+                                    href: "/vote",
                                     label: "Awards",
                                     icon: "🏆",
                                 },
