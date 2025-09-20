@@ -181,3 +181,60 @@ export function NoDinnerProfile({
         </div>
     );
 }
+
+
+export function NoDinnerProfileSimple({
+    coordinatorName = "500 Level Coordinator",
+    coordinatorEmail = "",
+    coordinatorPhone = "",
+    eventDate = "September 26, 2025",
+    registrationDeadline = "September 20, 2025",
+}: NoDinnerProfileProps) {
+    return (
+        <div className="max-w-xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-8 text-center">
+            <div className="flex justify-center mb-6">
+                <div className="bg-warning/10 text-warning p-4 rounded-full">
+                    <UserX className="w-10 h-10" />
+                </div>
+            </div>
+
+            <h2 className="text-2xl font-luxury font-bold text-pearl-800 dark:text-pearl-100 mb-4">
+                Dinner Profile Not Found
+            </h2>
+
+            <p className="text-pearl-600 dark:text-pearl-300 mb-6">
+                You haven&apos;t created your dinner profile yet. To participate
+                in the fellowship dinner and register a companion, you need to
+                set up your dinner profile first.
+            </p>
+
+            {/* <div className="border-t border-pearl-200 dark:border-pearl-700 pt-6">
+                <p className="text-pearl-500 dark:text-pearl-400 text-sm mb-4">
+                    Need help? Contact the {coordinatorName}:
+                </p>
+
+                <div className="space-y-3">
+                    {coordinatorEmail && (
+                        <a
+                            href={`mailto:${coordinatorEmail}`}
+                            className="flex items-center justify-center space-x-2 text-pearl-700 dark:text-pearl-200 hover:text-champagne-gold transition-colors"
+                        >
+                            <Mail className="w-4 h-4" />
+                            <span>{coordinatorEmail}</span>
+                        </a>
+                    )}
+
+                    {coordinatorPhone && (
+                        <a
+                            href={`tel:${coordinatorPhone}`}
+                            className="flex items-center justify-center space-x-2 text-pearl-700 dark:text-pearl-200 hover:text-champagne-gold transition-colors"
+                        >
+                            <Phone className="w-4 h-4" />
+                            <span>{coordinatorPhone}</span>
+                        </a>
+                    )}
+                </div>
+            </div> */}
+        </div>
+    );
+}

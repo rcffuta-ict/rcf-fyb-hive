@@ -5,6 +5,7 @@ import { createHistogram } from "perf_hooks";
 class ProfileStore {
     private _profile: DinnerProfileRecord | null = null;
     private _date_profile: DinnerProfileRecord | null = null;
+    private _associate_profile: DinnerProfileRecord | null = null;
     private _table: TableRecord | null = null;
 
     private _allProfiles: DinnerProfileRecord[] = [];
@@ -24,7 +25,7 @@ class ProfileStore {
         return toJS(this._profile);
     }
     get dateProfile(): DinnerProfileRecord | null {
-        return toJS(this._date_profile);
+        return this._associate_profile ? toJS(this._associate_profile) : toJS(this._date_profile);
     }
 
     get allProfiles() {
@@ -78,6 +79,42 @@ class ProfileStore {
             });
         }
     }
+    /**
+     * Create a new DinnerProfile (Finalist or Associate)
+     */
+    async createAssociate(data: DinnerProfile) {
+        this.loading = true;
+        this.error = null;
+        this.success = null;
+
+        try {
+            
+            // await wait(3);
+            const {
+                message,
+                success,
+                data: profile,
+            } = await createDinnerProfile(data);
+
+            if (!success) {
+                throw new Error(message || "Failed to create profile");
+            }
+
+            runInAction(() => {
+                // this.profiles.push(profile);
+                this._associate_profile = profile;
+                this.success = "Profile successfully created!";
+            });
+        } catch (err: any) {
+            runInAction(() => {
+                this.error = err.message || "Failed to create profile";
+            });
+        } finally {
+            runInAction(() => {
+                this.loading = false;
+            });
+        }
+    }
 
     async loadProfile(email:string) {
         const {message, success, data} = await getMemberDinnerProfile(email);
@@ -89,10 +126,22 @@ class ProfileStore {
                 tables
             } = data;
 
-            this._profile = attendee;
-            const table = selectTableRecord(tables);
+            
+            let table = null;
+            let d_date = null;
+            let d_associate = null;
+            const {success, data: associate} = await getDinnerProfile({
+                by: "relationId",
+                field: attendee.id
+            });
 
-            this._table = table;
+            if (success) {
+                d_associate = associate
+            } else {
+                table = selectTableRecord(tables);
+            }
+
+            
 
             if (table) {
 
@@ -105,11 +154,16 @@ class ProfileStore {
                 
 
                 if (success){
-                    this._date_profile = date;
+                    d_date = date
                 }
-
-
             }
+
+            runInAction(()=>{
+                this._date_profile = d_date;
+                this._associate_profile = d_associate;
+                this._table = table;
+                this._profile = attendee;
+            })
         } {
             console.error(message);
         }
@@ -123,43 +177,52 @@ class ProfileStore {
         } 
     }
 
-    async pairProfile(consentToken: string) {
+    async pairProfile(consentToken: string, isAssociate: boolean) {
         try {
-            this._date_profile = null;
-            this.status = "Checking for finalist";
-            
-            // Validate consent token format first
-            if (!consentToken.match(/^FYB-[A-Z0-9]{5}$/)) {
-                throw new Error("Invalid consent token format");
+
+            let partner = null;
+
+            if (!isAssociate) {
+
+                this._date_profile = null;
+                this.status = "Checking for finalist";
+                // Validate consent token format first
+                if (!consentToken.match(/^FYB-[A-Z0-9]{5}$/)) {
+                    throw new Error("Invalid consent token format");
+                }
+                const { message, success, data } = await getDinnerProfile({
+                    by: "consentToken",
+                    field: consentToken
+                });
+                if (!success) {
+                    throw new Error(message || "Failed to find profile with this consent token");
+                }
+                this._date_profile = data;
+                partner = data;
+            } else {
+                partner = this.dateProfile;
             }
 
-            const { message, success, data } = await getDinnerProfile({
-                by: "consentToken",
-                field: consentToken
-            });
 
-            if (!success) {
-                throw new Error(message || "Failed to find profile with this consent token");
-            }
 
-            this._date_profile = data;
 
             // Validate that the found profile is of opposite gender
             if (!this.profile) {
                 throw new Error("You need to create your dinner profile first");
             }
+            if (!partner) {
+                throw new Error("You need a partner!");
+            }
 
-            if (this.profile.gender === data.gender) {
+            if (this.profile.gender === partner.gender) {
                 throw new Error("Cannot pair with someone of the same gender");
             }
             
 
             this.status = "Pairing you both";
 
-            await new Promise((resolve) => setTimeout(resolve, 2500));
-
-            const maleId = this.profile.gender === "male" ? this.profile.id : data.id;
-            const femaleId = this.profile.gender === "male" ? data.id : this.profile.id;
+            const maleId = this.profile.gender === "male" ? this.profile.id : partner.id;
+            const femaleId = this.profile.gender === "male" ? partner.id : this.profile.id;
 
             const { message: msg, success: scs, data: table } = await createTable(maleId, femaleId);
 

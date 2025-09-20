@@ -113,11 +113,13 @@ const ConsentTokenForm = ({
     loading,
     token,
     status: stt,
+    isAutomatic,
 }: {
     onSubmit: (data: ConsentFormData) => void;
     loading: boolean;
     token: string | undefined;
     status: string;
+    isAutomatic: boolean;
 }) => {
     const {
         register,
@@ -130,7 +132,6 @@ const ConsentTokenForm = ({
         },
     });
 
-
     const status = stt ?? "Verifying...";
 
     // const submitToken = (data: ConsentFormData) => {
@@ -141,7 +142,7 @@ const ConsentTokenForm = ({
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6">
-            <div className="mb-4">
+            {!isAutomatic && <div className="mb-4">
                 <label className="block text-sm font-medium text-pearl-700 dark:text-pearl-200 mb-2">
                     Consent Token <span className="text-rose-gold-500">*</span>
                 </label>
@@ -158,12 +159,20 @@ const ConsentTokenForm = ({
                         {errors.consentToken.message}
                     </div>
                 )}
-            </div>
+            </div>}
 
             <button
                 className="btn btn-intimate-glow w-full"
-                type="submit"
+                type={"submit"}
                 disabled={loading}
+                onClick={(e)=>{
+                    if (isAutomatic) {
+                        e.preventDefault();
+                        onSubmit({
+                            consentToken: "-no-token",
+                        });
+                    }
+                }}
             >
                 {loading ? (
                     <div className="flex items-center justify-center space-x-2">
@@ -186,6 +195,7 @@ function DinnerInvitationPage() {
 
     const dinnerProfile = profileStore.profile;
     const dateProfile = profileStore.dateProfile;
+    const isAssociate = !dateProfile?.isFinalist;
 
     const oppositeGender = dinnerProfile?.gender === "male" ? "female" : "male";
     const pairToken = profileStore.table?.pairToken;
@@ -193,11 +203,13 @@ function DinnerInvitationPage() {
     const paid = profileStore.table?.paid;
 
 
+
+
     const [loading, setLoading] = useState(false);
     const [showPaymentSection, setShowPaymentSection] = useState(false);
     const [error, setError] = useState(false);
 
-    useEffect(()=>{
+    useEffect(() => {
         function runThings() {
             if (!paid) {
                 setShowPaymentSection(true);
@@ -208,17 +220,17 @@ function DinnerInvitationPage() {
                     });
                 }, 100);
             }
+                
         }
 
-
-        runThings()
-    }, [paid])
+        runThings();
+    }, [paid]);
     
 
     const handleConsentSubmit = async (data: ConsentFormData) => {
         setLoading(true);
         try {
-            await profileStore.pairProfile(data.consentToken);
+            await profileStore.pairProfile(data.consentToken || "-no-token-", isAssociate);
 
             setShowPaymentSection(true);
             setError(false)
@@ -436,6 +448,7 @@ function DinnerInvitationPage() {
                                 loading={loading}
                                 token={profileStore.dateProfile?.consentToken}
                                 status={status}
+                                isAutomatic={isAssociate}
                             />
                         )}
                         {pairToken && (
@@ -469,13 +482,14 @@ function DinnerInvitationPage() {
                             {/* Pair Token */}
                             <div className="bg-champagne-gold-50 dark:bg-champagne-gold-900/20 rounded-xl p-6 mb-8 text-center">
                                 <p className="text-sm text-pearl-500 mb-2">
-                                    Your Pair Reference
+                                    Your Pair Reference (click to copy)
                                 </p>
-                                <div className="bg-white dark:bg-pearl-800 px-6 py-3 rounded-lg border-2 border-dashed border-champagne-gold-300">
+                                {/* <div className="bg-white dark:bg-pearl-800 px-6 py-3 rounded-lg border-2 border-dashed border-champagne-gold-300">
                                     <code className="text-2xl font-mono font-bold text-champagne-gold-600">
                                         {pairToken}
                                     </code>
-                                </div>
+                                </div> */}
+                                <CopyPairToken pairToken={pairToken} />
                                 <p className="text-xs text-pearl-400 mt-3">
                                     Include this token in your payment
                                     description
@@ -502,7 +516,7 @@ function DinnerInvitationPage() {
                                                 Bank
                                             </p>
                                             <p className="font-semibold">
-                                                Kuda MFB
+                                                UBA bank
                                             </p>
                                         </div>
                                         <div>
@@ -510,7 +524,7 @@ function DinnerInvitationPage() {
                                                 Account Number
                                             </p>
                                             <p className="text-lg font-mono font-semibold">
-                                                2076013421
+                                                2369244361
                                             </p>
                                         </div>
                                         <div>
@@ -518,7 +532,7 @@ function DinnerInvitationPage() {
                                                 Account Name
                                             </p>
                                             <p className="font-semibold">
-                                                Amusan Elizabeth Oluwatoyin
+                                                AMUSAN Elizabeth Oluwatoyin
                                             </p>
                                         </div>
                                     </div>
@@ -542,8 +556,8 @@ function DinnerInvitationPage() {
                                             </span>
                                             <span>
                                                 Include your pair token{" "}
-                                                <strong>{pairToken}</strong> in the
-                                                payment description
+                                                <strong>{pairToken}</strong> in
+                                                the payment description
                                             </span>
                                         </li>
                                         <li className="flex items-start">
@@ -645,3 +659,37 @@ function DinnerInvitationPage() {
 }
 
 export default observer(DinnerInvitationPage);
+
+function CopyPairToken({ pairToken }:{pairToken: string}) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(pairToken);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000); // reset message after 2s
+        } catch (err) {
+            console.error("Failed to copy!", err);
+        }
+    };
+
+    return (
+        <div className="relative group">
+            <div
+                className="bg-white dark:bg-pearl-800 px-6 py-3 rounded-lg border-2 border-dashed border-champagne-gold-300 cursor-pointer"
+                onClick={handleCopy}
+                title="Click to copy"
+            >
+                <code className="text-2xl font-mono font-bold text-champagne-gold-600">
+                    {pairToken}
+                </code>
+            </div>
+
+            {copied && (
+                <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 text-sm text-green-600 bg-white dark:bg-pearl-800 px-2 py-1 rounded shadow">
+                    Copied!
+                </div>
+            )}
+        </div>
+    );
+}

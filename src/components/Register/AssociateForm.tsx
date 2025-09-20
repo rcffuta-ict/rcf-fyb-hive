@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -22,6 +22,17 @@ import { authStore } from "@/stores/authStore";
 import { TextField } from "../Form";
 import { appToast } from "@/providers/ToastProvider";
 import NotAvailableYet from "@/app/components/ui/NotAvailableYet";
+import NotEligible, { NoDinnerProfileSimple } from "@/app/components/ui/NotEligible";
+import { profileStore } from "@/stores/profileStore";
+import { observer } from "mobx-react-lite";
+import { DinnerProfile } from "@rcffuta/ict-lib";
+
+const PROFILE_PICTURE_ERROR_MESSAGE =
+    "A profile picture is required for our elegant dinner party";
+const REGISTRATION_SUCCESS_MESSAGE =
+    "Your dinner profile has been created successfully!";
+const REGISTRATION_ERROR_MESSAGE = "Could not create dinner profile.";
+
 
 // Zod schema
 const associateSchema = z.object({
@@ -30,60 +41,89 @@ const associateSchema = z.object({
     email: z.string().email("Invalid email address"),
     contact: z.string().min(7, "Phone number is required"),
     relationshipWithAssociate: z.string().min(1, "Relationship is required"),
-    picture: z.string().url("Profile picture is required"),
+    picture: z.string().min(1, PROFILE_PICTURE_ERROR_MESSAGE),
     gender: z.enum(["male", "female"]),
 });
 
 type AssociateFormData = z.infer<typeof associateSchema>;
 
-export default function AssociateForm() {
+function AssociateForm() {
     // const router = useRouter();
-    const authenticatedUserGender = authStore.member?.gender as
+    const user = authStore.member;
+    const dinnerProfile = profileStore.profile;
+    const dateProfile = profileStore.dateProfile;
+
+    const authenticatedUserGender = user?.gender as
         | "male"
         | "female";
     const oppositeGender =
         authenticatedUserGender === "male" ? "female" : "male";
 
-    const [loading, setLoading] = useState(false);
+    const pronoun = oppositeGender === "male" ? "his" :"her";
+
+    
 
     const {
         control,
         handleSubmit,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<AssociateFormData>({
         resolver: zodResolver(associateSchema),
         defaultValues: {
-            firstname: "",
-            lastname: "",
-            email: "",
-            contact: "",
-            relationshipWithAssociate: "",
-            picture: "",
+            firstname: dateProfile?.firstname,
+            lastname: dateProfile?.lastname,
+            email: dateProfile?.email,
+            contact: dateProfile?.phone,
+            relationshipWithAssociate: dateProfile?.relationShipWithFinalist,
+            picture: dateProfile?.picture,
             gender: oppositeGender,
         },
     });
 
-    const onSubmit = async (data: AssociateFormData) => {
-        setLoading(true);
-        try {
-            console.log("Submitted form data:", data);
-            appToast.romantic(
-                "Associate recognized",
-            );
+    const createDinnerProfile = useCallback(
+        async (data: AssociateFormData) => {
+            if (!user) return;
+            const prof = profileStore.profile;
+            if (!prof) return;
+            // setLoading(true);
 
-            // router.replace("/register/done?e=" + data.email);
-        } catch (err) {
-            console.error(err);
-            appToast.error(
-                "Unable to complete registration for your associate. Please try again."
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
+            const dinnerProfile: DinnerProfile = {
+                picture: data.picture,
+                firstname: data.firstname,
+                lastname: data.lastname,
+                email: data.email,
+                phone: data.contact,
+                gender: oppositeGender,
+                isWorker: false,
+                isFinalist: false,
+                relationId: prof.id,
+                relationShipWithFinalist: data.relationshipWithAssociate,
+            };
+
+            try {
+                await profileStore.createAssociate(dinnerProfile);
+
+                if (profileStore.error) {
+                    appToast.error(profileStore.error);
+                } else {
+                    appToast.romantic(
+                        profileStore.success || REGISTRATION_SUCCESS_MESSAGE
+                    );
+                }
+            } catch (error: any) {
+                appToast.error(error.message || REGISTRATION_ERROR_MESSAGE);
+            }
+        },
+        [user, oppositeGender]
+    );
 
 
-    return <NotAvailableYet/>;
+    // return <NotAvailableYet/>;
+    if (!user) return <NotEligible />;
+    if (!dinnerProfile) return <NoDinnerProfileSimple />;
+    const loading = isSubmitting;
+
+        // console.debug({ dinnerProfile, dateProfile });
 
     return (
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-5">
@@ -104,7 +144,10 @@ export default function AssociateForm() {
                 </div>
             </div>
 
-            <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
+            <form
+                className="space-y-8"
+                onSubmit={handleSubmit(createDinnerProfile)}
+            >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 align-middle">
                     {/* Profile Picture Section */}
                     <div className="text-center mb-8">
@@ -120,9 +163,7 @@ export default function AssociateForm() {
                                 render={({ field }) => (
                                     <ImageUpload
                                         name="picture"
-                                        onChange={(val) =>
-                                            field.onChange(val)
-                                        }
+                                        onChange={(val) => field.onChange(val)}
                                         getValue={() => field.value}
                                         circular={true}
                                         showPreview={true}
@@ -195,6 +236,7 @@ export default function AssociateForm() {
                                         error={errors.firstname?.message}
                                         disabled={loading}
                                         icon={<User className="w-4 h-4" />}
+                                        placeholder={`${pronoun} first name`}
                                     />
                                 )}
                             />
@@ -209,6 +251,7 @@ export default function AssociateForm() {
                                         error={errors.lastname?.message}
                                         // getValue={() => getValues().lastname}
                                         disabled={loading}
+                                        placeholder={`${pronoun} last name`}
                                     />
                                 )}
                             />
@@ -234,6 +277,7 @@ export default function AssociateForm() {
                                         disabled={loading}
                                         type="email"
                                         icon={<Mail className="w-4 h-4" />}
+                                        placeholder={`${pronoun} email`}
                                     />
                                 )}
                             />
@@ -249,7 +293,10 @@ export default function AssociateForm() {
                                         // getValue={() => getValues().contact}
                                         disabled={loading}
                                         type="tel"
-                                        icon={<PhoneCallIcon className="w-4 h-4" />}
+                                        icon={
+                                            <PhoneCallIcon className="w-4 h-4" />
+                                        }
+                                        placeholder={`${pronoun} active phone number`}
                                     />
                                 )}
                             />
@@ -268,7 +315,7 @@ export default function AssociateForm() {
                                 <TextField
                                     {...field}
                                     label="Your Relationship with this Associate"
-                                    placeholder="e.g., Friend, Family Member, Colleague"
+                                    placeholder="Don't worry, just tell us the true fact :) ..."
                                     required
                                     error={
                                         errors.relationshipWithAssociate
@@ -314,3 +361,5 @@ export default function AssociateForm() {
         </div>
     );
 }
+
+export default observer(AssociateForm);
