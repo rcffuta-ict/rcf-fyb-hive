@@ -26,6 +26,9 @@ import {
     getDinnerProfile,
     wait
 } from "@rcffuta/ict-lib";
+import { authStore } from "@/stores/authStore";
+import NotEligible from "@/app/components/ui/NotEligible";
+import { MANAGERS } from "@/data/meta";
 // import NotAvailableYet from "@/app/components/ui/NotAvailableYet";
 
 // State components
@@ -154,6 +157,10 @@ const SearchState = ({ count }: { count: number }) => (
 );
 
 function DinnerProfilesManager() {
+    const profiles = profileStore.allProfiles;
+    const user = authStore.member;
+    const isAuthing = authStore.isLoading;
+
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredProfiles, setFilteredProfiles] = useState<
         DinnerProfileRecord[]
@@ -162,7 +169,7 @@ function DinnerProfilesManager() {
     const [isSearching, setIsSearching] = useState(false);
     const profilesPerPage = 9;
 
-    const profiles = profileStore.allProfiles;
+    
 
     // Load dinner profiles
     const loadDinnerProfiles = useCallback(async () => {
@@ -175,6 +182,7 @@ function DinnerProfilesManager() {
 
     useEffect(() => {
         loadDinnerProfiles();
+
     }, [loadDinnerProfiles]);
 
     // Filter profiles based on search term
@@ -206,7 +214,7 @@ function DinnerProfilesManager() {
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [searchTerm]);
+    }, [searchTerm, profiles.length]);
 
     // Pagination logic
     const indexOfLastProfile = currentPage * profilesPerPage;
@@ -224,14 +232,12 @@ function DinnerProfilesManager() {
     };
 
     // Render appropriate state based on conditions
-    if (profileStore.loading) return <Loading />;
+    if (profileStore.loading || isAuthing) return <Loading />;
     if (profileStore.error) return <ErrorState message={profileStore.error} />;
-    // if (
-    //     profiles.length === 0
-    // )
 
-    // console.debug({profiles})
-    //     return <EmptyState />;
+    if (!user) return <NotEligible coordinatorName="300 level coordinator"/>
+
+    if (!MANAGERS.includes(user.email)) return <NotEligible coordinatorName="ICT coordinator" />;
 
     return (
         <div className="py-8 px-4">
@@ -262,20 +268,13 @@ function DinnerProfilesManager() {
                                 className="w-full pl-10 pr-4 py-3 bg-white/80 dark:bg-pearl-800/50 border border-pearl-300 dark:border-pearl-600 rounded-xl focus:ring-2 focus:ring-champagne-gold focus:border-transparent transition-all duration-300"
                             />
                         </div>
-
-                        {/* <div className="flex items-center space-x-2">
-                            <button className="flex items-center space-x-2 px-4 py-3 bg-white/80 dark:bg-pearl-800/50 border border-pearl-300 dark:border-pearl-600 rounded-xl hover:bg-white dark:hover:bg-pearl-800 transition-colors">
-                                <Filter className="w-4 h-4" />
-                                <span>Filters</span>
-                            </button>
-                        </div> */}
                     </div>
 
                     {/* Results count */}
                     <div className="mt-4 flex justify-between items-center">
-                        <p className="text-pearl-600 dark:text-pearl-300">
-                            {filteredProfiles.length} registration
-                            {filteredProfiles.length !== 1 ? "s" : ""} found
+                        <p className="text-pearl-600 font-semibold dark:text-pearl-300">
+                            {profiles.length} registration
+                            {profiles.length !== 1 ? "s" : ""}
                         </p>
                         {searchTerm && (
                             <button

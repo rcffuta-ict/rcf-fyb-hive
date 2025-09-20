@@ -1,10 +1,15 @@
 "use client";
+import { handleLinkClick, Menu } from "@/data/menu";
 import { appToast } from "@/providers/ToastProvider";
 import { authStore } from "@/stores/authStore";
 import { observer } from "mobx-react-lite";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+
+
+
 
 function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -48,55 +53,17 @@ function Header() {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center space-x-6 relative z-10">
-                        {[
-                            {
-                                href: "/register",
-                                label: "Register",
-                                icon: "💕",
-                                glow: "rose",
-                            },
-                            {
-                                href: "/vote",
-                                label: "Awards",
-                                icon: "🏆",
-                                glow: "golden",
-                            },
-                            {
-                                href: "/table",
-                                label: "Tables",
-                                icon: "🍽️",
-                                glow: "luxury",
-                            },
-                            // {
-                            //     href: "#",
-                            //     label: "About",
-                            //     icon: "✨",
-                            //     glow: "romance",
-                            // },
-                        ].map((item, index) => (
+                        {Menu.map((item, index) => (
                             <Link
                                 key={index}
                                 href={item.href}
                                 className="group relative px-4 py-3 rounded-xl transition-all duration-350 hover:bg-glass-warm hover:shadow-rose-glow hover:scale-105 animate-slide-up"
                                 style={{ animationDelay: `${index * 100}ms` }}
-                                onClick={(e) => {
-                                    if (item.href === "#") {
-                                        e.preventDefault();
-                                        appToast.comingSoon();
-                                        return;
-                                    }
-
-                                    if (!member) {
-                                        e.preventDefault();
-                                        appToast.error(
-                                            "Please log in to continue"
-                                        );
-                                    }
-                                }}
+                                onClick={(e)=>handleLinkClick(e, item, member)}
                             >
                                 <div className="flex items-center space-x-2">
                                     <span className="text-xl group-hover:animate-bounce-gentle transition-transform filter drop-shadow-lg">
-                                        {item.icon}
+                                        {item.icon.sub}
                                     </span>
                                     <span className="text-sm font-elegant font-medium text-pearl-200 group-hover:text-white transition-colors duration-300">
                                         {item.label}
@@ -176,37 +143,17 @@ function Header() {
                 {isMobileMenuOpen && (
                     <div className="absolute top-full left-0 right-0 md:hidden bg-glass-rose border-b border-white/10 animate-slide-down">
                         <div className="px-4 sm:px-6 py-4 space-y-3">
-                            {[
-                                {
-                                    href: "/register",
-                                    label: "Register",
-                                    icon: "💕",
-                                },
-                                {
-                                    href: "/vote",
-                                    label: "Awards",
-                                    icon: "🏆",
-                                },
-                                {
-                                    href: "/table",
-                                    label: "Table",
-                                    icon: "🍽️",
-                                },
-                                // { href: "#", label: "About", icon: "✨" },
-                            ].map((item) => (
+                            {Menu.map((item) => (
                                 <Link
                                     key={item.href}
                                     href={item.href}
                                     className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-glass-gold transition-all duration-300"
                                     onClick={(e) => {
                                         setIsMobileMenuOpen(false);
-                                        if (item.href === "#") {
-                                            e.preventDefault();
-                                            appToast.comingSoon();
-                                        }
+                                        handleLinkClick(e, item, member)
                                     }}
                                 >
-                                    <span className="text-lg">{item.icon}</span>
+                                    <span className="text-lg">{item.icon.sub}</span>
                                     <span className="text-pearl-200 font-elegant">
                                         {item.label}
                                     </span>
