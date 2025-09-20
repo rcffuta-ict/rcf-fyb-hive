@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment, useState, useEffect } from "react";
 import Spacer from "../components/ui/Spacer";
+import { handleLinkClick, Menu } from "@/data/menu";
 
 
 const testimonials = [
@@ -264,41 +265,7 @@ function HomePage() {
                     </div>
 
                     <div className="grid gap-8 md:grid-cols-3">
-                        {[
-                            {
-                                href: "/register",
-                                icon: "🎫",
-                                title: "Register for Dinner",
-                                description:
-                                    "Secure your exclusive seat at the most anticipated FYB celebration",
-                                gradient:
-                                    "from-champagne-gold via-golden-400 to-golden-500",
-                                hoverShadow: "shadow-golden-glow",
-                                delay: "0ms",
-                            },
-                            {
-                                href: "/vote",
-                                icon: "👑",
-                                title: "Vote a Finalist",
-                                description:
-                                    "Crown excellence and celebrate the remarkable achievements of your peers",
-                                gradient:
-                                    "from-romance-500 via-rose-gold to-romance-400",
-                                hoverShadow: "shadow-romantic-glow",
-                                delay: "200ms",
-                            },
-                            {
-                                href: "/table",
-                                icon: "💕",
-                                title: "Pair Your Date",
-                                description:
-                                    "Bring your special someone and create magical memories together",
-                                gradient:
-                                    "from-luxury-500 via-luxury-400 to-luxury-600",
-                                hoverShadow: "shadow-magic",
-                                delay: "400ms",
-                            },
-                        ].map((action, index) => (
+                        {Menu.map((action, index) => (
                             <div
                                 key={index}
                                 className="group animate-fade-in-slow"
@@ -306,20 +273,7 @@ function HomePage() {
                             >
                                 <Link
                                     href={action.href}
-                                    onClick={(e) => {
-                                        if (action.href === "#") {
-                                            e.preventDefault();
-                                            appToast.notImplemented();
-                                            return;
-                                        }
-
-                                        if (!member) {
-                                            e.preventDefault();
-                                            appToast.error(
-                                                "Please log in to continue"
-                                            );
-                                        }
-                                    }}
+                                    onClick={(e) => handleLinkClick(e, action, member)}
                                     className={`block relative bg-glass-warm backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center hover:scale-110 hover:${action.hoverShadow} transition-all duration-500 overflow-hidden`}
                                 >
                                     {/* Background gradient on hover */}
@@ -330,7 +284,7 @@ function HomePage() {
                                     {/* Content */}
                                     <div className="relative z-10">
                                         <div className="text-6xl mb-6 group-hover:animate-bounce-gentle transform group-hover:scale-110 transition-transform duration-400">
-                                            {action.icon}
+                                            {action.icon.main}
                                         </div>
                                         <h3 className="text-2xl font-luxury font-bold text-champagne-gold mb-4 group-hover:text-white transition-colors duration-300">
                                             {action.title}
