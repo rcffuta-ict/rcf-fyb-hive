@@ -138,7 +138,7 @@ class ProfileStore {
             if (success) {
                 d_associate = associate
             } else {
-                table = selectTableRecord(tables);
+                table = selectTableRecord(tables, associate);
             }
 
             
@@ -258,9 +258,24 @@ class ProfileStore {
 export const profileStore = new ProfileStore();
 
 
-function selectTableRecord(tables: TableRecord[]): TableRecord | null {
+function selectTableRecord(tables: TableRecord[], associate?: DinnerProfileRecord | null): TableRecord | null {
   if (!tables || tables.length === 0) {
     return null;
+  }
+
+  if (tables.length === 1) {
+    return tables.at(0) || null;
+  }
+
+  if (associate) {
+    const geneder =associate.gender;
+    return tables.find(e=> {
+        if (geneder === "female") {
+            e.female === associate.id;
+        }else {
+            e.male === associate.id;
+        }
+    }) || null;
   }
 
   // Helper function to get the most recent date for sorting

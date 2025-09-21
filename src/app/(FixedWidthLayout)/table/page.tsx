@@ -113,7 +113,7 @@ const ConsentTokenForm = ({
     loading,
     token,
     status: stt,
-    isAutomatic,
+    isAutomatic=false,
 }: {
     onSubmit: (data: ConsentFormData) => void;
     loading: boolean;
@@ -195,7 +195,7 @@ function DinnerInvitationPage() {
 
     const dinnerProfile = profileStore.profile;
     const dateProfile = profileStore.dateProfile;
-    const isAssociate = !dateProfile?.isFinalist;
+    const isAssociate = dateProfile?.isFinalist === false;
 
     const oppositeGender = dinnerProfile?.gender === "male" ? "female" : "male";
     const pairToken = profileStore.table?.pairToken;
