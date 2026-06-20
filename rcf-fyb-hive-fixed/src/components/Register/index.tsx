@@ -28,8 +28,8 @@ export default function RegistrationForm() {
             content: <FinalistForm />,
         },
         {
-            title: "Register Date",
-            subtitle: "Required — every finalist must bring a date",
+            title: "Register Associate",
+            subtitle: "For non-graduating students of RCFFUTA",
             icon: (
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
