@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useCallback } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
     User,
+    Phone,
     Mail,
     Users,
     AlertCircle,
@@ -15,8 +16,6 @@ import {
     Briefcase,
     Loader2,
     CheckCircle,
-    Car,
-    MapPin,
 } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import ImageUpload from "../ImageUpload";
@@ -24,7 +23,6 @@ import { appToast } from "@/providers/ToastProvider";
 import NotEligible from "@/app/components/ui/NotEligible";
 import { authStore } from "@/stores/authStore";
 import { profileStore } from "@/stores/profileStore";
-import { TextField } from "../Form";
 
 // Constants
 const PROFILE_PICTURE_ERROR_MESSAGE =
@@ -33,22 +31,10 @@ const REGISTRATION_SUCCESS_MESSAGE =
     "Your dinner profile has been created successfully!";
 const REGISTRATION_ERROR_MESSAGE = "Could not create dinner profile.";
 
-// Zod schema — vehicle pickup is optional, but if opted in, address is required
-const profileSchema = z
-    .object({
-        picture: z.string().min(1, PROFILE_PICTURE_ERROR_MESSAGE),
-        wantsVehicle: z.boolean(),
-        pickupAddress: z.string().optional(),
-    })
-    .superRefine((data, ctx) => {
-        if (data.wantsVehicle && (!data.pickupAddress || data.pickupAddress.trim().length < 5)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["pickupAddress"],
-                message: "Please provide your pickup address",
-            });
-        }
-    });
+// Zod schema
+const profileSchema = z.object({
+    picture: z.string().min(1, PROFILE_PICTURE_ERROR_MESSAGE),
+});
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
@@ -140,7 +126,6 @@ function UserProfileDisplay() {
     const {
         handleSubmit,
         setValue,
-        control,
         formState: { errors },
         reset,
         watch,
@@ -148,19 +133,15 @@ function UserProfileDisplay() {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             picture: dinnerProfile?.picture || "",
-            wantsVehicle: false,
-            pickupAddress: "",
         },
     });
 
     const pictureValue = watch("picture");
-    const wantsVehicle = watch("wantsVehicle");
 
     useEffect(() => {
+        // Reset form with user's picture when component mounts or user changes
         reset({
             picture: user?.picture || "",
-            wantsVehicle: false,
-            pickupAddress: "",
         });
     }, [user?.picture, reset]);
 
@@ -169,14 +150,6 @@ function UserProfileDisplay() {
         const finalists = profile?.finalists || [];
         return level?.label === "500" || finalists.includes(user.id);
     }, [user, profile?.finalists, level?.label]);
-
-    // Block registration if the finalist has already registered but has NO date/associate yet.
-    // This enforces: you MUST bring a date. The associate tab is where they register their date.
-    // The finalist can still submit their own profile (step 1), but we show a clear
-    // mandatory notice that they MUST also complete the Associate tab.
-    // If they already have a full dinner profile AND a date pair, registration is complete.
-    const alreadyFullyRegistered =
-        !!dinnerProfile && !!(profileStore.dateProfile || profileStore.table);
 
     const createDinnerProfile = useCallback(
         async (data: ProfileFormData) => {
@@ -193,9 +166,6 @@ function UserProfileDisplay() {
                 unitId: user.unitId,
                 unit: unit?.unit?.name || "Not specified",
                 isFinalist: true,
-                // Vehicle preorder fields
-                wantsVehicle: data.wantsVehicle,
-                pickupAddress: data.wantsVehicle ? data.pickupAddress : undefined,
             };
 
             try {
@@ -215,6 +185,7 @@ function UserProfileDisplay() {
         [user, unit]
     );
 
+    // Early returns for edge cases
     if (!user) return <NotEligible />;
     if (!isLegitFinalist) return <NotEligible />;
 
@@ -228,25 +199,6 @@ function UserProfileDisplay() {
                 <p className="text-champagne-gold-100 text-sm mt-1">
                     Review your details before registering
                 </p>
-            </div>
-
-            {/* Mandatory date notice — always visible */}
-            <div className="mx-6 mt-6 flex items-start gap-3 rounded-2xl border-2 border-champagne-gold/60 bg-champagne-gold/10 px-5 py-4">
-                <Users className="mt-0.5 w-5 h-5 flex-shrink-0 text-champagne-gold" />
-                <div>
-                    <p className="font-semibold text-champagne-gold text-sm">
-                        You must register with a date
-                    </p>
-                    <p className="text-pearl-600 dark:text-pearl-300 text-sm mt-0.5">
-                        Registration is for pairs only. After submitting your
-                        profile here, you <span className="font-bold">must</span>{" "}
-                        also complete the{" "}
-                        <span className="font-semibold text-champagne-gold">
-                            Register Associate
-                        </span>{" "}
-                        tab to register your date. Singles cannot attend.
-                    </p>
-                </div>
             </div>
 
             <div className="p-2 lg:p-8">
@@ -263,6 +215,7 @@ function UserProfileDisplay() {
 
                         <div className="mt-4 w-full max-w-xs mx-auto flex flex-col items-center">
                             <ImageUpload
+                                // key={pictureValue} // Force re-render when value changes
                                 name="picture"
                                 onChange={(value) =>
                                     setValue("picture", value as string, {
@@ -322,83 +275,6 @@ function UserProfileDisplay() {
                             }
                         />
                     </InfoCard>
-
-                    {/* ── Vehicle Preorder ── */}
-                    <div className="card space-y-5">
-                        <h3 className="text-xl font-luxury font-semibold text-pearl-800 dark:text-pearl-100 flex items-center">
-                            <Car className="w-5 h-5 mr-2 text-champagne-gold-500" />
-                            Vehicle Pickup{" "}
-                            <span className="ml-2 text-xs font-normal text-pearl-400 dark:text-pearl-500">
-                                (Optional)
-                            </span>
-                        </h3>
-
-                        {/* Toggle */}
-                        <Controller
-                            name="wantsVehicle"
-                            control={control}
-                            render={({ field }) => (
-                                <label className="relative flex cursor-pointer items-start gap-4 rounded-2xl border-2 border-pearl-300 dark:border-pearl-600 p-4 transition-all has-[:checked]:border-champagne-gold has-[:checked]:bg-champagne-gold/10">
-                                    <input
-                                        type="checkbox"
-                                        className="sr-only"
-                                        checked={field.value}
-                                        onChange={(e) =>
-                                            field.onChange(e.target.checked)
-                                        }
-                                    />
-                                    {/* Custom toggle pill */}
-                                    <span
-                                        className={`mt-0.5 flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 transition-colors ${
-                                            field.value
-                                                ? "border-champagne-gold bg-champagne-gold"
-                                                : "border-pearl-300 dark:border-pearl-600 bg-pearl-200 dark:bg-pearl-700"
-                                        }`}
-                                    >
-                                        <span
-                                            className={`h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                                                field.value
-                                                    ? "translate-x-5"
-                                                    : "translate-x-0.5"
-                                            }`}
-                                        />
-                                    </span>
-                                    <div>
-                                        <p className="font-semibold text-pearl-800 dark:text-pearl-100">
-                                            I want a vehicle to pick me up
-                                        </p>
-                                        <p className="text-sm text-pearl-500 dark:text-pearl-400 mt-0.5">
-                                            Our vehicle will come to your
-                                            address and take you to the venue.
-                                            This is entirely voluntary and will
-                                            not affect your registration.
-                                        </p>
-                                    </div>
-                                </label>
-                            )}
-                        />
-
-                        {/* Pickup address — only shown when opted in */}
-                        {wantsVehicle && (
-                            <div className="animate-slide-down">
-                                <Controller
-                                    name="pickupAddress"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            name="pickupAddress"
-                                            label="Pickup Address"
-                                            required
-                                            placeholder="e.g. 12 Peace Avenue, Akure"
-                                            icon={<MapPin className="w-4 h-4" />}
-                                            error={errors.pickupAddress?.message}
-                                        />
-                                    )}
-                                />
-                            </div>
-                        )}
-                    </div>
 
                     {/* Submit */}
                     <div className="mt-8 text-center">

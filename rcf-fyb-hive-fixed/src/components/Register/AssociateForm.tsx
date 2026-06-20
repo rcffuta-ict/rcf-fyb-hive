@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,13 +16,13 @@ import {
     Mars,
     AlertCircle,
     PhoneCallIcon,
-    UserX,
 } from "lucide-react";
 import ImageUpload from "../ImageUpload";
 import { authStore } from "@/stores/authStore";
 import { TextField } from "../Form";
 import { appToast } from "@/providers/ToastProvider";
-import NotEligible from "@/app/components/ui/NotEligible";
+import NotAvailableYet from "@/app/components/ui/NotAvailableYet";
+import NotEligible, { NoDinnerProfileSimple } from "@/app/components/ui/NotEligible";
 import { profileStore } from "@/stores/profileStore";
 import { observer } from "mobx-react-lite";
 import { DinnerProfile } from "@rcffuta/ict-lib";
@@ -31,6 +32,7 @@ const PROFILE_PICTURE_ERROR_MESSAGE =
 const REGISTRATION_SUCCESS_MESSAGE =
     "Your dinner profile has been created successfully!";
 const REGISTRATION_ERROR_MESSAGE = "Could not create dinner profile.";
+
 
 // Zod schema
 const associateSchema = z.object({
@@ -45,65 +47,21 @@ const associateSchema = z.object({
 
 type AssociateFormData = z.infer<typeof associateSchema>;
 
-// ── Shown when the finalist has not yet registered their own profile ──
-function MustRegisterSelfFirst() {
-    return (
-        <div className="max-w-xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-8 text-center">
-            <div className="flex justify-center mb-6">
-                <div className="bg-warning/10 text-warning p-4 rounded-full">
-                    <UserX className="w-10 h-10" />
-                </div>
-            </div>
-            <h2 className="text-2xl font-luxury font-bold text-pearl-800 dark:text-pearl-100 mb-4">
-                Register Yourself First
-            </h2>
-            <p className="text-pearl-600 dark:text-pearl-300 mb-6">
-                You need to complete your own dinner profile before you can
-                register your date. Please go to the{" "}
-                <span className="font-semibold text-champagne-gold">
-                    Register as Finalist
-                </span>{" "}
-                tab and submit your profile first.
-            </p>
-            <p className="text-sm text-pearl-500 dark:text-pearl-400">
-                Remember: registration is for pairs only. Singles cannot attend.
-            </p>
-        </div>
-    );
-}
-
-// ── Shown when the finalist already has a date registered ──
-function AlreadyHasDate({ dateName }: { dateName: string }) {
-    return (
-        <div className="max-w-xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-8 text-center">
-            <div className="flex justify-center mb-6">
-                <div className="bg-success/10 text-success p-4 rounded-full">
-                    <CheckCircle className="w-10 h-10" />
-                </div>
-            </div>
-            <h2 className="text-2xl font-luxury font-bold text-pearl-800 dark:text-pearl-100 mb-4">
-                Date Already Registered
-            </h2>
-            <p className="text-pearl-600 dark:text-pearl-300">
-                You have already registered{" "}
-                <span className="font-semibold text-champagne-gold">
-                    {dateName}
-                </span>{" "}
-                as your date. Your registration is complete.
-            </p>
-        </div>
-    );
-}
-
 function AssociateForm() {
+    // const router = useRouter();
     const user = authStore.member;
     const dinnerProfile = profileStore.profile;
     const dateProfile = profileStore.dateProfile;
 
-    const authenticatedUserGender = user?.gender as "male" | "female";
+    const authenticatedUserGender = user?.gender as
+        | "male"
+        | "female";
     const oppositeGender =
         authenticatedUserGender === "male" ? "female" : "male";
-    const pronoun = oppositeGender === "male" ? "his" : "her";
+
+    const pronoun = oppositeGender === "male" ? "his" :"her";
+
+    
 
     const {
         control,
@@ -127,6 +85,7 @@ function AssociateForm() {
             if (!user) return;
             const prof = profileStore.profile;
             if (!prof) return;
+            // setLoading(true);
 
             const dinnerProfile: DinnerProfile = {
                 picture: data.picture,
@@ -158,22 +117,13 @@ function AssociateForm() {
         [user, oppositeGender]
     );
 
-    // Guard 1: not logged in
+
+    // return <NotAvailableYet/>;
     if (!user) return <NotEligible />;
-
-    // Guard 2: finalist profile not yet created — must do step 1 first
-    if (!dinnerProfile) return <MustRegisterSelfFirst />;
-
-    // Guard 3: date already registered — block duplicate submission
-    if (dateProfile) {
-        return (
-            <AlreadyHasDate
-                dateName={`${dateProfile.firstname} ${dateProfile.lastname}`}
-            />
-        );
-    }
-
+    if (!dinnerProfile) return <NoDinnerProfileSimple />;
     const loading = isSubmitting;
+
+        // console.debug({ dinnerProfile, dateProfile });
 
     return (
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-white/95 to-rose-50/30 dark:from-luxury-900/95 dark:to-luxury-800/80 rounded-3xl shadow-glass overflow-hidden backdrop-blur-sm border border-white/20 p-5">
@@ -183,26 +133,15 @@ function AssociateForm() {
                     <Heart className="w-10 h-10 text-white" />
                 </div>
                 <h1 className="text-3xl font-luxury font-bold text-pearl-800 dark:text-pearl-100 mb-2">
-                    Register Your Date
+                    Associate Registration
                 </h1>
                 <p className="text-pearl-600 dark:text-pearl-300">
-                    Invite your {oppositeGender} date to join our elegant
+                    Invite your {oppositeGender} associate to join our elegant
                     evening
                 </p>
                 <div className="mt-2 text-sm text-champagne-gold bg-champagne-gold/10 px-4 py-2 rounded-xl inline-block">
                     You are registering as a {authenticatedUserGender}
                 </div>
-            </div>
-
-            {/* Mandatory pair notice */}
-            <div className="mb-6 flex items-start gap-3 rounded-2xl border-2 border-rose-gold/50 bg-rose-gold/10 px-5 py-4">
-                <Heart className="mt-0.5 w-5 h-5 flex-shrink-0 text-rose-gold-500" />
-                <p className="text-sm text-pearl-700 dark:text-pearl-300">
-                    <span className="font-semibold text-rose-gold-500">Required: </span>
-                    Every finalist must attend with a date. Your registration is
-                    not complete until this form is submitted. Singles will not
-                    be admitted.
-                </p>
             </div>
 
             <form
@@ -214,7 +153,7 @@ function AssociateForm() {
                     <div className="text-center mb-8">
                         <div className="flex flex-col items-center">
                             <label className="block text-sm font-medium text-pearl-700 dark:text-pearl-200 mb-4 font-elegant">
-                                Date&apos;s Photo{" "}
+                                Associate&apos;s Photo{" "}
                                 <span className="text-rose-gold-500">*</span>
                             </label>
 
@@ -245,7 +184,7 @@ function AssociateForm() {
                     <div className="card mb-8">
                         <h3 className="text-xl font-luxury font-semibold text-pearl-800 dark:text-pearl-100 mb-6 flex items-center">
                             <Heart className="w-5 h-5 mr-2 text-champagne-gold-500" />
-                            Date&apos;s Gender
+                            Associate&apos;s Gender
                         </h3>
                         <div className="p-4 bg-pearl-50/50 dark:bg-pearl-800/30 rounded-xl">
                             <div className="flex items-center justify-center space-x-4">
@@ -265,13 +204,13 @@ function AssociateForm() {
                                         {oppositeGender === "female"
                                             ? "Female"
                                             : "Male"}{" "}
-                                        Date
+                                        Associate
                                     </span>
                                 </div>
                             </div>
                             <p className="text-center text-pearl-500 dark:text-pearl-400 mt-3 text-sm">
                                 As a {authenticatedUserGender}, you can only
-                                bring a {oppositeGender} date
+                                register a {oppositeGender} associate
                             </p>
                         </div>
                     </div>
@@ -291,6 +230,7 @@ function AssociateForm() {
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
+                                        // getValue={() => getValues().firstname}
                                         label="First Name"
                                         required
                                         error={errors.firstname?.message}
@@ -309,6 +249,7 @@ function AssociateForm() {
                                         label="Last Name"
                                         required
                                         error={errors.lastname?.message}
+                                        // getValue={() => getValues().lastname}
                                         disabled={loading}
                                         placeholder={`${pronoun} last name`}
                                     />
@@ -332,6 +273,7 @@ function AssociateForm() {
                                         label="Email Address"
                                         required
                                         error={errors.email?.message}
+                                        // getValue={() => getValues().email}
                                         disabled={loading}
                                         type="email"
                                         icon={<Mail className="w-4 h-4" />}
@@ -348,6 +290,7 @@ function AssociateForm() {
                                         label="Phone Number"
                                         required
                                         error={errors.contact?.message}
+                                        // getValue={() => getValues().contact}
                                         disabled={loading}
                                         type="tel"
                                         icon={
@@ -371,13 +314,16 @@ function AssociateForm() {
                             render={({ field }) => (
                                 <TextField
                                     {...field}
-                                    label="Your Relationship with this Date"
+                                    label="Your Relationship with this Associate"
                                     placeholder="Don't worry, just tell us the true fact :) ..."
                                     required
                                     error={
                                         errors.relationshipWithAssociate
                                             ?.message
                                     }
+                                    // getValue={() =>
+                                    //     getValues().relationshipWithAssociate
+                                    // }
                                     disabled={loading}
                                     icon={<Heart className="w-4 h-4" />}
                                 />
@@ -396,19 +342,19 @@ function AssociateForm() {
                         {loading ? (
                             <div className="flex items-center space-x-2">
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Registering Date...</span>
+                                <span>Registering Associate...</span>
                             </div>
                         ) : (
                             <div className="flex items-center space-x-2">
                                 <CheckCircle className="w-5 h-5" />
-                                <span>Register Date</span>
+                                <span>Register Associate</span>
                             </div>
                         )}
                     </button>
 
                     <p className="text-pearl-500 dark:text-pearl-400 mt-4 text-sm">
                         By registering, you confirm this person is your{" "}
-                        {oppositeGender} date for the dinner
+                        {oppositeGender} associate
                     </p>
                 </div>
             </form>
