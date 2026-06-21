@@ -15,7 +15,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className="scroll-smooth dark">
+        <html lang="en" className="scroll-smooth dark" data-scroll-behavior="smooth">
             <body className="bg-white-accent text-primary font-sans antialiased">
                 <GlobalToastProvider>
                     {/* Header */}
