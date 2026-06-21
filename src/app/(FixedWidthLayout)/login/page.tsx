@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import Link from "next/link";
-import { authStore } from "@/stores/authStore";
+import { authStore } from "@/stores/auth.store";
 import { observer } from "mobx-react-lite";
 import { appToast } from "@/providers/ToastProvider";
 import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";

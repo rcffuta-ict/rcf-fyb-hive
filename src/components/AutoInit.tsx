@@ -1,6 +1,6 @@
 "use client";
 
-import { authStore } from "@/stores/authStore";
+import { authStore } from "@/stores/auth.store";
 import { observer } from "mobx-react-lite";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";

@@ -20,9 +20,9 @@ import {
 import { observer } from "mobx-react-lite";
 import ImageUpload from "../ImageUpload";
 import { appToast } from "@/providers/ToastProvider";
-import NotEligible from "@/app/components/ui/NotEligible";
-import { authStore } from "@/stores/authStore";
-import { profileStore } from "@/stores/profileStore";
+import NotEligible from "@/components/ui/NotEligible";
+import { authStore } from "@/stores/auth.store";
+import { profileStore } from "@/stores/profile.store";
 
 // Constants
 const PROFILE_PICTURE_ERROR_MESSAGE =

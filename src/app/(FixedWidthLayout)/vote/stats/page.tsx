@@ -18,7 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { authStore } from "@/stores/authStore";
+import { authStore } from "@/stores/auth.store";
 import { voteStore } from "@/stores/vote.store";
 
 // Mock data for demonstration - in real app, this would come from your API

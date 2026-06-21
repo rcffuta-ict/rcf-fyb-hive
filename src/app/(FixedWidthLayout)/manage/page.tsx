@@ -18,18 +18,14 @@ import {
     GraduationCap,
     Briefcase,
 } from "lucide-react";
-import { profileStore } from "@/stores/profileStore";
-// import NotEligible from "@/app/components/ui/NotEligible";
-import Loading from "@/app/components/ui/Loading";
-import {
-    DinnerProfileRecord,
-    getDinnerProfile,
-    wait
-} from "@rcffuta/ict-lib";
-import { authStore } from "@/stores/authStore";
-import NotEligible from "@/app/components/ui/NotEligible";
+import { profileStore } from "@/stores/profile.store";
+// import NotEligible from "@/components/ui/NotEligible";
+import Loading from "@/components/ui/Loading";
+import type { DinnerProfileRecord } from "@/types";
+import { authStore } from "@/stores/auth.store";
+import NotEligible from "@/components/ui/NotEligible";
 import { MANAGERS } from "@/data/meta";
-// import NotAvailableYet from "@/app/components/ui/NotAvailableYet";
+// import NotAvailableYet from "@/components/ui/NotAvailableYet";
 
 // State components
 const ErrorState = ({ message }: { message: string }) => (

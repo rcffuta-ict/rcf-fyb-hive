@@ -1,11 +1,11 @@
 "use client"
 import { appToast } from "@/providers/ToastProvider";
-import { authStore } from "@/stores/authStore";
+import { authStore } from "@/stores/auth.store";
 import { observer } from "mobx-react-lite";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment, useState, useEffect } from "react";
-import Spacer from "../components/ui/Spacer";
+import Spacer from "@/components/ui/Spacer";
 import { handleLinkClick, Menu } from "@/data/menu";
 
 

@@ -18,14 +18,14 @@ import {
     PhoneCallIcon,
 } from "lucide-react";
 import ImageUpload from "../ImageUpload";
-import { authStore } from "@/stores/authStore";
+import { authStore } from "@/stores/auth.store";
 import { TextField } from "../Form";
 import { appToast } from "@/providers/ToastProvider";
-import NotAvailableYet from "@/app/components/ui/NotAvailableYet";
-import NotEligible, { NoDinnerProfileSimple } from "@/app/components/ui/NotEligible";
-import { profileStore } from "@/stores/profileStore";
+import NotAvailableYet from "@/components/ui/NotAvailableYet";
+import NotEligible, { NoDinnerProfileSimple } from "@/components/ui/NotEligible";
+import { profileStore } from "@/stores/profile.store";
 import { observer } from "mobx-react-lite";
-import { DinnerProfile } from "@rcffuta/ict-lib";
+import type { DinnerProfile } from "@/types";
 
 const PROFILE_PICTURE_ERROR_MESSAGE =
     "A profile picture is required for our elegant dinner party";

@@ -18,7 +18,7 @@ import {
     RefreshCw,
 } from "lucide-react";
 import confetti from "canvas-confetti";
-import { authStore } from "@/stores/authStore";
+import { authStore } from "@/stores/auth.store";
 import { VOTE_CONFIG } from "@/data/voteConfig";
 import { voteStore } from "@/stores/vote.store";
 import {
@@ -27,7 +27,7 @@ import {
 } from "@/components/voting/ContestantCards";
 import CategoryNavigation from "@/components/voting/CategoryNavigation";
 import VotingHeader from "@/components/voting/VotingHeader";
-import { loadContestants, wait } from "@rcffuta/ict-lib";
+import { loadContestants } from "@/services";
 import { getAllEmails } from "@/lib/function";
 
 // Confetti effect function
