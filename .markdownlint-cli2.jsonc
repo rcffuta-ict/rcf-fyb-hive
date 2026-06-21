@@ -1,0 +1,21 @@
+{
+    // Shared by the markdownlint-cli2 CLI and the VS Code markdownlint extension.
+    "config": {
+        "default": true,
+        // Line length is owned by Prettier (proseWrap), not markdownlint.
+        "MD013": false,
+        // Allow inline HTML in docs.
+        "MD033": false,
+        // Allow duplicate headings as long as they're not siblings.
+        "MD024": { "siblings_only": true }
+    },
+    "globs": ["**/*.md"],
+    "ignores": [
+        "node_modules",
+        ".next",
+        "out",
+        "build",
+        "coverage",
+        ".temp"
+    ]
+}
