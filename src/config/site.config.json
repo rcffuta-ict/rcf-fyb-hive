@@ -1,0 +1,66 @@
+{
+    "name": "FYB Hive",
+    "shortName": "FYB Hive",
+    "tagline": "RCF FUTA Finalists' Dinner",
+    "description": "The Final Year Brethren Dinner for RCF FUTA's graduating class — register, pair up, and celebrate excellence. Powered by RCF FUTA & RCFFUTA ICT, brought to you by the 300 Level Family in tribute to the Army of Light Family.",
+    "theme": "army-of-light",
+    "branding": {
+        "logos": {
+            "fybHive": "/fyb-hive-logo.png",
+            "rcffuta": "/rcffuta-logo.png",
+            "ict": "/logos/ict-logo.png",
+            "armyOfLight": "/logos/army-of-light-logo.png"
+        },
+        "favicon": "/fyb-hive-logo.png"
+    },
+    "links": {
+        "rcffuta": "https://rcffuta.com",
+        "ict": "https://ict.rcffuta.com",
+        "ictPortalRegister": "https://ict.rcffuta.com/portal/register"
+    },
+    "contact": {
+        "email": "ict@rcffuta.com",
+        "socials": []
+    },
+    "sponsors": [
+        { "name": "RCF FUTA", "url": "https://rcffuta.com", "logo": "/rcffuta-logo.png" },
+        { "name": "RCFFUTA ICT", "url": "https://ict.rcffuta.com", "logo": "/logos/ict-logo.png" },
+        { "name": "300 Level Family", "url": "", "logo": "" },
+        { "name": "Army of Light Family", "url": "", "logo": "/logos/army-of-light-logo.png" }
+    ],
+    "event": {
+        "title": "FYB Dinner",
+        "dateISO": "2026-11-28T17:00:00+01:00",
+        "venue": "RCF FUTA Church Auditorium",
+        "dressCode": "Black Tie / Elegant Evening Wear",
+        "audience": "Graduating class — 500 Level & finalist 400 Level"
+    },
+    "payment": {
+        "bankName": "UBA",
+        "accountName": "AMUSAN Elizabeth Oluwatoyin",
+        "accountNumber": "2369244361",
+        "amount": 6000,
+        "currency": "NGN"
+    },
+    "nav": [
+        { "label": "Home", "href": "/", "feature": null },
+        { "label": "Register", "href": "/register", "feature": "registration" },
+        { "label": "Pairing", "href": "/pairing", "feature": "pairing" },
+        { "label": "Awards", "href": "/awards", "feature": "awards" }
+    ],
+    "copy": {
+        "heroEyebrow": "Final Year Brethren",
+        "heroTitle": "An Evening of Light & Honour",
+        "heroSubtitle": "Celebrate the graduating class of RCF FUTA. Register for the FYB Dinner — a no-date, no-entry night of excellence, gratitude, and family.",
+        "heroCtaPrimary": "Register Now",
+        "heroCtaSecondary": "Learn More",
+        "tribute": "Brought to you by the 300 Level Family · A tribute to the Army of Light Family",
+        "poweredBy": "Powered by RCF FUTA & RCFFUTA ICT",
+        "footerNote": "© 2026 RCF FUTA. All glory to God."
+    },
+    "features": {
+        "registration": true,
+        "pairing": false,
+        "awards": false
+    }
+}
