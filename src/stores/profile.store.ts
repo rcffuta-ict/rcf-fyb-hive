@@ -1,6 +1,16 @@
-import {DinnerProfileRecord, DinnerProfile, createDinnerProfile, wait, getMemberDinnerProfile, TableRecord, getDinnerProfile, createTable, searchDinnerProfile} from "@rcffuta/ict-lib";
 import { makeAutoObservable, runInAction, toJS } from "mobx";
-import { createHistogram } from "perf_hooks";
+import {
+    createDinnerProfile,
+    getMemberDinnerProfile,
+    getDinnerProfile,
+    createTable,
+    searchDinnerProfile,
+} from "@/services";
+import type {
+    DinnerProfile,
+    DinnerProfileRecord,
+    TableRecord,
+} from "@/types";
 
 class ProfileStore {
     private _profile: DinnerProfileRecord | null = null;
@@ -20,12 +30,13 @@ class ProfileStore {
         makeAutoObservable(this);
     }
 
-
     get profile(): DinnerProfileRecord | null {
         return toJS(this._profile);
     }
     get dateProfile(): DinnerProfileRecord | null {
-        return this._associate_profile ? toJS(this._associate_profile) : toJS(this._date_profile);
+        return this._associate_profile
+            ? toJS(this._associate_profile)
+            : toJS(this._date_profile);
     }
 
     get allProfiles() {
@@ -52,7 +63,6 @@ class ProfileStore {
         this.success = null;
 
         try {
-            
             // await wait(3);
             const {
                 message,
@@ -88,7 +98,6 @@ class ProfileStore {
         this.success = null;
 
         try {
-            
             // await wait(3);
             const {
                 message,
@@ -116,74 +125,67 @@ class ProfileStore {
         }
     }
 
-    async loadProfile(email:string) {
-        const {message, success, data} = await getMemberDinnerProfile(email);
+    async loadProfile(email: string) {
+        const { message, success, data } = await getMemberDinnerProfile(email);
 
         if (success) {
+            const { attendee, tables } = data;
 
-            const {
-                attendee,
-                tables
-            } = data;
-
-            
-            let table = null;
-            let d_date = null;
-            let d_associate = null;
-            const {success, data: associate} = await getDinnerProfile({
+            let table: TableRecord | null = null;
+            let d_date: DinnerProfileRecord | null = null;
+            let d_associate: DinnerProfileRecord | null = null;
+            const { success, data: associate } = await getDinnerProfile({
                 by: "relationId",
-                field: attendee.id
+                field: attendee.id,
             });
 
             if (success) {
-                d_associate = associate
+                d_associate = associate;
             } else {
                 table = selectTableRecord(tables, associate);
             }
 
-            
-
             if (table) {
-
-                let id = attendee.gender === "female" ? table.male : table.female;
-                const {message, success, data: date} = await getDinnerProfile({
+                const id =
+                    attendee.gender === "female" ? table.male : table.female;
+                const {
+                    message,
+                    success,
+                    data: date,
+                } = await getDinnerProfile({
                     by: "id" as any,
-                    field: id
+                    field: id,
                 });
 
-                
-
-                if (success){
-                    d_date = date
+                if (success) {
+                    d_date = date;
                 }
             }
 
-            runInAction(()=>{
+            runInAction(() => {
                 this._date_profile = d_date;
                 this._associate_profile = d_associate;
                 this._table = table;
                 this._profile = attendee;
-            })
-        } {
+            });
+        }
+        {
             console.error(message);
         }
     }
     async loadAllProfiles() {
-        const {success, data} = await searchDinnerProfile();
+        const { success, data } = await searchDinnerProfile();
 
         if (success) {
-
             this._allProfiles = data;
-        } 
+        }
     }
 
     async pairProfile(consentToken: string, isAssociate: boolean) {
         try {
-
             let partner = null;
 
             if (!isAssociate) {
-
                 this._date_profile = null;
                 this.status = "Checking for finalist";
                 // Validate consent token format first
@@ -192,19 +194,19 @@ class ProfileStore {
                 }
                 const { message, success, data } = await getDinnerProfile({
                     by: "consentToken",
-                    field: consentToken
+                    field: consentToken,
                 });
                 if (!success) {
-                    throw new Error(message || "Failed to find profile with this consent token");
+                    throw new Error(
+                        message ||
+                            "Failed to find profile with this consent token"
+                    );
                 }
                 this._date_profile = data;
                 partner = data;
             } else {
                 partner = this.dateProfile;
             }
-
-
-
 
             // Validate that the found profile is of opposite gender
             if (!this.profile) {
@@ -217,14 +219,19 @@ class ProfileStore {
             if (this.profile.gender === partner.gender) {
                 throw new Error("Cannot pair with someone of the same gender");
             }
-            
 
             this.status = "Pairing you both";
 
-            const maleId = this.profile.gender === "male" ? this.profile.id : partner.id;
-            const femaleId = this.profile.gender === "male" ? partner.id : this.profile.id;
+            const maleId =
+                this.profile.gender === "male" ? this.profile.id : partner.id;
+            const femaleId =
+                this.profile.gender === "male" ? partner.id : this.profile.id;
 
-            const { message: msg, success: scs, data: table } = await createTable(maleId, femaleId);
+            const {
+                message: msg,
+                success: scs,
+                data: table,
+            } = await createTable(maleId, femaleId);
 
             if (!scs) {
                 throw new Error(msg || "Failed to create pairing");
@@ -232,13 +239,12 @@ class ProfileStore {
 
             this._table = table;
             this.status = "";
-            
-            return { success: true, data: table };
 
+            return { success: true, data: table };
         } catch (error: any) {
             this.status = "";
             // this._date_profile = null; // Clear the date profile on error
-            
+
             // Re-throw the error for the caller to handle
             throw new Error(error.message || "Pairing failed");
         }
@@ -257,52 +263,56 @@ class ProfileStore {
 
 export const profileStore = new ProfileStore();
 
+function selectTableRecord(
+    tables: TableRecord[],
+    associate?: DinnerProfileRecord | null
+): TableRecord | null {
+    if (!tables || tables.length === 0) {
+        return null;
+    }
 
-function selectTableRecord(tables: TableRecord[], associate?: DinnerProfileRecord | null): TableRecord | null {
-  if (!tables || tables.length === 0) {
-    return null;
-  }
+    if (tables.length === 1) {
+        return tables.at(0) || null;
+    }
 
-  if (tables.length === 1) {
-    return tables.at(0) || null;
-  }
+    if (associate) {
+        const geneder = associate.gender;
+        return (
+            tables.find((e) => {
+                if (geneder === "female") {
+                    e.female === associate.id;
+                } else {
+                    e.male === associate.id;
+                }
+            }) || null
+        );
+    }
 
-  if (associate) {
-    const geneder =associate.gender;
-    return tables.find(e=> {
-        if (geneder === "female") {
-            e.female === associate.id;
-        }else {
-            e.male === associate.id;
-        }
-    }) || null;
-  }
+    // Helper function to get the most recent date for sorting
+    const getLatestDate = (table: TableRecord): Date => {
+        // Prefer updatedAt, then createdAt, fallback to very old date
+        const dateString = table.updatedAt || table.createdAt;
+        return dateString ? new Date(dateString) : new Date(0); // Date(0) = Jan 1, 1970
+    };
 
-  // Helper function to get the most recent date for sorting
-  const getLatestDate = (table: TableRecord): Date => {
-    // Prefer updatedAt, then createdAt, fallback to very old date
-    const dateString = table.updatedAt || table.createdAt;
-    return dateString ? new Date(dateString) : new Date(0); // Date(0) = Jan 1, 1970
-  };
+    // Sort all tables by recency (most recent first)
+    const sortedTables = [...tables].sort(
+        (a, b) => getLatestDate(b).getTime() - getLatestDate(a).getTime()
+    );
 
-  // Sort all tables by recency (most recent first)
-  const sortedTables = [...tables].sort((a, b) => 
-    getLatestDate(b).getTime() - getLatestDate(a).getTime()
-  );
+    // Get all paid tables (already sorted by recency)
+    const paidTables = sortedTables.filter((table) => table.paid === true);
 
-  // Get all paid tables (already sorted by recency)
-  const paidTables = sortedTables.filter(table => table.paid === true);
+    // Criteria 1: If there's exactly one paid table, select it
+    if (paidTables.length === 1) {
+        return paidTables[0];
+    }
 
-  // Criteria 1: If there's exactly one paid table, select it
-  if (paidTables.length === 1) {
-    return paidTables[0];
-  }
+    // Criteria 2: If multiple paid tables, select the most recent one
+    if (paidTables.length > 1) {
+        return paidTables[0]; // Already sorted, first is most recent
+    }
 
-  // Criteria 2: If multiple paid tables, select the most recent one
-  if (paidTables.length > 1) {
-    return paidTables[0]; // Already sorted, first is most recent
-  }
-
-  // Criteria 3: If no paid tables, select the most recent table record
-  return sortedTables[0];
+    // Criteria 3: If no paid tables, select the most recent table record
+    return sortedTables[0];
 }

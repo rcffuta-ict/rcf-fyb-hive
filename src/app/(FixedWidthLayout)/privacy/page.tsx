@@ -1,4 +1,4 @@
-import Spacer from "@/app/components/ui/Spacer";
+import Spacer from "@/components/ui/Spacer";
 
 export default function PrivacyPage() {
     return (

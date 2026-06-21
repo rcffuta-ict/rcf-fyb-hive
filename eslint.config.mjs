@@ -6,6 +6,20 @@ import prettier from "eslint-config-prettier/flat";
 const eslintConfig = defineConfig([
     ...nextVitals,
     ...nextTs,
+    {
+        rules: {
+            // Allow intentionally-unused identifiers when prefixed with "_"
+            // (e.g. stubbed service parameters).
+            "@typescript-eslint/no-unused-vars": [
+                "warn",
+                {
+                    argsIgnorePattern: "^_",
+                    varsIgnorePattern: "^_",
+                    caughtErrorsIgnorePattern: "^_",
+                },
+            ],
+        },
+    },
     // Turn off ESLint rules that conflict with Prettier formatting.
     prettier,
     // Keep in sync with eslint-config-next's default ignores.

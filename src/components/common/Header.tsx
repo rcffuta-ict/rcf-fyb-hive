@@ -1,7 +1,7 @@
 "use client";
 import { handleLinkClick, Menu } from "@/data/menu";
 import { appToast } from "@/providers/ToastProvider";
-import { authStore } from "@/stores/authStore";
+import { authStore } from "@/stores/auth.store";
 import { observer } from "mobx-react-lite";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authStore } from "@/stores/authStore";
+import { authStore } from "@/stores/auth.store";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
 function VerifySSOPage() {

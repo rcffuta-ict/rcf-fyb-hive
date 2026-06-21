@@ -5,12 +5,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { date, z } from "zod";
 import { User, Crown, AlertCircle, CheckCircle, Loader2, DollarSign, AlertTriangle } from "lucide-react";
-import { authStore } from "@/stores/authStore";
+import { authStore } from "@/stores/auth.store";
 import { observer } from "mobx-react-lite";
 import { appToast } from "@/providers/ToastProvider";
-import NotEligible, { NoDinnerProfile } from "@/app/components/ui/NotEligible";
-import { profileStore } from "@/stores/profileStore";
-import { DinnerProfileRecord, getDinnerProfile } from "@rcffuta/ict-lib";
+import NotEligible, { NoDinnerProfile } from "@/components/ui/NotEligible";
+import { profileStore } from "@/stores/profile.store";
+import type { DinnerProfileRecord } from "@/types";
 import Image from "next/image";
 
 // Zod schema for consent token

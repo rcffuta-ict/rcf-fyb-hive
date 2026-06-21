@@ -1,5 +1,5 @@
 import { appToast } from "@/providers/ToastProvider";
-import { MemberProfile } from "@rcffuta/ict-lib";
+import type { MemberProfile } from "@/types";
 import React, { MouseEvent } from "react";
 
 export type MenuType = {

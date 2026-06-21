@@ -1,7 +1,8 @@
 // stores/voteStore.ts
 import { makeAutoObservable, runInAction, toJS } from "mobx";
 import { appToast } from "@/providers/ToastProvider";
-import { loadVotes, saveVote, VoteRecord, DinnerProfileRecord, getDinnerProfile, VoteContestant } from "@rcffuta/ict-lib";
+import { loadVotes, saveVote } from "@/services";
+import type { VoteRecord, VoteContestant } from "@/types";
 
 interface VotingState {
   votes: Map<string, string>;
@@ -21,7 +22,7 @@ class VoteStore {
     loading: false,
     error: null,
     isSubmitting: false,
-    contestants: new Map<string, DinnerProfileRecord>(),
+    contestants: new Map<string, VoteContestant>(),
     progress: 0,
     lastVotedCategory: null
   };
@@ -195,7 +196,7 @@ class VoteStore {
         loading: false,
         error: null,
         isSubmitting: false,
-        contestants: new Map<string, DinnerProfileRecord>(),
+        contestants: new Map<string, VoteContestant>(),
         progress: 0,
         lastVotedCategory: null
       };

@@ -1,6 +1,5 @@
 import { VoteCofigType } from "@/data/voteConfig";
 import { voteStore } from "@/stores/vote.store";
-import { VoteRecord } from "@rcffuta/ict-lib";
 import { CheckCircle } from "lucide-react";
 
 
