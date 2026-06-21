@@ -45,6 +45,54 @@ const config: Config = {
       },
       
       colors: {
+        // ── Semantic tokens (CSS-variable driven, Shadcn-aligned) ──
+        // Swap the whole skin from one place: src/config/themes.ts → ThemeProvider.
+        border: "hsl(var(--border) / <alpha-value>)",
+        input: "hsl(var(--input) / <alpha-value>)",
+        ring: "hsl(var(--ring) / <alpha-value>)",
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
+        primary: {
+          DEFAULT: "hsl(var(--primary) / <alpha-value>)",
+          foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary) / <alpha-value>)",
+          foreground: "hsl(var(--secondary-foreground) / <alpha-value>)",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent) / <alpha-value>)",
+          foreground: "hsl(var(--accent-foreground) / <alpha-value>)",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted) / <alpha-value>)",
+          foreground: "hsl(var(--muted-foreground) / <alpha-value>)",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card) / <alpha-value>)",
+          foreground: "hsl(var(--card-foreground) / <alpha-value>)",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover) / <alpha-value>)",
+          foreground: "hsl(var(--popover-foreground) / <alpha-value>)",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
+          foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
+        },
+
+        // ── Brand scales (from the fyb-hive logo) — variable backed ──
+        gold: {
+          highlight: "var(--gold-highlight)",
+          midtone: "var(--gold-midtone)",
+          bronze: "var(--gold-bronze)",
+          dark: "var(--gold-dark)",
+        },
+        burgundy: {
+          DEFAULT: "var(--rose-burgundy)",
+          shadow: "var(--rose-shadow)",
+        },
+
         // Primary romantic palette
         "champagne-gold": {
           DEFAULT: "rgb(250 214 165)", // fallback without opacity
@@ -225,6 +273,12 @@ const config: Config = {
         'inner-strong': 'inset 0 4px 8px 0 rgba(0, 0, 0, 0.12)',
 
         'magic': '0 10px 40px rgba(147, 51, 234, 0.4), 0 0 60px rgba(147, 51, 234, 0.1)',
+
+        // Brand (fyb-hive logo) — metallic gold + burgundy
+        'gold-glow': '0 0 24px rgba(232, 199, 123, 0.35)',
+        'gold-glow-lg': '0 0 48px rgba(232, 199, 123, 0.45)',
+        'burgundy-glow': '0 0 30px rgba(85, 11, 24, 0.55)',
+        'crest': '0 18px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(232, 199, 123, 0.15)',
       },
       
       borderRadius: {
@@ -240,6 +294,7 @@ const config: Config = {
         'full': '9999px',
         'romantic': '1.25rem',
         'elegant': '0.875rem',
+        'token': 'var(--radius)',
       },
       
       backdropBlur: {
@@ -462,11 +517,30 @@ const config: Config = {
     require("@tailwindcss/typography"),
     require("@tailwindcss/forms"),
     require("@tailwindcss/aspect-ratio"),
-    // require("tailwind-scrollbar")({ nocompatible: true }),
-    
-    // Custom plugin for romantic utilities
+    require("tailwindcss-animate"),
+
+    // Custom plugin for romantic + brand utilities
     function({ addUtilities, theme }: any) {
       addUtilities({
+        // Metallic gold text (matches the logo's brushed-gold finish)
+        ".text-metallic-gold": {
+          background:
+            "linear-gradient(135deg, var(--gold-highlight) 0%, var(--gold-midtone) 45%, var(--gold-highlight) 70%, var(--gold-bronze) 100%)",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+        },
+        ".bg-metallic-gold": {
+          background:
+            "linear-gradient(135deg, var(--gold-highlight) 0%, var(--gold-midtone) 50%, var(--gold-bronze) 100%)",
+        },
+        // Honeycomb pattern (the "Hive") — subtle decorative background
+        ".bg-honeycomb": {
+          backgroundColor: "transparent",
+          backgroundImage:
+            "radial-gradient(circle at 50% 0, transparent 11px, rgba(232,199,123,0.06) 12px, transparent 13px), radial-gradient(circle at 0 50%, transparent 11px, rgba(232,199,123,0.06) 12px, transparent 13px)",
+          backgroundSize: "28px 28px",
+        },
         '.text-shimmer': {
           background: 'linear-gradient(110deg, transparent 25%, rgba(255, 215, 0, 0.8) 50%, transparent 75%)',
           backgroundSize: '200% 100%',

@@ -1,85 +1,83 @@
-import React, { useState, useRef, useEffect } from "react";
-import {
-    Upload,
-    Loader2,
-    X,
-    Check,
-    AlertCircle,
-    Camera,
-    User,
-} from "lucide-react";
+"use client";
+
+import { useRef, useState } from "react";
 import Image from "next/image";
-import {
-    deleteProfileImage,
-    uploadProfileImage,
-} from "@/actions/storage.action";
+import { Upload, Loader2, X, Check, AlertCircle, User } from "lucide-react";
+
+import { deleteProfileImage, uploadProfileImage } from "@/actions/storage.action";
 import { appToast } from "@/providers/ToastProvider";
-import { extractPublicId } from "cloudinary-build-url";
-import { observer } from "mobx-react-lite";
+import { cn } from "@/lib/utils";
 
-interface ElegantImageUploadProps {
+type ImageUploadProps = {
     name: string;
-    onChange: (value: string | File) => void;
-    getValue?: () => string;
+    onChange: (value: string, publicId: string | null) => void;
     circular?: boolean;
-    showPreview?: boolean;
     disable?: boolean;
-    error?: Record<string, string>;
-    label?: string;
+    error?: string;
     value?: string;
-    defaultValue?: string;
-}
+    folder?: string;
+};
 
-const folder = "fybHive";
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+const MAX_SIZE_MB = 5;
+const MIN_DIMENSION = 300;
 
-const ImageUpload: React.FC<ElegantImageUploadProps> = ({
+const HEX_CLIP = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+
+const readDimensions = (file: File): Promise<{ width: number; height: number }> =>
+    new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new window.Image();
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("Could not read image."));
+        };
+        img.src = url;
+    });
+
+const ImageUpload = ({
     name,
     onChange,
-    getValue,
     circular = true,
-    showPreview = true,
     disable = false,
     error,
-    label,
-    value,
-    defaultValue,
-}) => {
+    value = "",
+    folder = "registrations",
+}: ImageUploadProps): React.JSX.Element => {
     const [loading, setLoading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
-    const [uploadSuccess, setUploadSuccess] = useState(false);
     const [publicId, setPublicId] = useState<string | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const url = getValue?.() ?? value ?? defaultValue ?? "";
+    const hasImage = Boolean(value);
+    const errorMessage = error || uploadError;
 
-    const [imageUrl, setImageUrl] = useState<string>(url);
-
-
-    const validateFile = (file: File): string | null => {
-        const acceptedTypes = [
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/jpg",
-        ];
-        const maxSizeMB = 5;
-
-        if (!acceptedTypes.includes(file.type)) {
-            return `Only JPEG, PNG, and WEBP files are allowed!`;
+    const validateFile = async (file: File): Promise<string | null> => {
+        if (!ACCEPTED_TYPES.includes(file.type)) {
+            return "Only JPEG, PNG, and WEBP files are allowed.";
         }
-
-        const fileSizeMB = file.size / 1024 / 1024;
-        if (fileSizeMB > maxSizeMB) {
-            return `Image must be smaller than ${maxSizeMB}MB!`;
+        if (file.size / 1024 / 1024 > MAX_SIZE_MB) {
+            return `Image must be smaller than ${MAX_SIZE_MB}MB.`;
         }
-
+        try {
+            const { width, height } = await readDimensions(file);
+            if (width < MIN_DIMENSION || height < MIN_DIMENSION) {
+                return `Photo is too small. Use at least ${MIN_DIMENSION}×${MIN_DIMENSION}px.`;
+            }
+        } catch {
+            return "Could not read that image. Try another file.";
+        }
         return null;
     };
 
-    const handleFileSelect = async (file: File) => {
-        const validationError = validateFile(file);
+    const handleFileSelect = async (file: File): Promise<void> => {
+        const validationError = await validateFile(file);
         if (validationError) {
             setUploadError(validationError);
             appToast.error(validationError);
@@ -91,94 +89,62 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
 
         setLoading(true);
         setUploadError(null);
-        setUploadSuccess(false);
-        appToast.loading("Uploading image...");
+        const toastId = appToast.loading("Uploading photo…");
 
         try {
-            const result: any = await uploadProfileImage(formData, folder);
-            onChange(result.secure_url);
-            setImageUrl(result.secure_url); // Update local state
-            setUploadSuccess(true);
-            setPublicId(result.public_id);
-            appToast.success("Image uploaded successfully");
-        } catch (err: any) {
-            console.error(err);
-            setUploadError("Failed to upload image: " + err.message);
-            appToast.error("Failed to upload image. Please try again.");
+            const { url, publicId: uploadedId } = await uploadProfileImage(formData, folder);
+            onChange(url, uploadedId);
+            setPublicId(uploadedId);
+            appToast.success("Photo uploaded", toastId);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Upload failed.";
+            setUploadError(message);
+            appToast.error(message, toastId);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDrop = (e: React.DragEvent) => {
+    const handleDrop = (e: React.DragEvent): void => {
         e.preventDefault();
         setDragActive(false);
-
-        const files = Array.from(e.dataTransfer.files);
-        if (files.length > 0) handleFileSelect(files[0]);
+        const file = e.dataTransfer.files?.[0];
+        if (file) void handleFileSelect(file);
     };
 
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-        setDragActive(true);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const file = e.target.files?.[0];
+        if (file) void handleFileSelect(file);
     };
 
-    const handleDragLeave = (e: React.DragEvent) => {
-        e.preventDefault();
-        setDragActive(false);
-    };
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 0) handleFileSelect(files[0]);
-    };
-
-    const removeImage = async (link?: string) => {
-        let pid: string = publicId as string;
-
-        if (!pid && link) {
-            pid = extractPublicId(link);
+    const handleRemove = async (): Promise<void> => {
+        if (deleting || !publicId) {
+            onChange("", null);
+            return;
         }
-
-        if (isDeleting || !pid) return;
-
-        setIsDeleting(true);
-        appToast.loading("Removing image...");
-
+        setDeleting(true);
         try {
-            await deleteProfileImage(pid);
-            onChange("");
-            setImageUrl(""); // Clear local state
-            setUploadError(null);
-            setUploadSuccess(false);
-            setPublicId(null);
-            appToast.success("Image removed successfully");
-        } catch (err) {
-            appToast.error("Failed to remove image");
-            console.error("Failed to delete image:", err);
+            await deleteProfileImage(publicId);
+        } catch {
+            // best-effort cleanup; still clear locally
         } finally {
-            setIsDeleting(false);
-        }
-
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
-
-    const openFileDialog = () => {
-        if (!disable && !loading) {
-            fileInputRef.current?.click();
+            onChange("", null);
+            setPublicId(null);
+            setDeleting(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
         }
     };
 
-    const hasImage = !!imageUrl;
-    const errorMessage = error?.[name] || uploadError;
+    const openFileDialog = (): void => {
+        if (!disable && !loading) fileInputRef.current?.click();
+    };
 
     return (
-        <div className="group relative">
-            {label && <label className="input-label mb-3">{label}</label>}
-
+        <div className="group flex flex-col items-center">
             <input
                 ref={fileInputRef}
                 type="file"
+                name={name}
                 accept="image/jpeg,image/png,image/webp,image/jpg"
                 onChange={handleInputChange}
                 className="hidden"
@@ -186,53 +152,43 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
             />
 
             <div
-                className={`
-                    relative overflow-hidden transition-all duration-300 ease-in-out cursor-pointer rounded-xl
-                    ${circular ? "w-40 h-40 " : "w-full aspect-video"}
-                    ${
-                        dragActive
-                            ? "border-2 border-dashed border-primary bg-primary/10"
-                            : hasImage
-                            ? "border border-stroke dark:border-strokedark"
-                            : errorMessage
-                            ? "border-2 border-dashed border-red-500 bg-red-50 dark:bg-red-900/20"
-                            : "border-2 border-dashed border-stroke dark:border-strokedark bg-alabaster dark:bg-blackho"
-                    }
-                    ${
-                        disable
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:border-primary hover:shadow-solid-5"
-                    }
-                    ${loading ? "pointer-events-none" : ""}
-                    shadow-solid-2
-                `}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
+                role="button"
+                tabIndex={0}
                 onClick={openFileDialog}
+                onKeyDown={(e) => e.key === "Enter" && openFileDialog()}
+                onDrop={handleDrop}
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragActive(true);
+                }}
+                onDragLeave={(e) => {
+                    e.preventDefault();
+                    setDragActive(false);
+                }}
+                className={cn(
+                    "relative flex cursor-pointer items-center justify-center overflow-hidden bg-card/60 transition-all",
+                    circular ? "h-44 w-44 rounded-full" : "aspect-[4/5] w-full rounded-token",
+                    dragActive
+                        ? "ring-2 ring-primary"
+                        : errorMessage
+                          ? "ring-2 ring-destructive"
+                          : "ring-1 ring-border hover:ring-primary/60",
+                    disable && "cursor-not-allowed opacity-60"
+                )}
+                style={!circular ? { clipPath: HEX_CLIP } : undefined}
             >
                 {hasImage ? (
                     <>
-                        <Image
-                            src={imageUrl}
-                            alt="Upload preview"
-                            fill
-                            className={
-                                "object-cover transition-all duration-300 rounded-xl"
-                            }
-                        />
-
-                        {/* Action buttons overlay */}
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+                        <Image src={value} alt="Photo preview" fill className="object-cover" />
+                        <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
                             <button
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     openFileDialog();
                                 }}
-                                disabled={disable || loading}
-                                className="p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors"
-                                title="Change image"
+                                className="rounded-full bg-white/20 p-2 backdrop-blur-sm hover:bg-white/30"
+                                title="Change photo"
                             >
                                 <Upload size={16} className="text-white" />
                             </button>
@@ -240,17 +196,13 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    removeImage(imageUrl);
+                                    void handleRemove();
                                 }}
-                                disabled={disable || loading || isDeleting}
-                                className="p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors"
-                                title="Remove image"
+                                className="rounded-full bg-white/20 p-2 backdrop-blur-sm hover:bg-white/30"
+                                title="Remove photo"
                             >
-                                {isDeleting ? (
-                                    <Loader2
-                                        size={16}
-                                        className="text-white animate-spin"
-                                    />
+                                {deleting ? (
+                                    <Loader2 size={16} className="animate-spin text-white" />
                                 ) : (
                                     <X size={16} className="text-white" />
                                 )}
@@ -258,69 +210,44 @@ const ImageUpload: React.FC<ElegantImageUploadProps> = ({
                         </div>
                     </>
                 ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                    <div className="flex flex-col items-center gap-2 p-4 text-center">
                         {loading ? (
-                            <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
-                        ) : dragActive ? (
-                            <>
-                                <Upload className="w-8 h-8 text-primary mb-2" />
-                                <span className="text-sm text-primary font-medium">
-                                    Drop to upload
-                                </span>
-                            </>
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         ) : errorMessage ? (
-                            <>
-                                <AlertCircle className="w-8 h-8 text-red-500 mb-2" />
-                                <span className="text-sm text-red-500 font-medium">
-                                    Upload failed
-                                </span>
-                            </>
+                            <AlertCircle className="h-8 w-8 text-destructive" />
                         ) : (
-                            <>
-                                <User className="w-8 h-8 text-waterloo dark:text-manatee mb-2" />
-                                <span className="text-sm text-waterloo dark:text-manatee text-center">
-                                    Click to upload
-                                    <br />
-                                    <span className="text-xs">
-                                        or drag and drop
-                                    </span>
-                                </span>
-                            </>
+                            <User className="h-8 w-8 text-muted-foreground" />
                         )}
+                        <span className="text-sm text-muted-foreground">
+                            {loading ? "Uploading…" : "Tap to upload your photo"}
+                        </span>
                     </div>
                 )}
 
                 {loading && (
-                    <div className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 )}
             </div>
 
-            {/* Status messages */}
-            <div className="mt-3 text-center min-h-[20px]">
-                {errorMessage && (
-                    <div className="flex items-center justify-center gap-2 text-red-500">
-                        <AlertCircle size={14} />
-                        <span className="text-sm">{errorMessage}</span>
-                    </div>
-                )}
-
-                {uploadSuccess && !errorMessage && (
-                    <div className="flex items-center justify-center gap-2 text-meta">
-                        <Check size={14} />
-                        <span className="text-sm">Upload successful!</span>
-                    </div>
-                )}
-
-                {!hasImage && !errorMessage && !loading && !uploadSuccess && (
-                    <p className="text-xs text-waterloo dark:text-manatee mt-1">
-                        JPEG, PNG, WEBP (Max 5MB)
-                    </p>
+            <div className="mt-3 min-h-[20px] text-center">
+                {errorMessage ? (
+                    <span className="flex items-center justify-center gap-1.5 text-sm text-destructive">
+                        <AlertCircle size={14} /> {errorMessage}
+                    </span>
+                ) : hasImage ? (
+                    <span className="flex items-center justify-center gap-1.5 text-sm text-primary">
+                        <Check size={14} /> Looking good
+                    </span>
+                ) : (
+                    <span className="text-xs text-muted-foreground">
+                        Clear, front-facing face · JPEG/PNG/WEBP · max {MAX_SIZE_MB}MB
+                    </span>
                 )}
             </div>
         </div>
     );
 };
 
-export default (ImageUpload);
+export default ImageUpload;

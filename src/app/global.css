@@ -2,7 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Design tokens — default palette "army-of-light" (from the fyb-hive logo).
+ * These are the fallback values; src/config/themes.ts + ThemeProvider can
+ * override them at runtime so the whole app re-skins from one place.
+ */
+:root {
+    /* Brand raw colors (fyb-hive logo) */
+    --gold-highlight: #e8c77b;
+    --gold-midtone: #b38841;
+    --gold-bronze: #785121;
+    --gold-dark: #43290e;
+    --rose-burgundy: #550b18;
+    --rose-shadow: #33050d;
+
+    /* Semantic tokens (HSL channels for alpha support) — deep warm, never pure black */
+    --background: 348 30% 9%;
+    --foreground: 40 33% 92%;
+    --card: 348 26% 12%;
+    --card-foreground: 40 33% 92%;
+    --popover: 348 28% 11%;
+    --popover-foreground: 40 33% 92%;
+    --primary: 40 58% 60%;
+    --primary-foreground: 30 55% 12%;
+    --secondary: 349 55% 26%;
+    --secondary-foreground: 40 40% 92%;
+    --accent: 42 70% 70%;
+    --accent-foreground: 30 55% 12%;
+    --muted: 348 18% 18%;
+    --muted-foreground: 40 16% 70%;
+    --border: 40 20% 24%;
+    --input: 40 20% 22%;
+    --ring: 42 68% 60%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --radius: 0.85rem;
+}
+
 @layer base {
+
+    * {
+        @apply border-border;
+    }
+
 
     *,
     *::before,
@@ -16,14 +58,14 @@
     }
 
     body {
-        @apply font-modern bg-gradient-to-br from-pearl-50 via-white to-romance-50 text-pearl-800 overflow-x-hidden antialiased;
+        @apply font-modern bg-background text-foreground overflow-x-hidden antialiased;
+        /* Deep warm dinner ambiance — burgundy/charcoal glow over near-black (never flat black) */
+        background-image:
+            radial-gradient(ellipse 80% 50% at 50% -10%, hsl(var(--secondary) / 0.45), transparent 60%),
+            radial-gradient(ellipse 60% 50% at 100% 0%, hsl(var(--primary) / 0.10), transparent 55%),
+            radial-gradient(ellipse 70% 60% at 0% 100%, hsl(var(--secondary) / 0.25), transparent 60%);
         background-attachment: fixed;
         min-height: 100vh;
-    }
-
-    /* Dark mode body */
-    .dark body {
-        @apply bg-gradient-to-br from-pearl-900 via-luxury-900 to-romance-900 text-pearl-100;
     }
 
     /* Typography hierarchy with romantic styling */
