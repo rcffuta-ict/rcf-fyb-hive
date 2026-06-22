@@ -1,6 +1,5 @@
+import { RegistrationFlow } from "@/features/registration";
 
-import RegistrationForm from "../../../components/Register";
-
-export default function Register() {
-    return <RegistrationForm />;  
+export default function RegisterPage(): React.JSX.Element {
+    return <RegistrationFlow />;
 }

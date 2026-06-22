@@ -39,6 +39,7 @@ const SiteConfigSchema = z.object({
     sponsors: z.array(
         z.object({
             name: z.string(),
+            role: z.string().optional(),
             url: z.string(),
             logo: z.string(),
         })
@@ -70,6 +71,13 @@ const SiteConfigSchema = z.object({
         heroSubtitle: z.string(),
         heroCtaPrimary: z.string(),
         heroCtaSecondary: z.string(),
+        aboutEyebrow: z.string(),
+        aboutBody: z.string(),
+        exploreEyebrow: z.string(),
+        exploreTitle: z.string(),
+        ctaTitle: z.string(),
+        ctaSubtitle: z.string(),
+        ctaButton: z.string(),
         tribute: z.string(),
         poweredBy: z.string(),
         footerNote: z.string(),

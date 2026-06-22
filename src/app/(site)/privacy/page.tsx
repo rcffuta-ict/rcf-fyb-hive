@@ -1,111 +1,91 @@
-import Spacer from "@/components/ui/Spacer";
+import type { Metadata } from "next";
 
-export default function PrivacyPage() {
+import { site } from "@/config/site";
+
+export const metadata: Metadata = {
+    title: `Privacy Policy — ${site.name}`,
+};
+
+type Section = { title: string; body?: string; list?: string[] };
+
+const sections: Section[] = [
+    {
+        title: "1. Information We Collect",
+        body: "We collect details you provide during registration — such as your name, email, department, level, and a photo — looked up against your RCF FUTA membership profile. We also collect basic technical data (device, browser, usage) to keep the platform reliable.",
+    },
+    {
+        title: "2. How We Use Your Information",
+        list: [
+            "To verify finalist eligibility and process registrations.",
+            "To identify attendees at the door using your photo.",
+            "To communicate important event updates.",
+            "To improve and secure the platform.",
+        ],
+    },
+    {
+        title: "3. Sharing of Information",
+        body: "We do not sell or rent your personal information. Limited data may be shared with trusted partners (such as the event organizers) strictly for operational purposes.",
+    },
+    {
+        title: "4. Data Security",
+        body: "We apply technical and organizational measures to protect your information against unauthorized access or misuse. However, no system is fully secure, and you use the platform at your own risk.",
+    },
+    {
+        title: "5. Your Rights",
+        body: "You may request access to, correction of, or deletion of your personal information at any time by contacting the organizers.",
+    },
+    {
+        title: "6. Changes to this Policy",
+        body: "We may update this Privacy Policy occasionally to reflect changes in practice or legal requirements. Updates will be posted on this page.",
+    },
+];
+
+export default function PrivacyPage(): React.JSX.Element {
     return (
-        <section className="min-h-screen bg-gradient-to-b from-luxury-900 via-romance-900 to-pearl-900 text-pearl-100 py-16 px-6">
-            
-            <div className="max-w-4xl mx-auto bg-gradient-to-br from-white/10 to-white/5 dark:from-luxury-800/30 dark:to-luxury-900/20 rounded-3xl shadow-glass backdrop-blur-xl border border-white/20 p-10 animate-fade-in">
-                {/* Header */}
-                <h1 className="text-4xl md:text-5xl font-luxury font-bold bg-gradient-to-r from-champagne-gold to-rose-gold bg-clip-text text-transparent mb-6">
-                    Privacy Policy
-                </h1>
-                <p className="text-pearl-300 font-elegant text-lg mb-12">
-                    Your privacy is important to us. This Privacy Policy
-                    explains how we collect, use, and safeguard your information
-                    when you use the FYB Dinner ‘25 platform.
+        <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+            <div className="surface p-8 sm:p-10">
+                <span className="eyebrow mb-3">Legal</span>
+                <h1 className="font-luxury text-foreground">Privacy Policy</h1>
+                <p className="mt-4 text-foreground/70">
+                    Your privacy matters to us. This policy explains how the {site.event.title}{" "}
+                    platform collects, uses, and safeguards your information.
                 </p>
 
-                {/* Sections */}
-                <section className="mb-10">
-                    <h2 className="text-2xl font-semibold text-champagne-gold-300 mb-3">
-                        1. Information We Collect
-                    </h2>
-                    <p className="text-pearl-200 leading-relaxed">
-                        We may collect personal details you provide during
-                        registration, such as your name, email, department, and
-                        contact information. We also collect technical
-                        information such as device type, browser, and usage data
-                        to improve the experience.
-                    </p>
-                </section>
+                <div className="mt-10 space-y-9">
+                    {sections.map((section) => (
+                        <div key={section.title}>
+                            <h2 className="font-luxury text-xl text-foreground">
+                                {section.title}
+                            </h2>
+                            {section.body && (
+                                <p className="mt-2 leading-relaxed text-foreground/70">
+                                    {section.body}
+                                </p>
+                            )}
+                            {section.list && (
+                                <ul className="mt-3 list-disc space-y-1.5 pl-5 text-foreground/70">
+                                    {section.list.map((item) => (
+                                        <li key={item}>{item}</li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    ))}
 
-                <section className="mb-10">
-                    <h2 className="text-2xl font-semibold text-champagne-gold-300 mb-3">
-                        2. How We Use Your Information
-                    </h2>
-                    <ul className="list-disc pl-6 space-y-2 text-pearl-200">
-                        <li>To process event registrations and ticketing.</li>
-                        <li>To communicate important event updates.</li>
-                        <li>
-                            To ensure fair participation in voting and awards.
-                        </li>
-                        <li>To improve and secure the FYB Dinner platform.</li>
-                    </ul>
-                </section>
-
-                <section className="mb-10">
-                    <h2 className="text-2xl font-semibold text-champagne-gold-300 mb-3">
-                        3. Sharing of Information
-                    </h2>
-                    <p className="text-pearl-200 leading-relaxed">
-                        We do not sell or rent your personal information.
-                        Limited data may be shared with trusted partners (such
-                        as payment processors or event vendors) strictly for
-                        operational purposes.
-                    </p>
-                </section>
-
-                <section className="mb-10">
-                    <h2 className="text-2xl font-semibold text-champagne-gold-300 mb-3">
-                        4. Data Security
-                    </h2>
-                    <p className="text-pearl-200 leading-relaxed">
-                        We implement technical and organizational measures to
-                        protect your information against unauthorized access,
-                        disclosure, or misuse. However, no system is 100%
-                        secure, and you use the platform at your own risk.
-                    </p>
-                </section>
-
-                <section className="mb-10">
-                    <h2 className="text-2xl font-semibold text-champagne-gold-300 mb-3">
-                        5. Your Rights
-                    </h2>
-                    <p className="text-pearl-200 leading-relaxed">
-                        You have the right to access, update, or request
-                        deletion of your personal information. You may also
-                        opt-out of communications at any time by contacting us.
-                    </p>
-                </section>
-
-                <section className="mb-10">
-                    <h2 className="text-2xl font-semibold text-champagne-gold-300 mb-3">
-                        6. Changes to this Policy
-                    </h2>
-                    <p className="text-pearl-200 leading-relaxed">
-                        We may update this Privacy Policy occasionally to
-                        reflect changes in practices or legal requirements.
-                        Updates will be posted on this page.
-                    </p>
-                </section>
-
-                <section>
-                    <h2 className="text-2xl font-semibold text-champagne-gold-300 mb-3">
-                        7. Contact Us
-                    </h2>
-                    <p className="text-pearl-200 leading-relaxed">
-                        If you have any questions or concerns about this Privacy
-                        Policy, please contact the FYB Dinner Organizing
-                        Committee at{" "}
-                        <a
-                            href="mailto:ict@rcffuta.com"
-                            className="text-champagne-gold-400 underline hover:text-champagne-gold-200 transition"
-                        >
-                            ict@rcffuta.com
-                        </a>
-                        .
-                    </p>
-                </section>
+                    <div>
+                        <h2 className="font-luxury text-xl text-foreground">7. Contact Us</h2>
+                        <p className="mt-2 leading-relaxed text-foreground/70">
+                            Questions about this policy? Reach the organizers at{" "}
+                            <a
+                                href={`mailto:${site.contact.email}`}
+                                className="font-medium text-primary hover:underline"
+                            >
+                                {site.contact.email}
+                            </a>
+                            .
+                        </p>
+                    </div>
+                </div>
             </div>
         </section>
     );

@@ -3,9 +3,11 @@
 @tailwind utilities;
 
 /*
- * Design tokens — default palette "army-of-light" (from the fyb-hive logo).
- * These are the fallback values; src/config/themes.ts + ThemeProvider can
- * override them at runtime so the whole app re-skins from one place.
+ * FYB Hive design tokens.
+ * Palette is sampled from the fyb-hive logo (burgundy rose + metallic gold) on a
+ * warm ivory base — premium, never flat black. These :root values are the FOUC
+ * fallback; src/config/themes.ts + ThemeProvider can re-skin the app at runtime.
+ * Semantic tokens use HSL channels so Tailwind's /<alpha-value> modifiers work.
  */
 :root {
     /* Brand raw colors (fyb-hive logo) */
@@ -16,35 +18,33 @@
     --rose-burgundy: #550b18;
     --rose-shadow: #33050d;
 
-    /* Semantic tokens (HSL channels for alpha support) — deep warm, never pure black */
-    --background: 348 30% 9%;
-    --foreground: 40 33% 92%;
-    --card: 348 26% 12%;
-    --card-foreground: 40 33% 92%;
-    --popover: 348 28% 11%;
-    --popover-foreground: 40 33% 92%;
-    --primary: 40 58% 60%;
-    --primary-foreground: 30 55% 12%;
-    --secondary: 349 55% 26%;
-    --secondary-foreground: 40 40% 92%;
-    --accent: 42 70% 70%;
-    --accent-foreground: 30 55% 12%;
-    --muted: 348 18% 18%;
-    --muted-foreground: 40 16% 70%;
-    --border: 40 20% 24%;
-    --input: 40 20% 22%;
-    --ring: 42 68% 60%;
-    --destructive: 0 72% 51%;
+    /* Semantic tokens — premium ivory base, bronze-gold + burgundy accents */
+    --background: 40 40% 97%;
+    --foreground: 345 25% 15%;
+    --card: 40 33% 99%;
+    --card-foreground: 345 25% 15%;
+    --popover: 40 33% 99%;
+    --popover-foreground: 345 25% 15%;
+    --primary: 35 52% 40%;
+    --primary-foreground: 35 45% 14%;
+    --secondary: 349 72% 22%;
+    --secondary-foreground: 40 40% 96%;
+    --accent: 40 52% 90%;
+    --accent-foreground: 349 50% 22%;
+    --muted: 38 24% 93%;
+    --muted-foreground: 345 8% 42%;
+    --border: 38 22% 86%;
+    --input: 38 22% 86%;
+    --ring: 37 55% 50%;
+    --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 98%;
     --radius: 0.85rem;
 }
 
 @layer base {
-
     * {
         @apply border-border;
     }
-
 
     *,
     *::before,
@@ -58,352 +58,125 @@
     }
 
     body {
-        @apply font-modern bg-background text-foreground overflow-x-hidden antialiased;
-        /* Deep warm dinner ambiance — burgundy/charcoal glow over near-black (never flat black) */
+        @apply bg-background text-foreground font-modern antialiased overflow-x-hidden;
+        /* Textured warm ivory — soft gold light + a faint honeycomb weave (no flat white) */
         background-image:
-            radial-gradient(ellipse 80% 50% at 50% -10%, hsl(var(--secondary) / 0.45), transparent 60%),
-            radial-gradient(ellipse 60% 50% at 100% 0%, hsl(var(--primary) / 0.10), transparent 55%),
-            radial-gradient(ellipse 70% 60% at 0% 100%, hsl(var(--secondary) / 0.25), transparent 60%);
+            radial-gradient(ellipse 75% 45% at 50% -8%, hsl(var(--primary) / 0.10), transparent 60%),
+            radial-gradient(ellipse 55% 50% at 100% 2%, hsl(var(--accent) / 0.5), transparent 58%),
+            radial-gradient(ellipse 60% 45% at 0% 100%, hsl(var(--accent) / 0.35), transparent 60%),
+            radial-gradient(circle at 50% 0, transparent 11px, hsl(var(--primary) / 0.05) 12px, transparent 13px),
+            radial-gradient(circle at 0 50%, transparent 11px, hsl(var(--primary) / 0.05) 12px, transparent 13px);
+        background-size: auto, auto, auto, 26px 26px, 26px 26px;
         background-attachment: fixed;
         min-height: 100vh;
     }
 
-    /* Typography hierarchy with romantic styling */
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
+    h1, h2, h3, h4, h5, h6 {
         @apply m-0 p-0 font-luxury tracking-tight;
     }
 
-    h1 {
-        @apply text-5xl md:text-6xl lg:text-7xl font-bold leading-tight;
-    }
+    h1 { @apply text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.08]; }
+    h2 { @apply text-3xl md:text-4xl font-bold leading-tight; }
+    h3 { @apply text-2xl md:text-3xl font-semibold leading-snug; }
+    h4 { @apply text-xl md:text-2xl font-semibold leading-snug; }
+    h5 { @apply text-lg md:text-xl font-medium; }
+    h6 { @apply text-base md:text-lg font-medium; }
 
-    h2 {
-        @apply text-3xl md:text-4xl lg:text-5xl font-bold leading-tight;
-    }
+    p { @apply m-0 p-0 leading-relaxed; }
 
-    h3 {
-        @apply text-2xl md:text-3xl font-semibold leading-snug;
-    }
+    a { @apply transition-colors duration-300; }
 
-    h4 {
-        @apply text-xl md:text-2xl font-semibold leading-snug;
-    }
+    img { @apply max-w-full; }
 
-    h5 {
-        @apply text-lg md:text-xl font-medium leading-normal;
-    }
-
-    h6 {
-        @apply text-base md:text-lg font-medium leading-normal;
-    }
-
-    p {
-        @apply m-0 p-0 leading-relaxed;
-    }
-
-    /* Enhanced form elements */
-    input,
-    textarea,
-    select {
-        @apply font-inherit transition-all duration-350 ease-romantic;
-    }
-
-    input::placeholder,
-    textarea::placeholder {
-        @apply font-inherit text-pearl-400 transition-colors duration-300;
-    }
-
-    input:focus::placeholder,
-    textarea:focus::placeholder {
-        @apply text-pearl-300;
-    }
-
-    /* Lists */
-    ul[role="list"],
-    ol[role="list"] {
-        @apply list-none p-0;
-    }
-
-    /* Images */
-    img {
-        @apply w-full h-auto max-h-full object-cover;
-    }
-
-    /* Links */
-    a {
-        @apply transition-all duration-300 ease-romantic;
-    }
-
-    /* Selection styling */
     ::selection {
-        @apply bg-champagne-gold-30 text-luxury-800;
+        @apply bg-primary/20 text-foreground;
     }
 
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-        @apply w-2;
-    }
-
-    ::-webkit-scrollbar-track {
-        @apply bg-pearl-100 dark:bg-pearl-800;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        @apply bg-champagne-gold rounded-full;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        @apply bg-golden-600;
-    }
+    ::-webkit-scrollbar { @apply w-2; }
+    ::-webkit-scrollbar-track { @apply bg-muted; }
+    ::-webkit-scrollbar-thumb { @apply bg-primary/50 rounded-full; }
+    ::-webkit-scrollbar-thumb:hover { @apply bg-primary/70; }
 }
 
 @layer components {
-
-    /* Enhanced background effects */
-    main::before {
-        content: "";
-        @apply fixed rounded-full -z-10 animate-float-slow;
-        width: clamp(400px, 35vw, 600px);
-        height: clamp(400px, 35vw, 600px);
-        top: -10%;
-        left: 60%;
-        transform: translate(-50%, -50%);
-        @apply bg-golden-400 opacity-10;
-        filter: blur(100px);
+    /* Frosted premium surface */
+    .surface {
+        @apply rounded-token border border-border bg-card/85 backdrop-blur-sm;
+        box-shadow: 0 10px 40px -18px hsl(var(--secondary) / 0.25);
     }
 
-    main::after {
-        content: "";
-        @apply fixed rounded-full -z-10 animate-drift;
-        width: clamp(300px, 30vw, 500px);
-        height: clamp(300px, 30vw, 500px);
-        top: 60%;
-        left: -10%;
-        transform: translate(-50%, -50%);
-        @apply bg-romance-400 opacity-15;
-        filter: blur(80px);
+    /* Surface that lifts + glows on hover */
+    .surface-interactive {
+        @apply rounded-token border border-border bg-card/85 backdrop-blur-sm transition-all duration-300;
+        box-shadow: 0 10px 40px -18px hsl(var(--secondary) / 0.25);
     }
-
-    /* Additional floating elements */
-    /* Note: You can't have multiple ::before pseudoelements - this was causing issues */
-    main::before {
-        content: "";
-        @apply fixed rounded-full -z-10 animate-pulse-romantic;
-        width: clamp(200px, 20vw, 350px);
-        height: clamp(200px, 20vw, 350px);
-        top: 80%;
-        right: -5%;
-        @apply bg-luxury-300 opacity-10;
-        filter: blur(60px);
-    }
-
-    /* Add to your existing CSS */
-    .profile-image-container {
-        width: 160px;
-        height: 160px;
-    }
-
-    .profile-image-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    /* Ensure consistent card heights */
-    .md-grid-cols-2>* {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .md-grid-cols-2>*>.card-romantic {
-        flex: 1;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .profile-image-container {
-            width: 120px;
-            height: 120px;
-        }
-    }
-    
-    /* Enhanced button components */
-    .btn {
-        @apply inline-flex items-center justify-center px-6 py-3 rounded-2xl border-2 transition-all duration-400 ease-romantic font-elegant font-semibold relative overflow-hidden cursor-pointer;
-    }
-
-    .btn::before {
-        content: "";
-        @apply absolute inset-0 bg-shimmer-gold bg-[length:200%_100%] opacity-0 transition-opacity duration-300;
-    }
-
-    .btn:hover::before {
-        @apply opacity-100 animate-shimmer;
-    }
-
-    .btn-primary {
-        @apply bg-champagne-gold text-white border-champagne-gold hover:bg-golden-600 hover:border-golden-600 hover:shadow-golden-glow hover:scale-105 active:scale-95;
-    }
-
-    .btn-secondary {
-        @apply bg-luxury-600 text-white border-luxury-600 hover:bg-luxury-700 hover:border-luxury-700 hover:shadow-rose-glow hover:scale-105 active:scale-95;
-    }
-
-    .btn-outline {
-        @apply bg-transparent border-champagne-gold text-champagne-gold hover:bg-champagne-gold hover:text-white hover:shadow-golden-glow hover:scale-105 active:scale-95;
-    }
-
-    .btn-ghost {
-        @apply bg-glass-warm border-white/20 text-pearl-700 backdrop-blur-md hover:bg-glass-gold hover:text-golden-800 hover:shadow-soft hover:scale-105 active:scale-95;
-    }
-
-    .btn-award {
-        @apply bg-golden-trophy text-white border-golden-600 hover:shadow-trophy-glow hover:scale-110 active:scale-95 animate-award-glow;
-    }
-
-    .btn-romantic {
-        /* FIXED: Using proper gradient classes instead of rose-gold/20 */
-        @apply bg-gradient-to-r from-rose-gold-300 to-rose-gold-400 text-white border-romance-400 hover:shadow-romantic-glow hover:scale-105 active:scale-95 animate-pulse-romantic;
-    }
-
-    /* Size variants */
-    .btn-sm {
-        @apply px-4 py-2 text-sm rounded-lg;
-    }
-
-    .btn-md {
-        @apply px-8 py-3 text-base rounded-xl;
-    }
-
-    .btn-lg {
-        @apply px-12 py-4 text-lg rounded-2xl;
-    }
-
-    .btn-xl {
-        @apply px-16 py-5 text-xl rounded-3xl;
-    }
-
-    /* Card components */
-    .card {
-        @apply bg-glass-warm backdrop-blur-xl border border-white/20 rounded-3xl shadow-glass px-2 py-6 lg:p-6 transition-all duration-400 ease-romantic;
-    }
-
-    .card:hover {
-        @apply shadow-elevated scale-[1.02] border-white/30;
-    }
-
-    .card-romantic {
-        @apply bg-gradient-to-br from-romance-50/60 to-rose-100/30 border-romance-100/40 shadow-soft backdrop-blur-md;
-    }
-
-    .card-luxury {
-        @apply bg-gradient-to-br from-luxury-50/80 to-luxury-400/20 border-luxury-200/30 shadow-magic;
-    }
-
-    .card-award {
-        /* FIXED: Using proper gradient classes */
-        @apply bg-gradient-to-br from-golden-50/80 to-champagne-gold-300/20 border-golden-200/30 shadow-golden-glow animate-glow-pulse;
-    }
-
-    /* Enhanced voter card */
-    .voter-card-container {
-        @apply relative overflow-hidden rounded-3xl transition-all duration-400 ease-romantic;
-    }
-
-    .voter-card-container::before {
-        content: attr(data-label);
-        @apply absolute -top-2 -right-4 text-xs tracking-widest font-bold border-2 px-3 py-1 rounded-full text-champagne-gold border-champagne-gold bg-white/90 backdrop-blur-sm shadow-golden-glow animate-sparkle z-10;
-    }
-
-    .voter-card-container:hover::before {
-        @apply animate-bounce-gentle shadow-trophy-glow;
-    }
-
-    /* Enhanced shimmer effect */
-    .shimmer {
-        @apply absolute top-0 left-[-100%] w-full h-full animate-shimmer z-10;
-        background: linear-gradient(110deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 215, 0, 0.3) 25%,
-                rgba(255, 255, 255, 0.8) 50%,
-                rgba(255, 215, 0, 0.3) 75%,
-                rgba(255, 255, 255, 0) 100%);
-    }
-
-    /* Input components */
-    .input {
-        @apply w-full px-4 py-3 rounded-xl border-2 border-pearl-200 bg-glass-warm backdrop-blur-sm text-pearl-800 transition-all duration-350 ease-romantic focus:border-champagne-gold focus:ring-2 focus:ring-champagne-gold/20 focus:shadow-golden-glow placeholder:text-pearl-400;
-    }
-
-    .input-romantic {
-        @apply border-romance-200 focus:border-romance-400 focus:ring-romance-400/20 focus:shadow-rose-glow;
-    }
-
-    .input-luxury {
-        @apply border-luxury-200 focus:border-luxury-400 focus:ring-luxury-400/20 focus:shadow-magic;
-    }
-
-    /* Text effects */
-    .text-gradient-gold {
-        @apply bg-gradient-to-r from-champagne-gold-400 to-golden-600 bg-clip-text text-transparent;
-    }
-
-    .text-gradient-romantic {
-        /* FIXED: Using proper gradient classes */
-        @apply bg-gradient-to-r from-rose-gold-400 to-romance-500 bg-clip-text text-transparent;
-    }
-
-    .text-gradient-luxury {
-        @apply bg-gradient-to-r from-luxury-600 to-luxury-400 bg-clip-text text-transparent;
-    }
-
-    /* Loading and skeleton effects */
-    .skeleton {
-        @apply bg-gradient-to-r from-pearl-200 via-pearl-100 to-pearl-200 bg-[length:200%_100%] animate-shimmer rounded-lg;
-    }
-
-    .pulse-romantic {
-        @apply animate-pulse-romantic;
-    }
-
-    /* Section dividers */
-    .divider-romantic {
-        @apply h-px bg-gradient-to-r from-transparent via-romance-300 to-transparent my-8 opacity-50;
-    }
-
-    .divider-golden {
-        @apply h-px bg-gradient-to-r from-transparent via-champagne-gold to-transparent my-8 opacity-60;
-    }
-
-    /* Status indicators */
-    .status-online {
-        @apply relative;
-    }
-
-    .status-online::after {
-        content: "";
-        @apply absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-ping;
-    }
-
-    .status-award {
-        @apply relative;
-    }
-
-    .status-award::after {
-        content: "🏆";
-        @apply absolute -top-2 -right-2 text-lg animate-bounce-gentle;
-    }
-
-    .shadow-magic {
+    .surface-interactive:hover {
+        @apply -translate-y-1 border-primary/40;
         box-shadow:
-            0 10px 40px rgba(147, 51, 234, 0.4),
-            0 0 60px rgba(147, 51, 234, 0.1),
-            0 4px 20px rgba(196, 196, 196, 0.1);
+            0 22px 60px -24px hsl(var(--secondary) / 0.45),
+            0 0 0 1px hsl(var(--primary) / 0.18);
+    }
+
+    /* Animated warm aurora wash for hero / feature backdrops (gold, no red tint) */
+    .hero-aurora {
+        background-image:
+            radial-gradient(40% 55% at 14% 8%, hsl(var(--primary) / 0.18), transparent 60%),
+            radial-gradient(46% 55% at 86% 4%, hsl(var(--accent) / 0.6), transparent 62%),
+            radial-gradient(60% 60% at 50% 122%, hsl(var(--primary) / 0.12), transparent 60%);
+        background-size: 160% 160%;
+        @apply animate-gradient-shift;
+    }
+
+    /* Gold shine that sweeps across on hover (apply to the hovered element) */
+    .sheen {
+        @apply relative overflow-hidden;
+    }
+    .sheen::after {
+        content: "";
+        @apply pointer-events-none absolute inset-y-0;
+        left: -150%;
+        width: 70%;
+        transform: skewX(-20deg);
+        background: linear-gradient(
+            110deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        transition: left 0.8s ease;
+    }
+    .sheen:hover::after {
+        left: 160%;
+    }
+
+    /* Hairline gold divider */
+    .divider-gold {
+        @apply h-px w-full border-0;
+        background-image: linear-gradient(
+            to right,
+            transparent,
+            var(--gold-midtone),
+            transparent
+        );
+        opacity: 0.4;
+    }
+
+    /* Eyebrow / kicker label */
+    .eyebrow {
+        @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary;
+    }
+
+    /* Content loading shimmer */
+    .skeleton {
+        @apply rounded-token bg-muted;
+        background-image: linear-gradient(
+            90deg,
+            hsl(var(--muted)) 0%,
+            hsl(var(--accent)) 50%,
+            hsl(var(--muted)) 100%
+        );
+        background-size: 200% 100%;
+        @apply animate-shimmer;
     }
 }
 
@@ -411,101 +184,37 @@
     .font-inherit {
         font-family: inherit !important;
         font-size: inherit !important;
-        font-style: inherit !important;
         font-weight: inherit !important;
         line-height: inherit !important;
     }
 
-    /* Custom spacing utilities */
-    .space-y-romantic>*+* {
-        margin-top: 1.5rem;
-    }
-
-    .space-y-luxury>*+* {
-        margin-top: 2rem;
-    }
-
-    /* Romantic aspect ratios */
-    .aspect-dinner {
-        aspect-ratio: 16 / 10;
-    }
-
-    .aspect-award {
-        aspect-ratio: 4 / 3;
-    }
-
-    .aspect-romantic {
-        aspect-ratio: 3 / 4;
-    }
-
-    /* Custom transforms */
-    .transform-romantic {
-        @apply transition-transform duration-400 ease-romantic;
-    }
-
-    /* Blur utilities */
-    .backdrop-blur-romantic {
-        backdrop-filter: blur(16px) saturate(1.8);
-    }
-
-    /* Custom borders */
-    .border-romantic {
-        border-image: linear-gradient(135deg, #FFE5E5, #FFCCCB, #FFB6C1) 1;
-    }
-
-    .border-golden {
-        border-image: linear-gradient(135deg, #FFD700, #FFA500, #DAA520) 1;
-    }
-
-    /* Interactive utilities */
     .hover-lift {
-        @apply transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-elevated;
+        @apply transition-transform duration-300 hover:-translate-y-1;
     }
 
-    .hover-glow {
-        @apply transition-all duration-300 hover:shadow-golden-glow;
+    /* Tactile grain — layer over a solid/gradient fill for a rough, premium finish */
+    .texture-grain {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
-    .hover-romantic {
-        @apply transition-all duration-300 hover:shadow-romantic-glow hover:scale-105;
-    }
-
-    /* Visibility animations */
+    /* Scroll-reveal helpers */
     .fade-in-up {
-        @apply opacity-0 translate-y-4 transition-all duration-600 ease-out;
+        @apply translate-y-3 opacity-0 transition-all duration-700 ease-out;
     }
-
     .fade-in-up.visible {
-        @apply opacity-100 translate-y-0;
+        @apply translate-y-0 opacity-100;
     }
-
-    .stagger-delay-1 {
-        animation-delay: 100ms;
-    }
-
-    .stagger-delay-2 {
-        animation-delay: 200ms;
-    }
-
-    .stagger-delay-3 {
-        animation-delay: 300ms;
-    }
-
-    .stagger-delay-4 {
-        animation-delay: 400ms;
-    }
-
-    .stagger-delay-5 {
-        animation-delay: 500ms;
-    }
+    .stagger-1 { transition-delay: 80ms; }
+    .stagger-2 { transition-delay: 160ms; }
+    .stagger-3 { transition-delay: 240ms; }
+    .stagger-4 { transition-delay: 320ms; }
 }
 
-
 @media (prefers-reduced-motion: reduce) {
-
     .animate-shimmer,
-    .animate-drift,
-    .animate-float {
+    .animate-float,
+    .animate-float-slow,
+    .animate-drift {
         animation: none !important;
     }
 }

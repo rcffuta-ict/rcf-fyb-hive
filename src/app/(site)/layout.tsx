@@ -1,10 +1,9 @@
-import { ReactNode } from "react";
-import MainWrapper from "@/components/MainWrapper";
+import type { ReactNode } from "react";
 
-interface LayoutProps {
-    children: ReactNode;
-}
+import MainWrapper from "@/components/layout/main-wrapper";
 
-export default function FixedWidthLayout({ children }: LayoutProps) {
+const SiteLayout = ({ children }: { children: ReactNode }): React.JSX.Element => {
     return <MainWrapper>{children}</MainWrapper>;
-}
+};
+
+export default SiteLayout;

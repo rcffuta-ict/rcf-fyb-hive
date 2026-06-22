@@ -1,265 +1,116 @@
 "use client";
-import { handleLinkClick, Menu } from "@/data/menu";
-import { appToast } from "@/providers/ToastProvider";
-import { authStore } from "@/stores/auth.store";
-import { observer } from "mobx-react-lite";
+
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Menu, X } from "lucide-react";
 
+import Logo from "@/components/brand/logo";
+import { Button } from "@/components/ui/button";
+import { liveNavLinks } from "@/constants/navigation";
+import { isFeatureEnabled } from "@/config/site";
+import { cn } from "@/lib/utils";
 
+const Header = (): React.JSX.Element => {
+    const pathname = usePathname();
+    const [open, setOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
 
+    useEffect(() => {
+        const handleScroll = (): void => setScrolled(window.scrollY > 8);
+        handleScroll();
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
-
-function Header() {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const member = authStore.member;
+    const canRegister = isFeatureEnabled("registration");
 
     return (
-        <>
-            <header className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/10 shadow-glass animate-fade-in backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 relative">
-                    {/* Enhanced ambient glow effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-golden-400/5 via-romance-400/10 to-luxury-400/5 animate-pulse-romantic"></div>
-                    <div className="absolute top-0 left-1/3 w-32 h-16 bg-champagne-gold/10 blur-2xl animate-float-slow"></div>
-                    <div className="absolute bottom-0 right-1/4 w-24 h-12 bg-romance-400/15 blur-xl animate-drift"></div>
+        <header
+            className={cn(
+                "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+                scrolled
+                    ? "border-b border-border bg-background/85 backdrop-blur-xl"
+                    : "border-b border-transparent"
+            )}
+        >
+            <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+                <Logo size={40} withWordmark href="/" />
 
-                    {/* Logo + Branding - Enhanced */}
-                    <Link
-                        href="/"
-                        className="flex flex-col group relative z-10 animate-slide-right hover:scale-105 transition-transform duration-400"
-                    >
-                        <div className="flex items-center space-x-2 sm:space-x-3">
-                            {/* More elegant icon */}
-                            <div className="relative">
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-champagne-gold via-golden-400 to-golden-600 rounded-full flex items-center justify-center shadow-golden-glow animate-glow-pulse">
-                                    <span className="text-white font-bold text-sm sm:text-lg drop-shadow-lg">
-                                        🌹
-                                    </span>
-                                </div>
-                                <div className="absolute inset-0 bg-champagne-gold rounded-full animate-ping opacity-20"></div>
-                            </div>
-
-                            <div className="flex flex-col">
-                                <span className="text-xl sm:text-3xl font-luxury font-bold tracking-tight bg-gradient-to-r from-golden-300 via-champagne-gold to-golden-400 bg-clip-text text-transparent group-hover:animate-shimmer transition-all duration-400">
-                                    FYB Hive
-                                </span>
-                                <span className="text-xs font-elegant text-pearl-300 group-hover:text-golden-300 transition-colors duration-300 tracking-wide hidden sm:block">
-                                    {"RCF FUTA Finalists' Dinner ✨"}
-                                </span>
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center space-x-6 relative z-10">
-                        {Menu.map((item, index) => (
+                <nav className="hidden items-center gap-1 md:flex">
+                    {liveNavLinks.map((link) => {
+                        const active = pathname === link.href;
+                        return (
                             <Link
-                                key={index}
-                                href={item.href}
-                                className="group relative px-4 py-3 rounded-xl transition-all duration-350 hover:bg-glass-warm hover:shadow-rose-glow hover:scale-105 animate-slide-up"
-                                style={{ animationDelay: `${index * 100}ms` }}
-                                onClick={(e)=>handleLinkClick(e, item, member)}
+                                key={link.href}
+                                href={link.href}
+                                className={cn(
+                                    "rounded-token px-4 py-2 text-sm font-medium transition-colors",
+                                    active
+                                        ? "text-primary"
+                                        : "text-foreground/70 hover:text-foreground"
+                                )}
                             >
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-xl group-hover:animate-bounce-gentle transition-transform filter drop-shadow-lg">
-                                        {item.icon.sub}
-                                    </span>
-                                    <span className="text-sm font-elegant font-medium text-pearl-200 group-hover:text-white transition-colors duration-300">
-                                        {item.label}
-                                    </span>
-                                </div>
-
-                                {/* Enhanced underline effect */}
-                                <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-champagne-gold to-golden-400 group-hover:w-full transition-all duration-500 ease-romantic"></div>
-
-                                {/* Glowing border on hover */}
-                                <div className="absolute inset-0 rounded-xl border border-transparent group-hover:border-champagne-gold/30 group-hover:shadow-golden-glow/20 transition-all duration-400"></div>
-
-                                {/* Background glow */}
-                                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-champagne-gold/5 to-romance-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                {link.label}
                             </Link>
-                        ))}
-                    </nav>
+                        );
+                    })}
+                </nav>
 
-                    {/* Desktop User Highlight */}
-                    <div className="hidden md:block relative z-10">
-                        <UserHighlight />
-                    </div>
-
-                    {/* Enhanced Mobile menu button */}
-                    <div className="md:hidden flex items-center space-x-3 relative z-10">
-                        {/* Mobile User Highlight (simplified) */}
-                        <div className="md:hidden">
-                            <MobileUserHighlight />
-                        </div>
-
-                        <button
-                            onClick={() =>
-                                setIsMobileMenuOpen(!isMobileMenuOpen)
-                            }
-                            className="p-2 rounded-xl glass-effect hover:bg-glass-warm transition-all duration-300 animate-scale-in group"
-                        >
-                            <div className="w-5 h-5 flex flex-col justify-center space-y-1">
-                                <div
-                                    className={`w-full h-0.5 bg-champagne-gold transition-all duration-300 ${
-                                        isMobileMenuOpen
-                                            ? "rotate-45 translate-y-1.5"
-                                            : ""
-                                    }`}
-                                ></div>
-                                <div
-                                    className={`w-full h-0.5 bg-champagne-gold transition-all duration-300 ${
-                                        isMobileMenuOpen ? "opacity-0" : ""
-                                    }`}
-                                ></div>
-                                <div
-                                    className={`w-full h-0.5 bg-champagne-gold transition-all duration-300 ${
-                                        isMobileMenuOpen
-                                            ? "-rotate-45 -translate-y-1.5"
-                                            : ""
-                                    }`}
-                                ></div>
-                            </div>
-                        </button>
-                    </div>
-
-                    {/* Enhanced decorative elements */}
-                    <div className="absolute top-2 right-20 w-2 h-2 bg-golden-400 rounded-full animate-twinkle opacity-70 shadow-golden-glow hidden sm:block"></div>
-                    <div
-                        className="absolute bottom-3 left-32 w-1.5 h-1.5 bg-romance-400 rounded-full animate-sparkle opacity-50 hidden sm:block"
-                        style={{ animationDelay: "1s" }}
-                    ></div>
-                    <div
-                        className="absolute top-4 left-1/2 w-1 h-1 bg-luxury-400 rounded-full animate-twinkle opacity-60 hidden sm:block"
-                        style={{ animationDelay: "1.5s" }}
-                    ></div>
+                <div className="hidden md:block">
+                    {canRegister && (
+                        <Button asChild size="sm">
+                            <Link href="/register">Register</Link>
+                        </Button>
+                    )}
                 </div>
 
-                {/* Enhanced bottom gradient border */}
-                <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-champagne-gold to-transparent opacity-50 animate-pulse-romantic"></div>
+                <button
+                    type="button"
+                    aria-label={open ? "Close menu" : "Open menu"}
+                    aria-expanded={open}
+                    onClick={() => setOpen((v) => !v)}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-token text-foreground/80 hover:bg-foreground/5 md:hidden"
+                >
+                    {open ? <X size={20} /> : <Menu size={20} />}
+                </button>
+            </div>
 
-                {/* Mobile Menu */}
-                {isMobileMenuOpen && (
-                    <div className="absolute top-full left-0 right-0 md:hidden bg-glass-rose border-b border-white/10 animate-slide-down">
-                        <div className="px-4 sm:px-6 py-4 space-y-3">
-                            {Menu.map((item) => (
+            {open && (
+                <div className="border-t border-border bg-background/95 backdrop-blur-xl md:hidden">
+                    <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 sm:px-6">
+                        {liveNavLinks.map((link) => {
+                            const Icon = link.icon;
+                            const active = pathname === link.href;
+                            return (
                                 <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-glass-gold transition-all duration-300"
-                                    onClick={(e) => {
-                                        setIsMobileMenuOpen(false);
-                                        handleLinkClick(e, item, member)
-                                    }}
+                                    key={link.href}
+                                    href={link.href}
+                                    onClick={() => setOpen(false)}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-token px-3 py-3 text-sm font-medium transition-colors",
+                                        active
+                                            ? "bg-accent text-accent-foreground"
+                                            : "text-foreground/80 hover:bg-foreground/5"
+                                    )}
                                 >
-                                    <span className="text-lg">{item.icon.sub}</span>
-                                    <span className="text-pearl-200 font-elegant">
-                                        {item.label}
-                                    </span>
+                                    <Icon size={18} className="text-primary" />
+                                    {link.label}
                                 </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
-            </header>
-        </>
+                            );
+                        })}
+                        {canRegister && (
+                            <Button asChild className="mt-2">
+                                <Link href="/register" onClick={() => setOpen(false)}>
+                                    Register for the Dinner
+                                </Link>
+                            </Button>
+                        )}
+                    </nav>
+                </div>
+            )}
+        </header>
     );
-}
+};
 
-export default observer(Header);
-
-const UserHighlight = observer(() => {
-    const [isHovered, setIsHovered] = useState(false);
-    const auth = authStore;
-    const router = useRouter()
-
-    const isLoggedIn = auth.isAuthenticated;
-    const userLabel =
-        auth.member?.firstname || auth.member?.email || "Dashboard";
-
-    const handleClick = (e: React.MouseEvent) => {
-        if (isLoggedIn) {
-            e.preventDefault();
-            let userResponse = confirm("Are you sure you want to logout?");
-
-            if (userResponse) {
-                // Code to execute if the user clicked "OK" (Yes)
-                auth.logout();
-                appToast.success("Logged out successfully");
-                router.replace("/")
-            }
-        }
-    };
-
-    return (
-        <Link
-            href={isLoggedIn ? "/" : "/login"}
-            onClick={handleClick}
-            className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl 
-             bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 
-             text-white font-semibold shadow-md hover:shadow-lg 
-             transition-all duration-300 ease-out hover:scale-[1.03] active:scale-[0.97]"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            title={isLoggedIn ? "Log out":"Log in"}
-        >
-            {/* Icon */}
-            <span className="text-lg">{isLoggedIn ? "👤" : "🔐"}</span>
-
-            {/* Text */}
-            <span className="text-sm tracking-wide">
-                {isLoggedIn ? userLabel : "Login"}
-            </span>
-
-            {/* Arrow animation */}
-            <span
-                className={`text-sm transition-all duration-300 ${
-                    isHovered ? "translate-x-1 opacity-100" : "opacity-0"
-                }`}
-            >
-                →
-            </span>
-
-            {/* Subtle shimmer */}
-            {/* <div
-                className="absolute inset-0 rounded-xl bg-gradient-to-r 
-                  from-transparent via-white/20 to-transparent 
-                  -translate-x-full group-hover:translate-x-full 
-                  transition-transform duration-1000 ease-out pointer-events-none"
-            ></div> */}
-        </Link>
-    );
-});
-
-const MobileUserHighlight = observer(() => {
-    const auth = authStore;
-    const isLoggedIn = auth.isAuthenticated;
-    const router = useRouter();
-
-    const handleClick = (e: React.MouseEvent) => {
-        if (isLoggedIn) {
-            e.preventDefault();
-
-            let userResponse = confirm("Are you sure you want to logout?");
-
-            if (userResponse) {
-                // Code to execute if the user clicked "OK" (Yes)
-                auth.logout();
-                appToast.success("Logged out successfully");
-                router.replace("/");
-            }
-
-        }
-    };
-
-    return (
-        <Link
-            href={isLoggedIn ? "/" : "/login"}
-            onClick={handleClick}
-            className="p-2 rounded-xl bg-gradient-to-r from-champagne-gold/20 to-golden-400/20 border border-champagne-gold/30 text-pearl-200 hover:bg-glass-gold transition-all duration-300"
-        >
-            <span className="text-lg">{isLoggedIn ? "👤" : "🔐"}</span>
-        </Link>
-    );
-});
+export default Header;
