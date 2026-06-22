@@ -7,7 +7,9 @@ import { computeLevel, isFinalistLevel, parseSessionYear } from "@/lib/eligibili
 import type {
     Gender,
     LookupResult,
+    MemberLeadership,
     MemberLookup,
+    MemberUnit,
     RegisterResult,
     RegistrationRecord,
 } from "@/types/fyb.types";
@@ -20,9 +22,23 @@ type ProfileRow = {
     email: string | null;
     phone_number: string | null;
     department: string | null;
+    faculty: string | null;
+    matric_number: string | null;
     avatar_url: string | null;
     entry_year: number | null;
     class_sets: { entry_year: number | null } | null;
+};
+
+type ActiveTenure = { id: string; sessionYear: number | null };
+
+type MembershipUnitRow = {
+    role: string | null;
+    units: { name: string; type: string } | null;
+};
+
+type LeadershipRow = {
+    leadership_positions: { title: string; category: string } | null;
+    units: { name: string } | null;
 };
 
 type RegistrationRow = {
@@ -42,7 +58,7 @@ type RegistrationRow = {
 };
 
 const PROFILE_COLUMNS =
-    "id, first_name, last_name, gender, email, phone_number, department, avatar_url, entry_year, class_sets(entry_year)";
+    "id, first_name, last_name, gender, email, phone_number, department, faculty, matric_number, avatar_url, entry_year, class_sets(entry_year)";
 
 const isEmail = (value: string): boolean => value.includes("@");
 
@@ -78,14 +94,63 @@ const toRegistrationRecord = (row: RegistrationRow): RegistrationRecord => ({
     createdAt: row.created_at,
 });
 
-const getSessionYear = async (): Promise<number | null> => {
+const getActiveTenure = async (): Promise<ActiveTenure | null> => {
     const supabase = createServerSupabase();
     const { data } = await supabase
         .from("tenures")
-        .select("session")
+        .select("id, session")
         .eq("is_active", true)
-        .maybeSingle();
-    return parseSessionYear(data?.session);
+        .maybeSingle<{ id: string; session: string | null }>();
+    if (!data) return null;
+    return { id: data.id, sessionYear: parseSessionYear(data.session) };
+};
+
+/**
+ * Read-only affiliations (units + leadership) for the active tenure. Used purely
+ * to enrich the preview screen — never persisted. Failures degrade gracefully to
+ * empty lists so they can't block a registration.
+ */
+const getMemberAffiliations = async (
+    profileId: string,
+    tenureId: string | null
+): Promise<{ units: MemberUnit[]; leadership: MemberLeadership[] }> => {
+    if (!tenureId) return { units: [], leadership: [] };
+
+    const supabase = createServerSupabase();
+    const [unitsRes, leadershipRes] = await Promise.all([
+        supabase
+            .from("membership_units")
+            .select("role, units(name, type)")
+            .eq("profile_id", profileId)
+            .eq("tenure_id", tenureId)
+            .returns<MembershipUnitRow[]>(),
+        supabase
+            .from("leadership")
+            .select("leadership_positions(title, category), units(name)")
+            .eq("profile_id", profileId)
+            .eq("tenure_id", tenureId)
+            .returns<LeadershipRow[]>(),
+    ]);
+
+    const units: MemberUnit[] = (unitsRes.data ?? [])
+        .filter((row): row is MembershipUnitRow & { units: NonNullable<MembershipUnitRow["units"]> } =>
+            Boolean(row.units)
+        )
+        .map((row) => ({ name: row.units.name, type: row.units.type, role: row.role }));
+
+    const leadership: MemberLeadership[] = (leadershipRes.data ?? [])
+        .filter(
+            (row): row is LeadershipRow & {
+                leadership_positions: NonNullable<LeadershipRow["leadership_positions"]>;
+            } => Boolean(row.leadership_positions)
+        )
+        .map((row) => ({
+            title: row.leadership_positions.title,
+            category: row.leadership_positions.category,
+            unit: row.units?.name ?? null,
+        }));
+
+    return { units, leadership };
 };
 
 const resolveProfile = async (identifier: string): Promise<ProfileRow | null> => {
@@ -108,7 +173,11 @@ const resolveProfile = async (identifier: string): Promise<ProfileRow | null> =>
     return data ?? null;
 };
 
-const toMemberLookup = (row: ProfileRow, level: string | null): MemberLookup => ({
+const toMemberLookup = (
+    row: ProfileRow,
+    level: string | null,
+    affiliations?: { units: MemberUnit[]; leadership: MemberLeadership[] }
+): MemberLookup => ({
     profileId: row.id,
     firstName: row.first_name,
     lastName: row.last_name,
@@ -116,9 +185,13 @@ const toMemberLookup = (row: ProfileRow, level: string | null): MemberLookup => 
     phoneNumber: row.phone_number,
     gender: (row.gender as Gender | null) ?? null,
     department: row.department,
+    faculty: row.faculty,
+    matricNumber: row.matric_number,
     avatarUrl: row.avatar_url,
     entryYear: row.class_sets?.entry_year ?? row.entry_year,
     level,
+    units: affiliations?.units ?? [],
+    leadership: affiliations?.leadership ?? [],
 });
 
 /**
@@ -133,8 +206,8 @@ export async function lookupMember(identifier: string): Promise<LookupResult> {
         const profile = await resolveProfile(value);
         if (!profile) return { status: "not_member" };
 
-        const sessionYear = await getSessionYear();
-        if (!sessionYear) {
+        const tenure = await getActiveTenure();
+        if (!tenure?.sessionYear) {
             return {
                 status: "config_error",
                 message: "No active session is configured. Please contact the organizers.",
@@ -142,11 +215,10 @@ export async function lookupMember(identifier: string): Promise<LookupResult> {
         }
 
         const entryYear = profile.class_sets?.entry_year ?? profile.entry_year;
-        const level = computeLevel(entryYear, sessionYear);
-        const member = toMemberLookup(profile, level);
+        const level = computeLevel(entryYear, tenure.sessionYear);
 
         if (!isFinalistLevel(level)) {
-            return { status: "not_finalist", member };
+            return { status: "not_finalist", member: toMemberLookup(profile, level) };
         }
 
         const supabase = createServerSupabase();
@@ -156,9 +228,13 @@ export async function lookupMember(identifier: string): Promise<LookupResult> {
             .eq("profile_id", profile.id)
             .maybeSingle();
 
-        if (existing) return { status: "already_registered", member };
+        if (existing) {
+            return { status: "already_registered", member: toMemberLookup(profile, level) };
+        }
 
-        return { status: "eligible", member };
+        // Only the eligible path pays for affiliations — they enrich the preview.
+        const affiliations = await getMemberAffiliations(profile.id, tenure.id);
+        return { status: "eligible", member: toMemberLookup(profile, level, affiliations) };
     } catch (error) {
         console.error("lookupMember failed:", error);
         return { status: "error", message: "Something went wrong. Please try again." };
@@ -190,9 +266,9 @@ export async function registerFinalist(input: RegisterInput): Promise<RegisterRe
 
         if (!profile) return { status: "not_eligible", message: "Member not found." };
 
-        const sessionYear = await getSessionYear();
+        const tenure = await getActiveTenure();
         const entryYear = profile.class_sets?.entry_year ?? profile.entry_year;
-        const level = computeLevel(entryYear, sessionYear);
+        const level = computeLevel(entryYear, tenure?.sessionYear);
 
         if (!isFinalistLevel(level)) {
             return {

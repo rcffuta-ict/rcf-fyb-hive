@@ -7,7 +7,7 @@ import type {
     RegistrationRecord,
 } from "@/types/fyb.types";
 
-type Step = "identify" | "review" | "done";
+type Step = "identify" | "photo" | "preview" | "done";
 
 type RegistrationState = {
     step: Step;
@@ -24,6 +24,7 @@ type RegistrationState = {
     setIdentifier: (value: string) => void;
     setPhoto: (url: string, publicId: string | null) => void;
     lookup: (identifier: string) => Promise<void>;
+    proceedToPreview: () => void;
     submit: () => Promise<void>;
     back: () => void;
     reset: () => void;
@@ -43,7 +44,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
 
     setIdentifier: (value) => set({ identifier: value, error: null }),
 
-    setPhoto: (url, publicId) => set({ photoUrl: url, photoPublicId: publicId }),
+    setPhoto: (url, publicId) => set({ photoUrl: url, photoPublicId: publicId, error: null }),
 
     lookup: async (identifier) => {
         set({ looking: true, error: null });
@@ -51,21 +52,26 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
         set({ lookupStatus: result.status, member: result.member ?? null, looking: false });
 
         if (result.status === "eligible") {
-            set({
-                step: "review",
-                photoUrl: result.member?.avatarUrl ?? "",
-                photoPublicId: null,
-            });
+            // Start the photo step empty — registrants must upload a clear face shot.
+            set({ step: "photo", photoUrl: "", photoPublicId: null });
         } else if (result.status === "error" || result.status === "config_error") {
             set({ error: result.message ?? "Something went wrong." });
         }
+    },
+
+    proceedToPreview: () => {
+        if (!get().photoUrl) {
+            set({ error: "Please upload a clear photo of your face." });
+            return;
+        }
+        set({ step: "preview", error: null });
     },
 
     submit: async () => {
         const { member, photoUrl, photoPublicId } = get();
         if (!member) return;
         if (!photoUrl) {
-            set({ error: "Please upload a clear photo of your face." });
+            set({ error: "Please upload a clear photo of your face.", step: "photo" });
             return;
         }
 
@@ -84,7 +90,15 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
         }
     },
 
-    back: () => set({ step: "identify", lookupStatus: null, member: null, error: null }),
+    back: () => {
+        const { step } = get();
+        if (step === "preview") {
+            set({ step: "photo", error: null });
+            return;
+        }
+        // From the photo step, go back to identify and clear the resolved member.
+        set({ step: "identify", lookupStatus: null, member: null, error: null });
+    },
 
     reset: () =>
         set({

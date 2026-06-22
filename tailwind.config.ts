@@ -6,9 +6,10 @@ import animate from "tailwindcss-animate";
 
 const config: Config = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    // Scan the whole src tree — feature screens (src/features/**) use utilities
+    // not present elsewhere (e.g. the stepper's `w-9`, the search input's `pl-11`).
+    // Omitting them previously meant those classes were never generated.
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
