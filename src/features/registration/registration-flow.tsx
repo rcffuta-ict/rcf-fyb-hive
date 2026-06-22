@@ -35,9 +35,17 @@ const RegistrationFlow = (): React.JSX.Element => {
 
             <ol className="mx-auto mt-8 flex max-w-md items-center justify-between">
                 {STEPS.map((s, i) => {
-                    const state = i < activeIndex ? "done" : i === activeIndex ? "active" : "todo";
+                    const state =
+                        i < activeIndex
+                            ? "done"
+                            : i === activeIndex
+                              ? "active"
+                              : "todo";
                     return (
-                        <li key={s.key} className="flex flex-1 items-center last:flex-none">
+                        <li
+                            key={s.key}
+                            className="flex flex-1 items-center last:flex-none"
+                        >
                             <div className="flex flex-col items-center gap-2">
                                 <span
                                     className={cn(
@@ -50,7 +58,11 @@ const RegistrationFlow = (): React.JSX.Element => {
                                             "border-border bg-card text-muted-foreground"
                                     )}
                                 >
-                                    {state === "done" ? <Check size={16} /> : i + 1}
+                                    {state === "done" ? (
+                                        <Check size={16} />
+                                    ) : (
+                                        i + 1
+                                    )}
                                 </span>
                                 <span
                                     className={cn(
@@ -67,7 +79,9 @@ const RegistrationFlow = (): React.JSX.Element => {
                                 <span
                                     className={cn(
                                         "mx-2 h-px flex-1 transition-colors duration-300",
-                                        i < activeIndex ? "bg-primary/50" : "bg-border"
+                                        i < activeIndex
+                                            ? "bg-primary/50"
+                                            : "bg-border"
                                     )}
                                 />
                             )}
@@ -78,7 +92,7 @@ const RegistrationFlow = (): React.JSX.Element => {
 
             <div className="mt-10">
                 {step === "identify" && <IdentifyStep />}
-                {step === "review" && <ReviewStep />}
+                {step === "preview" && <ReviewStep />}
                 {step === "done" && <SuccessStep />}
             </div>
         </section>
