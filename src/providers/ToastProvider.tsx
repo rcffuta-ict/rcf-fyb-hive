@@ -25,7 +25,7 @@ export const GlobalToastProvider: React.FC<Props> = ({ children }) => {
         <>
             {children}
             <Toaster
-                position="bottom-center"
+                position="top-center"
                 toastOptions={{
                     // Default style
                     style: {
@@ -43,10 +43,7 @@ export const GlobalToastProvider: React.FC<Props> = ({ children }) => {
                     },
                     success: {
                         icon: (
-                            <CheckCircle
-                                className="text-primary"
-                                size={24}
-                            />
+                            <CheckCircle className="text-primary" size={24} />
                         ),
                         style: {
                             background: "rgba(16, 185, 129, 0.15)",
@@ -215,9 +212,7 @@ export const appToast = {
     // Additional elegant toast variants
     elegant: (
         message: string,
-        icon: React.ReactNode = (
-            <Sparkles className="text-primary" size={22} />
-        ),
+        icon: React.ReactNode = <Sparkles className="text-primary" size={22} />,
         id?: string
     ) =>
         hotToast(message, {

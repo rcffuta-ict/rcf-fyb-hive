@@ -4,25 +4,29 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { Upload, Loader2, X, Check, AlertCircle, User } from "lucide-react";
 
-import { deleteProfileImage, uploadProfileImage } from "@/actions/storage.action";
+import { verifyFacePhoto } from "@/actions/storage.action";
 import { appToast } from "@/providers/ToastProvider";
 import { cn } from "@/lib/utils";
+import { downscaleImage } from "@/lib/image";
 
 type ImageUploadProps = {
     name: string;
-    onChange: (value: string, publicId: string | null) => void;
+    value?: string;
+    onSelect: (file: File, previewUrl: string) => void;
+    onClear: () => void;
     circular?: boolean;
     disable?: boolean;
     error?: string;
-    value?: string;
-    folder?: string;
 };
+
+type Phase = "idle" | "optimizing" | "verifying";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 const MAX_SIZE_MB = 5;
 const MIN_DIMENSION = 300;
 
-const HEX_CLIP = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+const isLocalPreview = (src: string): boolean =>
+    src.startsWith("blob:") || src.startsWith("data:");
 
 const readDimensions = (file: File): Promise<{ width: number; height: number }> =>
     new Promise((resolve, reject) => {
@@ -41,20 +45,19 @@ const readDimensions = (file: File): Promise<{ width: number; height: number }> 
 
 const ImageUpload = ({
     name,
-    onChange,
+    value = "",
+    onSelect,
+    onClear,
     circular = true,
     disable = false,
     error,
-    value = "",
-    folder = "registrations",
 }: ImageUploadProps): React.JSX.Element => {
-    const [loading, setLoading] = useState(false);
+    const [phase, setPhase] = useState<Phase>("idle");
     const [dragActive, setDragActive] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
-    const [publicId, setPublicId] = useState<string | null>(null);
-    const [deleting, setDeleting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const busy = phase !== "idle";
     const hasImage = Boolean(value);
     const errorMessage = error || uploadError;
 
@@ -84,24 +87,34 @@ const ImageUpload = ({
             return;
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
-
-        setLoading(true);
         setUploadError(null);
-        const toastId = appToast.loading("Uploading photo…");
+        const toastId = appToast.loading("Preparing your photo…");
 
         try {
-            const { url, publicId: uploadedId } = await uploadProfileImage(formData, folder);
-            onChange(url, uploadedId);
-            setPublicId(uploadedId);
-            appToast.success("Photo uploaded", toastId);
+            // Shrink first so the face check (and the later save) stay fast on
+            // slow connections.
+            setPhase("optimizing");
+            const processed = await downscaleImage(file);
+
+            // Verify the face now, but DON'T persist — the real upload is at confirm.
+            setPhase("verifying");
+            appToast.loading("Checking your face…", toastId);
+            const fd = new FormData();
+            fd.append("file", processed);
+            await verifyFacePhoto(fd);
+
+            const previewUrl = URL.createObjectURL(processed);
+            onSelect(processed, previewUrl);
+            appToast.success("Face verified", toastId);
         } catch (err) {
-            const message = err instanceof Error ? err.message : "Upload failed.";
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "We couldn't verify that photo. Please try again.";
             setUploadError(message);
             appToast.error(message, toastId);
         } finally {
-            setLoading(false);
+            setPhase("idle");
         }
     };
 
@@ -117,27 +130,23 @@ const ImageUpload = ({
         if (file) void handleFileSelect(file);
     };
 
-    const handleRemove = async (): Promise<void> => {
-        if (deleting || !publicId) {
-            onChange("", null);
-            return;
-        }
-        setDeleting(true);
-        try {
-            await deleteProfileImage(publicId);
-        } catch {
-            // best-effort cleanup; still clear locally
-        } finally {
-            onChange("", null);
-            setPublicId(null);
-            setDeleting(false);
-            if (fileInputRef.current) fileInputRef.current.value = "";
-        }
+    const handleRemove = (): void => {
+        setUploadError(null);
+        onClear();
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const openFileDialog = (): void => {
-        if (!disable && !loading) fileInputRef.current?.click();
+        if (!disable && !busy) fileInputRef.current?.click();
     };
+
+    const idleLabel = errorMessage ? "Tap to try another photo" : "Tap to upload your photo";
+    const phaseLabel =
+        phase === "optimizing"
+            ? "Preparing your photo…"
+            : phase === "verifying"
+              ? "Checking your face…"
+              : idleLabel;
 
     return (
         <div className="group flex flex-col items-center">
@@ -148,7 +157,7 @@ const ImageUpload = ({
                 accept="image/jpeg,image/png,image/webp,image/jpg"
                 onChange={handleInputChange}
                 className="hidden"
-                disabled={disable || loading}
+                disabled={disable || busy}
             />
 
             <div
@@ -167,7 +176,7 @@ const ImageUpload = ({
                 }}
                 className={cn(
                     "relative flex cursor-pointer items-center justify-center overflow-hidden bg-card/60 transition-all",
-                    circular ? "h-44 w-44 rounded-full" : "aspect-[4/5] w-full rounded-token",
+                    circular ? "h-44 w-44 rounded-xl" : "aspect-[4/5] w-full rounded-token",
                     dragActive
                         ? "ring-2 ring-primary"
                         : errorMessage
@@ -175,11 +184,16 @@ const ImageUpload = ({
                           : "ring-1 ring-border hover:ring-primary/60",
                     disable && "cursor-not-allowed opacity-60"
                 )}
-                style={!circular ? { clipPath: HEX_CLIP } : undefined}
             >
                 {hasImage ? (
                     <>
-                        <Image src={value} alt="Photo preview" fill className="object-cover" />
+                        <Image
+                            src={value}
+                            alt="Photo preview"
+                            fill
+                            className="object-cover"
+                            unoptimized={isLocalPreview(value)}
+                        />
                         <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
                             <button
                                 type="button"
@@ -196,53 +210,48 @@ const ImageUpload = ({
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    void handleRemove();
+                                    handleRemove();
                                 }}
                                 className="rounded-full bg-white/20 p-2 backdrop-blur-sm hover:bg-white/30"
                                 title="Remove photo"
                             >
-                                {deleting ? (
-                                    <Loader2 size={16} className="animate-spin text-white" />
-                                ) : (
-                                    <X size={16} className="text-white" />
-                                )}
+                                <X size={16} className="text-white" />
                             </button>
                         </div>
                     </>
                 ) : (
                     <div className="flex flex-col items-center gap-2 p-4 text-center">
-                        {loading ? (
+                        {busy ? (
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         ) : errorMessage ? (
                             <AlertCircle className="h-8 w-8 text-destructive" />
                         ) : (
                             <User className="h-8 w-8 text-muted-foreground" />
                         )}
-                        <span className="text-sm text-muted-foreground">
-                            {loading ? "Uploading…" : "Tap to upload your photo"}
-                        </span>
+                        <span className="text-sm text-muted-foreground">{phaseLabel}</span>
                     </div>
                 )}
 
-                {loading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm">
+                {busy && hasImage && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-card/85 backdrop-blur-sm">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <span className="text-xs font-medium text-foreground">{phaseLabel}</span>
                     </div>
                 )}
             </div>
 
-            <div className="mt-3 min-h-[20px] text-center">
+            <div className="mt-3 min-h-[20px] max-w-[18rem] text-center">
                 {errorMessage ? (
                     <span className="flex items-center justify-center gap-1.5 text-sm text-destructive">
-                        <AlertCircle size={14} /> {errorMessage}
+                        <AlertCircle size={14} className="shrink-0" /> {errorMessage}
                     </span>
                 ) : hasImage ? (
                     <span className="flex items-center justify-center gap-1.5 text-sm text-primary">
-                        <Check size={14} /> Looking good
+                        <Check size={14} /> Face verified · uploads when you confirm
                     </span>
                 ) : (
                     <span className="text-xs text-muted-foreground">
-                        Clear, front-facing face · JPEG/PNG/WEBP · max {MAX_SIZE_MB}MB
+                        Just you · clear, front-facing · JPEG/PNG/WEBP · max {MAX_SIZE_MB}MB
                     </span>
                 )}
             </div>
