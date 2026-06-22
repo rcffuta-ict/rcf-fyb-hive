@@ -40,26 +40,29 @@ export type ThemeToken =
 
 export type ThemePalette = Record<ThemeToken, string>;
 
-/** Default palette, sampled from the fyb-hive logo (burgundy rose + metallic gold). */
+/**
+ * Default palette, sampled from the fyb-hive logo (burgundy rose + metallic gold)
+ * on a premium warm-ivory base. Keep these values in sync with global.css :root.
+ */
 const armyOfLight: ThemePalette = {
-    "--background": "348 30% 9%",
-    "--foreground": "40 33% 92%",
-    "--card": "348 26% 12%",
-    "--card-foreground": "40 33% 92%",
-    "--popover": "348 28% 11%",
-    "--popover-foreground": "40 33% 92%",
-    "--primary": "40 58% 60%",
-    "--primary-foreground": "30 55% 12%",
-    "--secondary": "349 55% 26%",
-    "--secondary-foreground": "40 40% 92%",
-    "--accent": "42 70% 70%",
-    "--accent-foreground": "30 55% 12%",
-    "--muted": "348 18% 18%",
-    "--muted-foreground": "40 16% 70%",
-    "--border": "40 20% 24%",
-    "--input": "40 20% 22%",
-    "--ring": "42 68% 60%",
-    "--destructive": "0 72% 51%",
+    "--background": "40 40% 97%",
+    "--foreground": "345 25% 15%",
+    "--card": "40 33% 99%",
+    "--card-foreground": "345 25% 15%",
+    "--popover": "40 33% 99%",
+    "--popover-foreground": "345 25% 15%",
+    "--primary": "35 52% 40%",
+    "--primary-foreground": "35 45% 14%",
+    "--secondary": "349 72% 22%",
+    "--secondary-foreground": "40 40% 96%",
+    "--accent": "40 52% 90%",
+    "--accent-foreground": "349 50% 22%",
+    "--muted": "38 24% 93%",
+    "--muted-foreground": "345 8% 42%",
+    "--border": "38 22% 86%",
+    "--input": "38 22% 86%",
+    "--ring": "37 55% 50%",
+    "--destructive": "0 70% 45%",
     "--destructive-foreground": "0 0% 98%",
     "--gold-highlight": "#e8c77b",
     "--gold-midtone": "#b38841",

@@ -8,8 +8,8 @@
         "logos": {
             "fybHive": "/fyb-hive-logo.png",
             "rcffuta": "/rcffuta-logo.png",
-            "ict": "/logos/ict-logo.png",
-            "armyOfLight": "/logos/army-of-light-logo.png"
+            "ict": "/ict-logo-dark.png",
+            "armyOfLight": "/army-of-light-logo.png"
         },
         "favicon": "/fyb-hive-logo.png"
     },
@@ -23,10 +23,30 @@
         "socials": []
     },
     "sponsors": [
-        { "name": "RCF FUTA", "url": "https://rcffuta.com", "logo": "/rcffuta-logo.png" },
-        { "name": "RCFFUTA ICT", "url": "https://ict.rcffuta.com", "logo": "/logos/ict-logo.png" },
-        { "name": "300 Level Family", "url": "", "logo": "" },
-        { "name": "Army of Light Family", "url": "", "logo": "/logos/army-of-light-logo.png" }
+        {
+            "name": "Army of Light Family",
+            "role": "A legacy of",
+            "url": "",
+            "logo": "/army-of-light-logo.png"
+        },
+        {
+            "name": "300 Level Family",
+            "role": "Brought to you by",
+            "url": "",
+            "logo": ""
+        },
+        {
+            "name": "RCF FUTA",
+            "role": "Presented by",
+            "url": "https://rcffuta.com",
+            "logo": "/rcffuta-logo.png"
+        },
+        {
+            "name": "RCFFUTA ICT",
+            "role": "Powered by",
+            "url": "https://ict.rcffuta.com",
+            "logo": "/ict-logo-dark.png"
+        }
     ],
     "event": {
         "title": "FYB Dinner",
@@ -54,9 +74,16 @@
         "heroSubtitle": "Celebrate the graduating class of RCF FUTA. Register for the FYB Dinner — a no-date, no-entry night of excellence, gratitude, and family.",
         "heroCtaPrimary": "Register Now",
         "heroCtaSecondary": "Learn More",
+        "aboutEyebrow": "The Evening",
+        "aboutBody": "A night of light and honour for the graduating class — a celebration of the journey, the people, and the grace that carried us here.",
+        "exploreEyebrow": "What you can do",
+        "exploreTitle": "Your place at the table",
+        "ctaTitle": "Ready to celebrate?",
+        "ctaSubtitle": "Registration is open for the graduating class. Secure your seat at the FYB Dinner.",
+        "ctaButton": "Register for the Dinner",
         "tribute": "Brought to you by the 300 Level Family · A tribute to the Army of Light Family",
         "poweredBy": "Powered by RCF FUTA & RCFFUTA ICT",
-        "footerNote": "© 2026 RCF FUTA. All glory to God."
+        "footerNote": "Glory be to God mehn."
     },
     "features": {
         "registration": true,

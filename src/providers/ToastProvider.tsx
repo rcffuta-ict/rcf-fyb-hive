@@ -5,7 +5,6 @@ import React from "react";
 import {
     CheckCircle,
     XCircle,
-    AlertCircle,
     Loader2,
     Sparkles,
     Heart,
@@ -45,7 +44,7 @@ export const GlobalToastProvider: React.FC<Props> = ({ children }) => {
                     success: {
                         icon: (
                             <CheckCircle
-                                className="text-champagne-gold-400"
+                                className="text-primary"
                                 size={24}
                             />
                         ),
@@ -58,7 +57,7 @@ export const GlobalToastProvider: React.FC<Props> = ({ children }) => {
                     },
                     error: {
                         icon: (
-                            <XCircle className="text-rose-gold-400" size={24} />
+                            <XCircle className="text-destructive" size={24} />
                         ),
                         style: {
                             background: "rgba(239, 68, 68, 0.15)",
@@ -70,7 +69,7 @@ export const GlobalToastProvider: React.FC<Props> = ({ children }) => {
                     loading: {
                         icon: (
                             <Loader2
-                                className="text-champagne-gold-400 animate-spin"
+                                className="animate-spin text-primary"
                                 size={24}
                             />
                         ),
@@ -207,7 +206,7 @@ export const appToast = {
 
     // Custom promise toast
     promise: (
-        promise: Promise<any>,
+        promise: Promise<unknown>,
         messages: { loading: string; success: string; error: string }
     ) => {
         return hotToast.promise(promise, messages);
@@ -217,7 +216,7 @@ export const appToast = {
     elegant: (
         message: string,
         icon: React.ReactNode = (
-            <Sparkles className="text-golden-500" size={22} />
+            <Sparkles className="text-primary" size={22} />
         ),
         id?: string
     ) =>

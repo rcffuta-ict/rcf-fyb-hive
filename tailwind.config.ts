@@ -1,4 +1,8 @@
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
+import forms from "@tailwindcss/forms";
+import aspectRatio from "@tailwindcss/aspect-ratio";
+import animate from "tailwindcss-animate";
 
 const config: Config = {
   content: [
@@ -211,13 +215,13 @@ const config: Config = {
       },
       
       fontFamily: {
-        // Elegant font stack
-        sans: ["Inter", "system-ui", "sans-serif"],
-        serif: ["'Playfair Display'", "Georgia", "serif"],
+        // Brand font stack — backed by next/font CSS variables (see app/layout.tsx)
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        serif: ["var(--font-playfair)", "Georgia", "serif"],
         script: ["'Great Vibes'", "'Dancing Script'", "cursive"],
-        elegant: ["'Cormorant Garamond'", "serif"],
-        modern: ["'Poppins'", "sans-serif"],
-        luxury: ["'Cinzel'", "serif"],
+        elegant: ["var(--font-cormorant)", "Georgia", "serif"],
+        modern: ["var(--font-poppins)", "system-ui", "sans-serif"],
+        luxury: ["var(--font-cinzel)", "Georgia", "serif"],
       },
       
       fontSize: {
@@ -274,11 +278,12 @@ const config: Config = {
 
         'magic': '0 10px 40px rgba(147, 51, 234, 0.4), 0 0 60px rgba(147, 51, 234, 0.1)',
 
-        // Brand (fyb-hive logo) — metallic gold + burgundy
-        'gold-glow': '0 0 24px rgba(232, 199, 123, 0.35)',
-        'gold-glow-lg': '0 0 48px rgba(232, 199, 123, 0.45)',
-        'burgundy-glow': '0 0 30px rgba(85, 11, 24, 0.55)',
-        'crest': '0 18px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(232, 199, 123, 0.15)',
+        // Brand glows — driven by the active theme tokens so switching the brand
+        // palette (src/config/themes.ts) re-skins every glow automatically.
+        'gold-glow': '0 0 24px hsl(var(--primary) / 0.35)',
+        'gold-glow-lg': '0 0 48px hsl(var(--primary) / 0.45)',
+        'burgundy-glow': '0 0 30px hsl(var(--secondary) / 0.45)',
+        'crest': '0 18px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px hsl(var(--primary) / 0.15)',
       },
       
       borderRadius: {
@@ -514,13 +519,17 @@ const config: Config = {
   darkMode: "class",
   
   plugins: [
-    require("@tailwindcss/typography"),
-    require("@tailwindcss/forms"),
-    require("@tailwindcss/aspect-ratio"),
-    require("tailwindcss-animate"),
+    typography,
+    forms,
+    aspectRatio,
+    animate,
 
-    // Custom plugin for romantic + brand utilities
-    function({ addUtilities, theme }: any) {
+    // Custom plugin for brand utilities (metallic gold, honeycomb, glass, etc.)
+    function ({
+      addUtilities,
+    }: {
+      addUtilities: (utilities: Record<string, Record<string, string>>) => void;
+    }) {
       addUtilities({
         // Metallic gold text (matches the logo's brushed-gold finish)
         ".text-metallic-gold": {

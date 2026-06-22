@@ -1,16 +1,11 @@
-import Spacer from "@/components/ui/Spacer";
-import { Fragment, PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 
-export default function MainWrapper(props: PropsWithChildren) {
-    return (
-        <>
-            {/* <section className="main-wrapper">
-                <div className="main-content">
-                    <br/>
-                </div>
-            </section> */}
-            <Spacer />
-            {props.children}
-        </>
-    );
-}
+/**
+ * Page shell for the public site. Adds top padding to clear the fixed header
+ * (h-16) so route content never sits underneath it.
+ */
+const MainWrapper = ({ children }: PropsWithChildren): React.JSX.Element => {
+    return <div className="pt-16">{children}</div>;
+};
+
+export default MainWrapper;

@@ -212,3 +212,4 @@ const { user } = useAuthStore();
   shared util, hook, or constant immediately. Future changes must touch one place only.
 - **Consult local docs first:** Check `node_modules/next/dist/docs/` before assuming
   structural patterns for Next.js-specific APIs.
+- When there's a plan for the engineer to approve, as soon as it is approved, save the plan into the .temp/plans folder, now ensure that any other plan in that folder is deleted so there will only be one plan in that folder. Ensure that .temp is enlisted in .gitignore if it is not.
