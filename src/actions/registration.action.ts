@@ -304,6 +304,14 @@ export async function registerFinalist(input: RegisterInput): Promise<RegisterRe
             return { status: "error", message: "Could not complete registration." };
         }
 
+        // Sync the verified photo back to the member's RCF FUTA profile avatar.
+        // Best-effort: a failure here must not undo a successful registration.
+        const { error: avatarError } = await supabase
+            .from("profiles")
+            .update({ avatar_url: input.photoUrl })
+            .eq("id", profile.id);
+        if (avatarError) console.error("profile avatar sync failed:", avatarError);
+
         revalidatePath("/admin");
         return { status: "success", registration: toRegistrationRecord(data) };
     } catch (error) {

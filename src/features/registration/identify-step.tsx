@@ -90,12 +90,14 @@ const IdentifyStep = (): React.JSX.Element => {
             {status === "not_member" && (
                 <div className="surface mt-5 animate-scale-in p-6 text-center">
                     <p className="text-sm text-foreground/80">
-                        We couldn&apos;t find a profile with that email or phone. Make sure you use
-                        the details on your RCF FUTA profile — or create one on the ICT portal.
+                        We couldn&apos;t find a profile with that email or phone. Make sure your
+                        details are up to date at{" "}
+                        <span className="font-medium text-foreground">ict.rcffuta.com</span>, or
+                        reach out to your level coordinator for help.
                     </p>
                     <Button asChild variant="outline" className="mt-4">
-                        <Link href={site.links.ictPortalRegister} target="_blank" rel="noopener noreferrer">
-                            Create your profile <ExternalLink size={16} />
+                        <Link href={site.links.ict} target="_blank" rel="noopener noreferrer">
+                            Update your profile <ExternalLink size={16} />
                         </Link>
                     </Button>
                 </div>

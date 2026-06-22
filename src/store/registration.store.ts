@@ -1,6 +1,8 @@
 import { create } from "zustand";
 
 import { lookupMember, registerFinalist } from "@/actions/registration.action";
+import { uploadProfileImage } from "@/actions/storage.action";
+import { appToast } from "@/providers/ToastProvider";
 import type {
     LookupStatus,
     MemberLookup,
@@ -14,6 +16,8 @@ type RegistrationState = {
     identifier: string;
     member: MemberLookup | null;
     lookupStatus: LookupStatus | null;
+    photoFile: File | null;
+    photoPreview: string;
     photoUrl: string;
     photoPublicId: string | null;
     registration: RegistrationRecord | null;
@@ -22,7 +26,8 @@ type RegistrationState = {
     error: string | null;
 
     setIdentifier: (value: string) => void;
-    setPhoto: (url: string, publicId: string | null) => void;
+    setPhotoFile: (file: File, previewUrl: string) => void;
+    clearPhoto: () => void;
     lookup: (identifier: string) => Promise<void>;
     proceedToPreview: () => void;
     submit: () => Promise<void>;
@@ -30,11 +35,18 @@ type RegistrationState = {
     reset: () => void;
 };
 
+/** Release a blob: object URL so the selected photo doesn't leak memory. */
+const revokePreview = (url: string): void => {
+    if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+};
+
 export const useRegistrationStore = create<RegistrationState>((set, get) => ({
     step: "identify",
     identifier: "",
     member: null,
     lookupStatus: null,
+    photoFile: null,
+    photoPreview: "",
     photoUrl: "",
     photoPublicId: null,
     registration: null,
@@ -44,7 +56,15 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
 
     setIdentifier: (value) => set({ identifier: value, error: null }),
 
-    setPhoto: (url, publicId) => set({ photoUrl: url, photoPublicId: publicId, error: null }),
+    setPhotoFile: (file, previewUrl) => {
+        revokePreview(get().photoPreview);
+        set({ photoFile: file, photoPreview: previewUrl, error: null });
+    },
+
+    clearPhoto: () => {
+        revokePreview(get().photoPreview);
+        set({ photoFile: null, photoPreview: "" });
+    },
 
     lookup: async (identifier) => {
         set({ looking: true, error: null });
@@ -52,15 +72,16 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
         set({ lookupStatus: result.status, member: result.member ?? null, looking: false });
 
         if (result.status === "eligible") {
-            // Start the photo step empty — registrants must upload a clear face shot.
-            set({ step: "photo", photoUrl: "", photoPublicId: null });
+            // Start the photo step empty — registrants must pick a clear face shot.
+            revokePreview(get().photoPreview);
+            set({ step: "photo", photoFile: null, photoPreview: "" });
         } else if (result.status === "error" || result.status === "config_error") {
             set({ error: result.message ?? "Something went wrong." });
         }
     },
 
     proceedToPreview: () => {
-        if (!get().photoUrl) {
+        if (!get().photoFile) {
             set({ error: "Please upload a clear photo of your face." });
             return;
         }
@@ -68,25 +89,44 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
     },
 
     submit: async () => {
-        const { member, photoUrl, photoPublicId } = get();
+        const { member, photoFile } = get();
         if (!member) return;
-        if (!photoUrl) {
+        if (!photoFile) {
             set({ error: "Please upload a clear photo of your face.", step: "photo" });
             return;
         }
 
         set({ submitting: true, error: null });
-        const result = await registerFinalist({
-            profileId: member.profileId,
-            photoUrl,
-            photoPublicId: photoPublicId ?? undefined,
-        });
-        set({ submitting: false });
+        const toastId = appToast.loading("Uploading your photo…");
+        try {
+            // The photo is only persisted now — at confirm — not when it was picked.
+            const formData = new FormData();
+            formData.append("file", photoFile);
+            const { url, publicId } = await uploadProfileImage(formData, "registrations");
+            set({ photoUrl: url, photoPublicId: publicId });
 
-        if (result.status === "success" || result.status === "already_registered") {
-            set({ step: "done", registration: result.registration ?? null });
-        } else {
-            set({ error: result.message ?? "Could not complete registration." });
+            appToast.loading("Completing your registration…", toastId);
+            const result = await registerFinalist({
+                profileId: member.profileId,
+                photoUrl: url,
+                photoPublicId: publicId,
+            });
+
+            if (result.status === "success" || result.status === "already_registered") {
+                appToast.success("You're registered! See you at the dinner.", toastId);
+                set({ step: "done", registration: result.registration ?? null, submitting: false });
+            } else {
+                const message = result.message ?? "Could not complete registration.";
+                appToast.error(message, toastId);
+                set({ error: message, submitting: false });
+            }
+        } catch (err) {
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "We couldn't upload your photo. Please try again.";
+            appToast.error(message, toastId);
+            set({ error: message, submitting: false });
         }
     },
 
@@ -96,21 +136,33 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
             set({ step: "photo", error: null });
             return;
         }
-        // From the photo step, go back to identify and clear the resolved member.
-        set({ step: "identify", lookupStatus: null, member: null, error: null });
+        // From the photo step, go back to identify and clear the resolved member + photo.
+        revokePreview(get().photoPreview);
+        set({
+            step: "identify",
+            lookupStatus: null,
+            member: null,
+            photoFile: null,
+            photoPreview: "",
+            error: null,
+        });
     },
 
-    reset: () =>
+    reset: () => {
+        revokePreview(get().photoPreview);
         set({
             step: "identify",
             identifier: "",
             member: null,
             lookupStatus: null,
+            photoFile: null,
+            photoPreview: "",
             photoUrl: "",
             photoPublicId: null,
             registration: null,
             looking: false,
             submitting: false,
             error: null,
-        }),
+        });
+    },
 }));

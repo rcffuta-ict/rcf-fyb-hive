@@ -4,21 +4,27 @@ import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { createServerSupabase } from "@/lib/supabase/server";
-import type { AdminProfile, Gender, RegistrationRecord } from "@/types/fyb.types";
+import type {
+    AdminProfile,
+    Gender,
+    RegistrationRecord,
+} from "@/types/fyb.types";
 
 const COOKIE_NAME = "fyb_admin";
 const COOKIE_MAX_AGE = 60 * 60 * 8; // 8 hours
 
 const getSecret = (): string => {
     const secret = process.env.ADMIN_COOKIE_SECRET;
-    if (!secret) throw new Error("Missing ADMIN_COOKIE_SECRET environment variable.");
+    if (!secret)
+        throw new Error("Missing ADMIN_COOKIE_SECRET environment variable.");
     return secret;
 };
 
 const sign = (value: string): string =>
     createHmac("sha256", getSecret()).update(value).digest("hex");
 
-const makeToken = (profileId: string): string => `${profileId}.${sign(profileId)}`;
+const makeToken = (profileId: string): string =>
+    `${profileId}.${sign(profileId)}`;
 
 const verifyToken = (token: string | undefined): string | null => {
     if (!token) return null;
@@ -41,7 +47,9 @@ type AdminRow = {
     } | null;
 };
 
-const fetchAdminByProfileId = async (profileId: string): Promise<AdminProfile | null> => {
+const fetchAdminByProfileId = async (
+    profileId: string
+): Promise<AdminProfile | null> => {
     const supabase = createServerSupabase();
     const { data } = await supabase
         .from("fyb_admins")
@@ -82,12 +90,18 @@ export async function adminLogin(email: string): Promise<AdminLoginResult> {
             .maybeSingle<{ id: string }>();
 
         if (!profile) {
-            return { ok: false, message: "No member profile found for that email." };
+            return {
+                ok: false,
+                message: "No member profile found for that email.",
+            };
         }
 
         const admin = await fetchAdminByProfileId(profile.id);
         if (!admin) {
-            return { ok: false, message: "This account is not an authorized admin." };
+            return {
+                ok: false,
+                message: "This account is not an authorized admin.",
+            };
         }
 
         const jar = await cookies();
@@ -102,7 +116,10 @@ export async function adminLogin(email: string): Promise<AdminLoginResult> {
         return { ok: true, admin };
     } catch (error) {
         console.error("adminLogin failed:", error);
-        return { ok: false, message: "Something went wrong. Please try again." };
+        return {
+            ok: false,
+            message: "Something went wrong. Please try again.",
+        };
     }
 }
 
