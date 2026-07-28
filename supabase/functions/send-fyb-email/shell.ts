@@ -67,14 +67,19 @@ const logo = (url: string | undefined, alt: string, height: number): string => {
  * RCF FUTA and ICT marks are near-black — on an inverted footer they became
  * dark-on-dark and vanished. Inversion rewrites CSS colours but never touches
  * image *pixels*, so the white background has to live inside the image itself.
- * Cloudinary fits the mark into a uniform 190×72 rounded chip (`c_fit` then
- * `c_pad`) so the three sit as an even row rather than three different shapes.
+ * Cloudinary fits the mark into a uniform 190×72 rounded chip so the three sit
+ * as an even row rather than three different shapes. Two chained steps do it:
+ * `c_fit` scales the mark into a 118×32 inner box, then `c_pad` centres that on
+ * the chip — which leaves at least 36px of horizontal and 20px of vertical
+ * breathing room whatever the mark's aspect ratio. Padding the chip directly
+ * would let a wide logo (RCF FUTA) run edge to edge while a squarer one (Army
+ * of Light) floated in space.
  */
 const logoChip = (url: string | undefined, alt: string): string => {
     if (!url) return `<span style="color:${COLORS.inkMuted};font-size:12px;">${alt}</span>`;
     if (!url.includes("/image/upload/")) return logo(url, alt, 30);
 
-    const transform = "c_fit,h_44,w_150/c_pad,h_72,w_190,b_rgb:FFFFFF,r_14,f_png,q_auto";
+    const transform = "c_fit,h_32,w_118/c_pad,h_72,w_190,b_rgb:FFFFFF,r_16,f_png,q_auto";
     const src = url.replace("/image/upload/", `/image/upload/${transform}/`);
     return `<img src="${src}" alt="${alt}" width="95" height="36" style="display:block;border:0;outline:none;width:95px;height:36px;" />`;
 };
