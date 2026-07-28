@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import confetti from "canvas-confetti";
-import { CalendarDays, MapPin, PartyPopper } from "lucide-react";
+import { CalendarDays, Mail, MapPin, PartyPopper } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useRegistrationStore } from "@/store/registration.store";
@@ -24,6 +24,7 @@ const SuccessStep = (): React.JSX.Element => {
 
     const name = registration?.firstName ?? member?.firstName ?? "Finalist";
     const photo = registration?.photoUrl ?? member?.avatarUrl ?? "";
+    const email = registration?.email ?? member?.email ?? null;
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -69,6 +70,26 @@ const SuccessStep = (): React.JSX.Element => {
                     Your spot at the {site.event.title} is confirmed. Here are the details — keep
                     them handy.
                 </p>
+
+                {/* The consent token itself is never shown here — it lives only
+                    in the finalist's inbox, which is what makes it proof of consent. */}
+                <div className="mt-5 rounded-token border border-primary/25 bg-primary/5 px-4 py-3 text-left">
+                    <p className="flex items-start gap-2.5 text-sm text-foreground/80">
+                        <Mail size={17} className="mt-0.5 shrink-0 text-primary" />
+                        <span>
+                            We&apos;ve emailed your <strong>consent token</strong>
+                            {email ? (
+                                <>
+                                    {" "}
+                                    to <strong>{email}</strong>
+                                </>
+                            ) : null}
+                            . Share it with the person you want to bring — that&apos;s how
+                            you&apos;ll pair up. Check your spam folder if it&apos;s not there in
+                            a few minutes.
+                        </span>
+                    </p>
+                </div>
 
                 <div className="mt-6 space-y-3 text-left">
                     <div className="flex items-center gap-3 rounded-token bg-accent/40 px-4 py-3">

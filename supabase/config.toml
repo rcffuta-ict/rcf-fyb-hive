@@ -1,0 +1,7 @@
+[functions]
+
+# The Next.js app pings this with a service key + `x-drain-secret` header rather
+# than a user JWT, so JWT verification is off and the shared secret is the gate
+# (see the DRAIN_SECRET check at the top of the function).
+[functions.send-fyb-email]
+verify_jwt = false

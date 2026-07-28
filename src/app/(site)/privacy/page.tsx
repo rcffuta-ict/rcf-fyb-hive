@@ -1,92 +1,70 @@
 import type { Metadata } from "next";
 
+import PolicyPage, { type PolicySection } from "@/components/shared/policy-page";
 import { site } from "@/config/site";
 
 export const metadata: Metadata = {
     title: `Privacy Policy — ${site.name}`,
 };
 
-type Section = { title: string; body?: string; list?: string[] };
+const LAST_UPDATED = "28 July 2026";
 
-const sections: Section[] = [
+const sections: PolicySection[] = [
     {
-        title: "1. Information We Collect",
+        title: "Information We Collect",
         body: "We collect details you provide during registration — such as your name, email, department, level, and a photo — looked up against your RCF FUTA membership profile. We also collect basic technical data (device, browser, usage) to keep the platform reliable.",
     },
     {
-        title: "2. How We Use Your Information",
+        title: "How We Use Your Information",
         list: [
             "To verify finalist eligibility and process registrations.",
             "To identify attendees at the door using your photo.",
+            "To generate and email your consent token, and to enable pairing.",
             "To communicate important event updates.",
             "To improve and secure the platform.",
         ],
     },
     {
-        title: "3. Sharing of Information",
-        body: "We do not sell or rent your personal information. Limited data may be shared with trusted partners (such as the event organizers) strictly for operational purposes.",
+        title: "Your Consent Token",
+        body: "Your consent token is generated for you and delivered to your email address only. It is stored separately from your registration record and is deliberately hidden from the organizer dashboard — no admin, including the person who resends your email, can see your token. Admins can only see whether the email was sent, queued, or failed. If you ask for a resend, you receive the same token you already had; it is never regenerated behind your back.",
     },
     {
-        title: "4. Data Security",
-        body: "We apply technical and organizational measures to protect your information against unauthorized access or misuse. However, no system is fully secure, and you use the platform at your own risk.",
+        title: "Your Photo",
+        body: "Your registration photo is stored with our image provider (Cloudinary) and used to identify you at the door. It also appears in your confirmation email, cropped to a circular profile image, so you can tell at a glance the message is genuinely yours. It is not published publicly or shared with other attendees by us.",
     },
     {
-        title: "5. Your Rights",
-        body: "You may request access to, correction of, or deletion of your personal information at any time by contacting the organizers.",
+        title: "Email Delivery",
+        body: `Transactional email is sent through ZeptoMail on our behalf from our verified ${site.name} sending domain. To deliver a message, they process your email address, your name, and the message content. We keep a delivery log — the recipient address, subject, and whether the send succeeded — so we can answer "did it actually arrive?" if you tell us you never got it. Delivery logs never contain your consent token.`,
     },
     {
-        title: "6. Changes to this Policy",
-        body: "We may update this Privacy Policy occasionally to reflect changes in practice or legal requirements. Updates will be posted on this page.",
+        title: "Sharing of Information",
+        body: "We do not sell or rent your personal information. Limited data may be shared with trusted service providers (our hosting, image, and email providers) strictly to operate the platform, and with the event organizers for running the dinner.",
+    },
+    {
+        title: "Data Retention",
+        body: "Registration records, pairings and consent tokens are kept for the duration of the event cycle and a reasonable period afterwards for records and dispute resolution, then removed or anonymised. Delivery logs are kept on the same basis.",
+    },
+    {
+        title: "Data Security",
+        body: "We apply technical and organizational measures to protect your information against unauthorized access or misuse — including keeping consent tokens out of every admin-facing view. However, no system is fully secure, and you use the platform at your own risk.",
+    },
+    {
+        title: "Your Rights",
+        body: "You may request access to, correction of, or deletion of your personal information at any time by contacting the organizers. You can also ask us to reissue your consent token if you believe it has been shared without your consent.",
+    },
+    {
+        title: "Changes to this Policy",
+        body: "We may update this Privacy Policy occasionally to reflect changes in practice or legal requirements. Updates will be posted on this page with a new date above.",
     },
 ];
 
 export default function PrivacyPage(): React.JSX.Element {
     return (
-        <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-            <div className="surface p-8 sm:p-10">
-                <span className="eyebrow mb-3">Legal</span>
-                <h1 className="font-luxury text-foreground">Privacy Policy</h1>
-                <p className="mt-4 text-foreground/70">
-                    Your privacy matters to us. This policy explains how the {site.event.title}{" "}
-                    platform collects, uses, and safeguards your information.
-                </p>
-
-                <div className="mt-10 space-y-9">
-                    {sections.map((section) => (
-                        <div key={section.title}>
-                            <h2 className="font-luxury text-xl text-foreground">
-                                {section.title}
-                            </h2>
-                            {section.body && (
-                                <p className="mt-2 leading-relaxed text-foreground/70">
-                                    {section.body}
-                                </p>
-                            )}
-                            {section.list && (
-                                <ul className="mt-3 list-disc space-y-1.5 pl-5 text-foreground/70">
-                                    {section.list.map((item) => (
-                                        <li key={item}>{item}</li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    ))}
-
-                    <div>
-                        <h2 className="font-luxury text-xl text-foreground">7. Contact Us</h2>
-                        <p className="mt-2 leading-relaxed text-foreground/70">
-                            Questions about this policy? Reach the organizers at{" "}
-                            <a
-                                href={`mailto:${site.contact.email}`}
-                                className="font-medium text-primary hover:underline"
-                            >
-                                {site.contact.email}
-                            </a>
-                            .
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <PolicyPage
+            title="Privacy Policy"
+            intro={`Your privacy matters to us. This policy explains how the ${site.event.title} platform collects, uses, and safeguards your information.`}
+            sections={sections}
+            updated={LAST_UPDATED}
+        />
     );
 }

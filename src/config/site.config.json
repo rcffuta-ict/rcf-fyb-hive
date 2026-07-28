@@ -64,6 +64,7 @@
     },
     "nav": [
         { "label": "Home", "href": "/", "feature": null },
+        { "label": "Guide", "href": "/guide", "feature": null },
         { "label": "Register", "href": "/register", "feature": "registration" },
         { "label": "Pairing", "href": "/pairing", "feature": "pairing" },
         { "label": "Awards", "href": "/awards", "feature": "awards" }

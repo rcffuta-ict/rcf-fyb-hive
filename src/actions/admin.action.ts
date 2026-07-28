@@ -4,6 +4,11 @@ import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { createServerSupabase } from "@/lib/supabase/server";
+import {
+    findRegistrationsNeedingConsentEmail,
+    getConsentEmailStatuses,
+    sendConsentEmail,
+} from "@/services/consent.service";
 import type {
     AdminProfile,
     Gender,
@@ -220,10 +225,73 @@ export async function listRegistrations(params: {
         return { registrations: [], total: 0, page, pageSize: PAGE_SIZE };
     }
 
+    const registrations = (data as RegistrationRow[]).map(toRegistrationRecord);
+
+    // Delivery state only — `getConsentEmailStatuses` reads the queue, never the
+    // token table, so nothing token-shaped can reach the browser from here.
+    const statuses = await getConsentEmailStatuses(
+        registrations.map((r) => ({ id: r.id, email: r.email }))
+    );
+    const statusById = new Map(statuses.map((s) => [s.registrationId, s.status]));
+
     return {
-        registrations: (data as RegistrationRow[]).map(toRegistrationRecord),
+        registrations: registrations.map((r) => ({
+            ...r,
+            consentEmailStatus: statusById.get(r.id) ?? "not_sent",
+        })),
         total: count ?? 0,
         page,
         pageSize: PAGE_SIZE,
     };
+}
+
+export type ConsentActionResult = {
+    ok: boolean;
+    message: string;
+};
+
+/**
+ * Resend one finalist's consent email — for the "I never got it" case.
+ * Returns a message only; the admin never sees the token being resent, and the
+ * finalist receives the same token as before (issuing is idempotent).
+ */
+export async function resendConsentEmail(
+    registrationId: string
+): Promise<ConsentActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return { ok: false, message: "Not authorized." };
+
+    const result = await sendConsentEmail(registrationId, { enforceCooldown: true });
+    return {
+        ok: result.success,
+        message: result.success
+            ? "Consent email queued — it'll arrive shortly."
+            : (result.message ?? "Could not send."),
+    };
+}
+
+/**
+ * Backfill: queue the consent email for every registration that has never had
+ * one. This is what covers finalists who registered before the feature shipped.
+ * Safe to re-run — anyone already queued is skipped.
+ */
+export async function sendPendingConsentEmails(): Promise<ConsentActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return { ok: false, message: "Not authorized." };
+
+    const { ids, skippedNoEmail } = await findRegistrationsNeedingConsentEmail();
+    if (ids.length === 0) {
+        return { ok: true, message: "Everyone with an email address already has theirs." };
+    }
+
+    // Sequential, not Promise.all: each send is a few round-trips, and a burst
+    // of hundreds would trip Supabase connection limits before it helped.
+    let queued = 0;
+    for (const id of ids) {
+        const result = await sendConsentEmail(id);
+        if (result.success) queued += 1;
+    }
+
+    const skipped = skippedNoEmail > 0 ? ` ${skippedNoEmail} skipped (no email on file).` : "";
+    return { ok: true, message: `Queued ${queued} consent email${queued === 1 ? "" : "s"}.${skipped}` };
 }

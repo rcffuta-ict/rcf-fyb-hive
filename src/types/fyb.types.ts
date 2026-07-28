@@ -67,6 +67,23 @@ export type RegistrationRecord = {
     photoUrl: string;
     photoPublicId: string | null;
     createdAt: string;
+    /** Attached for admin listings only; absent on the registration flow. */
+    consentEmailStatus?: ConsentEmailStatus;
+};
+
+/**
+ * Delivery state of a finalist's consent-token email, as shown to admins.
+ *
+ * Note what is absent: there is no token field here, or anywhere else in this
+ * file. The token is visible only in the recipient's inbox — see
+ * `src/services/consent.service.ts`.
+ */
+export type ConsentEmailStatus = "sent" | "queued" | "failed" | "not_sent" | "no_email";
+
+export type ConsentStatusEntry = {
+    registrationId: string;
+    status: ConsentEmailStatus;
+    lastSentAt: string | null;
 };
 
 export type RegisterStatus = "success" | "already_registered" | "not_eligible" | "error";

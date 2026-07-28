@@ -23,7 +23,16 @@ const eslintConfig = defineConfig([
     // Turn off ESLint rules that conflict with Prettier formatting.
     prettier,
     // Keep in sync with eslint-config-next's default ignores.
-    globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+    // `supabase/functions/**` is Deno, not Next: it uses URL imports and the
+    // Deno global, neither of which this config can resolve. It's linted and
+    // type-checked by the Deno toolchain instead (`deno check`).
+    globalIgnores([
+        ".next/**",
+        "out/**",
+        "build/**",
+        "next-env.d.ts",
+        "supabase/functions/**",
+    ]),
 ]);
 
 export default eslintConfig;

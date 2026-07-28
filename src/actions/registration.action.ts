@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createServerSupabase } from "@/lib/supabase/server";
 import { computeLevel, isFinalistLevel, parseSessionYear } from "@/lib/eligibility";
+import { sendConsentEmail } from "@/services/consent.service";
 import type {
     Gender,
     LookupResult,
@@ -311,6 +312,15 @@ export async function registerFinalist(input: RegisterInput): Promise<RegisterRe
             .update({ avatar_url: input.photoUrl })
             .eq("id", profile.id);
         if (avatarError) console.error("profile avatar sync failed:", avatarError);
+
+        // Issue the consent token and queue its email — only now that the
+        // registration has actually committed, so we can never promise a token
+        // for a registration that didn't happen. Best-effort: the email is
+        // durable in the outbox, and admin can resend if this leg fails.
+        const consent = await sendConsentEmail(data.id);
+        if (!consent.success) {
+            console.error("consent email enqueue failed:", consent.message);
+        }
 
         revalidatePath("/admin");
         return { status: "success", registration: toRegistrationRecord(data) };
