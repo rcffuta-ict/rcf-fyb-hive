@@ -20,7 +20,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 export const isOpsKeyValid = (candidate: string): boolean => {
     const expected = process.env.OPS_KEY;
     // Unset means the page does not exist on this deployment — fail closed.
-    if (!expected || expected.length < 16) return false;
+    if (!expected || expected.length < 12) return false;
 
     const a = Buffer.from(candidate);
     const b = Buffer.from(expected);
