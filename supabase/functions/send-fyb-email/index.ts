@@ -48,13 +48,25 @@ serve(async (req: Request): Promise<Response> => {
 
         let sent = 0;
         let failed = 0;
+        let throttled = false;
+
         for (const id of ids) {
             const row = await claim(id);
             if (!row) continue; // another run won this row
-            (await processRow(row)) ? sent++ : failed++;
+
+            const outcome = await processRow(row);
+            if (outcome === "sent") sent++;
+            else if (outcome === "failed") failed++;
+            else {
+                // Provider is out of credit or rate-limiting us. Every further
+                // send this run would fail identically, so stop immediately
+                // rather than burning the rest of the batch against a wall.
+                throttled = true;
+                break;
+            }
         }
 
-        return json({ processed: ids.length, sent, failed }, 200);
+        return json({ processed: ids.length, sent, failed, throttled }, 200);
     } catch (error) {
         console.error("queue worker error:", error);
         return json({ error: String(error) }, 500);
@@ -99,8 +111,19 @@ async function reapStuck(): Promise<void> {
         .lt("updated_at", cutoff);
 }
 
+/**
+ * A provider failure that is about *us*, not about this message — credit
+ * exhausted, rate limited. Retrying the same row later will work; retrying it
+ * now will not. These must not consume `attempts`, or a billing lapse quietly
+ * converts the entire queue into permanently `failed` rows that need manual
+ * requeueing after top-up.
+ */
+class ProviderThrottledError extends Error {}
+
+type RowOutcome = "sent" | "failed" | "throttled";
+
 // deno-lint-ignore no-explicit-any
-async function processRow(row: any): Promise<boolean> {
+async function processRow(row: any): Promise<RowOutcome> {
     try {
         const { subject, html, recipient, recipientName } = await render(row);
         await sendEmail({ to: recipient, toName: recipientName, subject, html });
@@ -118,8 +141,20 @@ async function processRow(row: any): Promise<boolean> {
             subject,
             success: true,
         });
-        return true;
+        return "sent";
     } catch (error) {
+        if (error instanceof ProviderThrottledError) {
+            // Straight back to pending, attempts untouched, so the row waits
+            // for the next drain instead of being spent.
+            await supabase
+                .from("fyb_email_queue")
+                .update({ status: "pending", last_error: String(error) })
+                .eq("id", row.id);
+
+            console.error(`queue paused at row ${row.id}:`, error.message);
+            return "throttled";
+        }
+
         const attempts = (row.attempts ?? 0) + 1;
         const exhausted = attempts >= (row.max_attempts ?? 5);
 
@@ -142,7 +177,7 @@ async function processRow(row: any): Promise<boolean> {
             error_message: String(error),
         });
         console.error(`queue row ${row.id} failed (attempt ${attempts}):`, error);
-        return false;
+        return "failed";
     }
 }
 
@@ -355,6 +390,13 @@ async function sendEmail(input: {
     // exception propagating out of here.
     if (!res.ok) {
         const detail = await res.text().catch(() => "");
+
+        // 429 covers both "out of credit" (TM_5001/LE_102) and ordinary rate
+        // limiting. Neither is this message's fault, so it keeps its attempts.
+        if (res.status === 429 || detail.includes("LE_102")) {
+            throw new ProviderThrottledError(`ZeptoMail ${res.status}: ${detail}`);
+        }
+
         throw new Error(`ZeptoMail ${res.status}: ${detail}`);
     }
 }
