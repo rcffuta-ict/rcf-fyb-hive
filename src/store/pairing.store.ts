@@ -3,6 +3,7 @@ import { create } from "zustand";
 import {
     createAssociateIntent,
     createFinalistIntent,
+    findPairingBetween,
     resolveConsentToken,
 } from "@/actions/pairing.action";
 import { appToast } from "@/providers/ToastProvider";
@@ -35,6 +36,11 @@ type PairingState = {
     associate: AssociateFormValues | null;
     code: string | null;
     amount: number;
+    /**
+     * Set when the pairing already existed rather than being created now — the
+     * payment screen reads this to show status instead of "you're on the way".
+     */
+    existingStatus: "pending" | "approved" | null;
 
     resolving: boolean;
     submitting: boolean;
@@ -63,6 +69,7 @@ const initial = {
     associate: null,
     code: null,
     amount: 0,
+    existingStatus: null,
     resolving: false,
     submitting: false,
     error: null,
@@ -115,16 +122,39 @@ export const usePairingStore = create<PairingState>((set, get) => ({
             return set({ resolving: false, error: result.message });
         }
 
-        const { self, expects } = get();
+        const { self, expects, tokenInput } = get();
         if (self && result.card.registrationId === self.registrationId) {
             return set({ resolving: false, error: "That's your own token." });
         }
+        // Same gender: say so plainly and by name, right where they typed it.
+        // This is the one mistake people will make repeatedly, so the message
+        // names the person and what's actually needed.
         if (expects && result.card.gender && result.card.gender !== expects) {
+            const both = expects === "female" ? "brothers" : "sisters";
             return set({
                 resolving: false,
-                error: `You need a ${get().expectsTerm}'s token for this one.`,
+                partner: null,
+                error:
+                    `Ah ah! ${result.card.firstName} is not a ${get().expectsTerm} — you're both ${both}. 😅 ` +
+                    `Be serious now: the dinner pairs a brother with a sister, so you need a ${get().expectsTerm}'s token.`,
             });
         }
+
+        // Check for an existing pairing BEFORE the availability guard: two
+        // people already paired with each other read as unavailable, but what
+        // they want is to see their own pairing, not be turned away from it.
+        const existing = await findPairingBetween(tokenInput, raw);
+        if (existing) {
+            return set({
+                resolving: false,
+                partner: result.card,
+                code: existing.code,
+                amount: existing.amount,
+                existingStatus: existing.intentStatus,
+                step: "payment",
+            });
+        }
+
         if (!result.card.available) {
             return set({
                 resolving: false,
@@ -140,6 +170,20 @@ export const usePairingStore = create<PairingState>((set, get) => ({
         set({ submitting: true, error: null });
 
         const result = await createFinalistIntent(tokenInput, partnerTokenInput);
+
+        // "existing" is a success from the user's point of view: their pairing
+        // is there, they just didn't make it in this session.
+        if (result.status === "existing") {
+            set({
+                submitting: false,
+                code: result.code,
+                amount: result.amount,
+                existingStatus: result.intentStatus,
+                step: "payment",
+            });
+            return true;
+        }
+
         if (result.status !== "ok") {
             set({ submitting: false, error: result.message });
             appToast.error(result.message);
@@ -150,6 +194,7 @@ export const usePairingStore = create<PairingState>((set, get) => ({
             submitting: false,
             code: result.code,
             amount: result.amount,
+            existingStatus: null,
             step: "payment",
         });
         return true;
@@ -160,7 +205,7 @@ export const usePairingStore = create<PairingState>((set, get) => ({
         set({ submitting: true, error: null });
 
         const result = await createAssociateIntent(tokenInput, values);
-        if (result.status !== "ok") {
+        if (result.status !== "ok" && result.status !== "existing") {
             set({ submitting: false, error: result.message });
             appToast.error(result.message);
             return false;
@@ -171,6 +216,7 @@ export const usePairingStore = create<PairingState>((set, get) => ({
             associate: values,
             code: result.code,
             amount: result.amount,
+            existingStatus: result.status === "existing" ? result.intentStatus : null,
             step: "payment",
         });
         return true;

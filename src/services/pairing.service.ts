@@ -159,11 +159,11 @@ export const canPair = async (a: PairCard, b: PairCard): Promise<PairCheck> => {
     }
 
     if (a.gender === b.gender) {
+        const both = a.gender === "male" ? "brothers" : "sisters";
+        const needed = a.gender === "male" ? "sister" : "brother";
         return {
             ok: false,
-            message: `The dinner pairs a brother with a sister — you'll need a ${
-                a.gender === "male" ? "sister's" : "brother's"
-            } token.`,
+            message: `Ah ah! You're both ${both}. 😅 Be serious — the dinner pairs a brother with a sister, so go and get a ${needed}'s token.`,
         };
     }
 
@@ -177,30 +177,49 @@ export const canPair = async (a: PairCard, b: PairCard): Promise<PairCheck> => {
         }
     }
 
-    if (await hasPendingBetween(a.registrationId, b.registrationId)) {
-        return {
-            ok: false,
-            message: "You two already have a pairing waiting on payment. Check your code.",
-        };
-    }
-
+    // A pre-existing intent between these two is deliberately NOT an error
+    // here: the caller looks it up first and shows its status instead. See
+    // `createFinalistIntent`.
     return { ok: true };
 };
 
-/** Whether these exact two already have a pending intent, in either direction. */
-export const hasPendingBetween = async (aId: string, bId: string): Promise<boolean> => {
+export type ExistingIntent = {
+    id: string;
+    code: string;
+    status: "pending" | "approved";
+    amount: number;
+};
+
+/**
+ * A live intent between exactly these two, in either direction.
+ *
+ * A pairing is the same pairing whichever token was entered first, so this
+ * looks both ways round. The database enforces the same idea with a unique
+ * index over normalised (low, high) ids — this function is what lets the app
+ * *show* the existing intent instead of bouncing off that index with an error.
+ */
+export const findLiveIntentBetween = async (
+    aId: string,
+    bId: string
+): Promise<ExistingIntent | null> => {
     const supabase = createServerSupabase();
-    const { data } = await supabase
+    const { data, error } = await supabase
         .from("fyb_pair_intents")
-        .select("id")
-        .eq("status", "pending")
+        .select("id, code, status, amount")
+        .eq("kind", "finalist")
+        .in("status", LIVE)
         .or(
             `and(initiator_registration_id.eq.${aId},partner_registration_id.eq.${bId}),` +
                 `and(initiator_registration_id.eq.${bId},partner_registration_id.eq.${aId})`
         )
-        .limit(1);
+        .limit(1)
+        .returns<ExistingIntent[]>();
 
-    return (data ?? []).length > 0;
+    if (error) {
+        console.error("findLiveIntentBetween failed:", error.message);
+        return null;
+    }
+    return data?.[0] ?? null;
 };
 
 /** The gender this person's date must be. */

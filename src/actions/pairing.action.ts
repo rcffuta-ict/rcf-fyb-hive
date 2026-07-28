@@ -8,8 +8,10 @@ import { checkTokenThrottle, recordTokenAttempt } from "@/lib/throttle";
 import {
     canPair,
     expectedPartnerGender,
+    findLiveIntentBetween,
     getAvailability,
     partnerTerm,
+    type ExistingIntent,
 } from "@/services/pairing.service";
 import { getSettings } from "@/services/settings.service";
 import type {
@@ -117,6 +119,12 @@ export async function resolveConsentToken(raw: string): Promise<ResolveResult> {
 
 export type IntentResult =
     | { status: "ok"; code: string; amount: number }
+    /**
+     * These two already have a live pairing. Not an error — the same two people
+     * entering their tokens again should see where that pairing stands, not be
+     * told off or handed a second code.
+     */
+    | { status: "existing"; code: string; amount: number; intentStatus: "pending" | "approved" }
     | { status: "blocked" | "error"; message: string };
 
 /** Narration code for the transfer — short, unambiguous, easy to read aloud. */
@@ -142,7 +150,10 @@ const loadCard = async (registrationId: string): Promise<PairCard | null> => {
     return toCard(data, availability.status, availability.available, availability.reason);
 };
 
-const insertIntent = async (row: Record<string, unknown>): Promise<IntentResult> => {
+const insertIntent = async (
+    row: Record<string, unknown>,
+    onConflict?: () => Promise<ExistingIntent | null>
+): Promise<IntentResult> => {
     const supabase = createServerSupabase();
     const { pairAmount } = await getSettings();
 
@@ -156,9 +167,20 @@ const insertIntent = async (row: Record<string, unknown>): Promise<IntentResult>
 
         if (error.code === "23505") {
             // A duplicate `code` is just bad luck — redraw. A duplicate on any
-            // other unique index means the associate lock or an approved
-            // pairing beat us here, which is a real answer, not a retry.
+            // other unique index means the associate lock, an approved pairing,
+            // or this exact pair beat us here: a real answer, not a retry.
             if (error.message.includes("code")) continue;
+
+            const existing = await onConflict?.();
+            if (existing) {
+                return {
+                    status: "existing",
+                    code: existing.code,
+                    amount: existing.amount,
+                    intentStatus: existing.status,
+                };
+            }
+
             return {
                 status: "blocked",
                 message: "That pairing is no longer possible — someone got there first.",
@@ -186,14 +208,35 @@ export async function createFinalistIntent(
         if (a.status !== "ok") return { status: "blocked", message: a.message };
         if (b.status !== "ok") return { status: "blocked", message: b.message };
 
+        // Look before creating: a pairing is the same pairing whichever token
+        // was entered first, so show the existing one rather than duplicating.
+        const existing = await findLiveIntentBetween(
+            a.card.registrationId,
+            b.card.registrationId
+        );
+        if (existing) {
+            return {
+                status: "existing",
+                code: existing.code,
+                amount: existing.amount,
+                intentStatus: existing.status,
+            };
+        }
+
         const check = await canPair(a.card, b.card);
         if (!check.ok) return { status: "blocked", message: check.message };
 
-        const result = await insertIntent({
-            kind: "finalist",
-            initiator_registration_id: a.card.registrationId,
-            partner_registration_id: b.card.registrationId,
-        });
+        const result = await insertIntent(
+            {
+                kind: "finalist",
+                initiator_registration_id: a.card.registrationId,
+                partner_registration_id: b.card.registrationId,
+            },
+            // If two devices submit the same pair at once, the unique index
+            // rejects the loser — resolve that into the winner's intent rather
+            // than an error, since both users wanted the same outcome.
+            () => findLiveIntentBetween(a.card.registrationId, b.card.registrationId)
+        );
 
         if (result.status === "ok") revalidatePath("/pairing");
         return result;
@@ -247,6 +290,48 @@ export async function createAssociateIntent(
     } catch (error) {
         console.error("createAssociateIntent failed:", error);
         return { status: "error", message: "Something went wrong. Please try again." };
+    }
+}
+
+export type ExistingPairing = {
+    code: string;
+    amount: number;
+    intentStatus: "pending" | "approved";
+};
+
+/**
+ * Whether these two tokens already describe a pairing.
+ *
+ * Called before the eligibility checks on purpose: if two people are already
+ * paired *with each other*, they read as "taken" and would otherwise be told
+ * they're unavailable — when what they actually want is to see their own
+ * pairing's status. Order doesn't matter, here or in the database.
+ */
+export async function findPairingBetween(
+    tokenA: string,
+    tokenB: string
+): Promise<ExistingPairing | null> {
+    try {
+        const [a, b] = await Promise.all([
+            resolveConsentToken(tokenA),
+            resolveConsentToken(tokenB),
+        ]);
+        if (a.status !== "ok" || b.status !== "ok") return null;
+
+        const existing = await findLiveIntentBetween(
+            a.card.registrationId,
+            b.card.registrationId
+        );
+        if (!existing) return null;
+
+        return {
+            code: existing.code,
+            amount: existing.amount,
+            intentStatus: existing.status,
+        };
+    } catch (error) {
+        console.error("findPairingBetween failed:", error);
+        return null;
     }
 }
 

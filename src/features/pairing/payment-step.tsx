@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
-import { Check, Copy, PartyPopper } from "lucide-react";
+import { BadgeCheck, Check, Clock, Copy, PartyPopper } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { appToast } from "@/providers/ToastProvider";
@@ -51,6 +51,7 @@ const PaymentStep = (): React.JSX.Element | null => {
     const amount = usePairingStore((s) => s.amount);
     const partner = usePairingStore((s) => s.partner);
     const associate = usePairingStore((s) => s.associate);
+    const existingStatus = usePairingStore((s) => s.existingStatus);
     const reset = usePairingStore((s) => s.reset);
 
     const [acknowledged, setAcknowledged] = useState(false);
@@ -61,7 +62,13 @@ const PaymentStep = (): React.JSX.Element | null => {
     const accountName = useSettingsStore((s) => s.accountName);
     const accountNumber = useSettingsStore((s) => s.accountNumber);
 
+    const alreadyApproved = existingStatus === "approved";
+
     useEffect(() => {
+        // No confetti for a pairing that merely already existed — celebrating a
+        // lookup would be odd, and an approved pair has already had its moment.
+        if (existingStatus) return;
+
         const timer = setTimeout(() => {
             void confetti({
                 particleCount: 80,
@@ -72,7 +79,7 @@ const PaymentStep = (): React.JSX.Element | null => {
             });
         }, 250);
         return () => clearTimeout(timer);
-    }, []);
+    }, [existingStatus]);
 
     if (!code) return null;
 
@@ -83,15 +90,28 @@ const PaymentStep = (): React.JSX.Element | null => {
         <div className="mx-auto max-w-md animate-fade-in text-center">
             <div className="surface p-8">
                 <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-primary">
-                    <PartyPopper size={24} />
+                    {alreadyApproved ? (
+                        <BadgeCheck size={24} />
+                    ) : existingStatus ? (
+                        <Clock size={24} />
+                    ) : (
+                        <PartyPopper size={24} />
+                    )}
                 </div>
 
                 <h2 className="font-luxury text-2xl text-foreground">
-                    You and {dateName} are on the way
+                    {alreadyApproved
+                        ? `You and ${dateName} are locked in`
+                        : existingStatus
+                          ? `You and ${dateName} are already paired`
+                          : `You and ${dateName} are on the way`}
                 </h2>
                 <p className="mt-2 text-sm text-foreground/70">
-                    One transfer left. Send {formatMoney(amount)} and put the code below in the
-                    narration so the organizers can find it.
+                    {alreadyApproved
+                        ? "Payment confirmed. Your invitation is in your inbox — that email is your entry pass."
+                        : existingStatus
+                          ? "This pairing already exists, so here's the same code as before — not a new one. It's still waiting on payment."
+                          : `One transfer left. Send ${formatMoney(amount)} and put the code below in the narration so the organizers can find it.`}
                 </p>
 
                 <div className="mt-6 rounded-token border-2 border-primary/40 bg-accent/60 p-5">
@@ -103,9 +123,9 @@ const PaymentStep = (): React.JSX.Element | null => {
                     </p>
                 </div>
 
-                <RefundNotice partnerName={dateName} className="mt-5" />
+                {!alreadyApproved && <RefundNotice partnerName={dateName} className="mt-5" />}
 
-                {acknowledged ? (
+                {alreadyApproved ? null : acknowledged ? (
                     <div className="mt-5 text-left">
                         <div className="surface p-5">
                             <CopyRow label="Bank" value={bankName} />
@@ -135,7 +155,7 @@ const PaymentStep = (): React.JSX.Element | null => {
                 )}
 
                 <Button variant="outline" onClick={reset} className="mt-6 w-full">
-                    Pair someone else
+                    {alreadyApproved ? "Done" : "Start over"}
                 </Button>
             </div>
         </div>

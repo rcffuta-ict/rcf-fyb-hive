@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { AlertOctagon, ArrowLeft, Loader2, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +86,21 @@ const PartnerStep = (): React.JSX.Element | null => {
                 )}
             </AnimatePresence>
 
-            {error && <p className="mt-3 text-center text-sm text-destructive">{error}</p>}
+            {error && (
+                // Loud on purpose: the same-gender mistake is the one people
+                // make over and over, and a grey line under the input gets
+                // scrolled past.
+                <motion.div
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: [0, -6, 6, -4, 4, 0] }}
+                    transition={{ duration: 0.45 }}
+                    role="alert"
+                    className="mt-4 flex gap-3 rounded-token border-2 border-destructive/50 bg-destructive/10 px-4 py-3.5 text-left"
+                >
+                    <AlertOctagon size={18} className="mt-0.5 shrink-0 text-destructive" />
+                    <p className="text-sm font-medium leading-relaxed text-destructive">{error}</p>
+                </motion.div>
+            )}
 
             {partner && (
                 <>
