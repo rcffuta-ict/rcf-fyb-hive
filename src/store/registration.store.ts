@@ -102,7 +102,18 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
             // The photo is only persisted now — at confirm — not when it was picked.
             const formData = new FormData();
             formData.append("file", photoFile);
-            const { url, publicId } = await uploadProfileImage(formData, "registrations");
+            const uploaded = await uploadProfileImage(formData, "registrations");
+
+            if (!uploaded.ok) {
+                const message = uploaded.reference
+                    ? `${uploaded.message} (Reference: ${uploaded.reference})`
+                    : uploaded.message;
+                appToast.error(message, toastId);
+                set({ error: message, submitting: false, step: "photo" });
+                return;
+            }
+
+            const { url, publicId } = uploaded;
             set({ photoUrl: url, photoPublicId: publicId });
 
             appToast.loading("Completing your registration…", toastId);
@@ -121,10 +132,14 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
                 set({ error: message, submitting: false });
             }
         } catch (err) {
+            // Actions report their own failures, so reaching here means the
+            // request never completed — a dropped connection, usually. Never
+            // surface the raw error: in production it's the redacted Next.js
+            // message, which helps nobody.
+            console.error("registration submit failed:", err);
             const message =
-                err instanceof Error
-                    ? err.message
-                    : "We couldn't upload your photo. Please try again.";
+                "We lost the connection before your registration finished. Check your network " +
+                "and try again — if it keeps happening, screenshot this and send it to the ICT Coordinator.";
             appToast.error(message, toastId);
             set({ error: message, submitting: false });
         }

@@ -8,9 +8,45 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
-export type UploadResult = {
-    url: string;
-    publicId: string;
+/**
+ * Every action here RETURNS its failures rather than throwing them.
+ *
+ * A thrown error in a Server Action is redacted by Next.js in production — the
+ * user gets "An error occurred in the server components render. The specific
+ * message is omitted in production builds…", which tells them nothing and tells
+ * us nothing either. Returning a typed result means the real reason reaches the
+ * screen, and anything we genuinely can't explain arrives with a reference code
+ * that is also in the server log.
+ */
+
+export type UploadFailure = {
+    ok: false;
+    /** Shown to the user. Always plain language, never a stack trace. */
+    message: string;
+    /** Present only for unexplained failures — matches a server log line. */
+    reference?: string;
+};
+
+export type UploadResult = { url: string; publicId: string };
+export type UploadResponse = ({ ok: true } & UploadResult) | UploadFailure;
+export type VerifyResponse = { ok: true } | UploadFailure;
+
+/**
+ * Short, readable reference for an error we couldn't classify. Logged
+ * server-side with the underlying cause so a screenshot from a registrant can
+ * be traced to the actual exception.
+ */
+const logUnexpected = (scope: string, err: unknown): UploadFailure => {
+    const reference = Math.random().toString(36).slice(2, 8).toUpperCase();
+    console.error(`[${scope}] unexpected failure ref=${reference}:`, err);
+
+    return {
+        ok: false,
+        reference,
+        message:
+            "Something went wrong on our side and we couldn't work out what. " +
+            "Please screenshot this and send it to the ICT Coordinator so we can fix it for you.",
+    };
 };
 
 /** Cloudinary built-in face box: [x, y, width, height] in pixels. */
@@ -62,22 +98,33 @@ const faceCheckError = (result: UploadApiResponse): string | null => {
     return null;
 };
 
-/** Map a raw Cloudinary/network failure to a friendly, actionable message. */
-const friendlyUploadError = (err: unknown): Error => {
+/**
+ * Map a raw Cloudinary/network failure to something a registrant can act on.
+ * Returns null when the cause isn't recognised, so the caller falls back to the
+ * referenced "contact the ICT Coordinator" message rather than inventing a
+ * reason.
+ */
+const friendlyUploadError = (err: unknown): string | null => {
     const e = err as { http_code?: number; name?: string; message?: string } | null;
-    const isTimeout =
-        e?.http_code === 499 ||
-        /timeout/i.test(e?.name ?? "") ||
-        /timeout/i.test(e?.message ?? "");
+    const text = `${e?.name ?? ""} ${e?.message ?? ""}`;
 
-    if (isTimeout) {
-        return new Error(
-            "The photo upload timed out — your connection looks slow. Move to better signal and try again."
-        );
+    if (e?.http_code === 499 || /timeout|etimedout/i.test(text)) {
+        return "The photo upload timed out — your connection looks slow. Move to better signal and try again.";
     }
-    return new Error(
-        "We couldn't reach the photo service. Please check your connection and try again."
-    );
+    if (/ENOTFOUND|ECONNRESET|ECONNREFUSED|EAI_AGAIN|network|fetch failed/i.test(text)) {
+        return "We couldn't reach the photo service. Check your connection and try again.";
+    }
+    if (e?.http_code === 401 || e?.http_code === 403 || /api_key|signature|401|403/i.test(text)) {
+        // Misconfiguration, not the registrant's fault — say so plainly.
+        return "Our photo service is misconfigured, so this isn't your fault. Please screenshot this and send it to the ICT Coordinator.";
+    }
+    if (e?.http_code === 400 && /file|format|unsupported/i.test(text)) {
+        return "That file isn't an image we can read. Try a JPG or PNG taken with your phone camera.";
+    }
+    if (e?.http_code === 413 || /too large|file size/i.test(text)) {
+        return "That photo is too large. Take a new one with your phone camera and try again.";
+    }
+    return null;
 };
 
 const uploadBuffer = (buffer: Buffer, folder: string): Promise<UploadApiResponse> =>
@@ -99,23 +146,35 @@ const uploadBuffer = (buffer: Buffer, folder: string): Promise<UploadApiResponse
             .end(buffer);
     });
 
-const fileToBuffer = async (formData: FormData): Promise<Buffer> => {
-    const file = formData.get("file") as File | null;
-    if (!file) throw new Error("No file uploaded");
-    return Buffer.from(await file.arrayBuffer());
-};
-
-/** Upload for analysis, translating transport failures into friendly errors. */
+/** Upload for analysis. Returns either the asset or a user-facing failure. */
 const uploadAndAnalyze = async (
     formData: FormData,
     folder: string
-): Promise<UploadApiResponse> => {
-    const buffer = await fileToBuffer(formData);
+): Promise<{ ok: true; result: UploadApiResponse } | UploadFailure> => {
+    const file = formData.get("file") as File | null;
+    if (!file) {
+        return {
+            ok: false,
+            message: "No photo came through. Pick the photo again and retry.",
+        };
+    }
+
+    let buffer: Buffer;
     try {
-        return await uploadBuffer(buffer, folder);
+        buffer = Buffer.from(await file.arrayBuffer());
     } catch (err) {
-        console.error("Cloudinary upload failed:", err);
-        throw friendlyUploadError(err);
+        return logUnexpected("upload:read", err);
+    }
+
+    try {
+        return { ok: true, result: await uploadBuffer(buffer, folder) };
+    } catch (err) {
+        const known = friendlyUploadError(err);
+        if (known) {
+            console.error("Cloudinary upload failed:", err);
+            return { ok: false, message: known };
+        }
+        return logUnexpected("upload:cloudinary", err);
     }
 };
 
@@ -126,13 +185,14 @@ const uploadAndAnalyze = async (
  * immediately — pass or fail. This lets the photo step validate the face up front
  * while the real (kept) upload is deferred to `uploadProfileImage` at confirm.
  */
-export async function verifyFacePhoto(formData: FormData): Promise<{ ok: true }> {
-    const result = await uploadAndAnalyze(formData, "registrations/_verify");
+export async function verifyFacePhoto(formData: FormData): Promise<VerifyResponse> {
+    const uploaded = await uploadAndAnalyze(formData, "registrations/_verify");
+    if (!uploaded.ok) return uploaded;
 
-    const error = faceCheckError(result);
-    await cloudinary.uploader.destroy(result.public_id).catch(() => undefined);
+    const error = faceCheckError(uploaded.result);
+    await cloudinary.uploader.destroy(uploaded.result.public_id).catch(() => undefined);
 
-    if (error) throw new Error(error);
+    if (error) return { ok: false, message: error };
     return { ok: true };
 }
 
@@ -144,19 +204,29 @@ export async function verifyFacePhoto(formData: FormData): Promise<{ ok: true }>
 export async function uploadProfileImage(
     formData: FormData,
     folder = "registrations"
-): Promise<UploadResult> {
-    const result = await uploadAndAnalyze(formData, folder);
+): Promise<UploadResponse> {
+    const uploaded = await uploadAndAnalyze(formData, folder);
+    if (!uploaded.ok) return uploaded;
 
-    const error = faceCheckError(result);
+    const error = faceCheckError(uploaded.result);
     if (error) {
-        await cloudinary.uploader.destroy(result.public_id).catch(() => undefined);
-        throw new Error(error);
+        await cloudinary.uploader.destroy(uploaded.result.public_id).catch(() => undefined);
+        return { ok: false, message: error };
     }
 
-    return { url: result.secure_url, publicId: result.public_id };
+    return {
+        ok: true,
+        url: uploaded.result.secure_url,
+        publicId: uploaded.result.public_id,
+    };
 }
 
+/** Best-effort cleanup. Never surfaced to a user, so failure is logged only. */
 export async function deleteProfileImage(publicId: string): Promise<void> {
-    if (!publicId) throw new Error("Public ID is required");
-    await cloudinary.uploader.destroy(publicId);
+    if (!publicId) return;
+    try {
+        await cloudinary.uploader.destroy(publicId);
+    } catch (err) {
+        console.error("deleteProfileImage failed:", err);
+    }
 }

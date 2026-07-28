@@ -1,104 +1,57 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { HeartHandshake, Settings, Users } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import {
-    Table,
-    TableBody,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { appToast } from "@/providers/ToastProvider";
-import { useAdminStore } from "@/store/admin.store";
-
+import { cn } from "@/lib/utils";
 import DashboardHeader from "./dashboard-header";
-import RegistrationRow from "./registration-row";
+import PairIntentsPanel from "./pair-intents-panel";
+import RegistrationsPanel from "./registrations-panel";
+import SettingsPanel from "./settings-panel";
+
+type Tab = "registrations" | "pairings" | "settings";
+
+const TABS: { key: Tab; label: string; icon: typeof Users }[] = [
+    { key: "registrations", label: "Registrations", icon: Users },
+    { key: "pairings", label: "Pairings", icon: HeartHandshake },
+    { key: "settings", label: "Settings", icon: Settings },
+];
 
 const AdminDashboard = (): React.JSX.Element => {
-    const rows = useAdminStore((s) => s.registrations);
-    const total = useAdminStore((s) => s.total);
-    const page = useAdminStore((s) => s.page);
-    const pageSize = useAdminStore((s) => s.pageSize);
-    const loading = useAdminStore((s) => s.loading);
-    const search = useAdminStore((s) => s.search);
-    const load = useAdminStore((s) => s.load);
-    const resendingId = useAdminStore((s) => s.resendingId);
-    const resendConsent = useAdminStore((s) => s.resendConsent);
-
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-    const handleResend = async (id: string): Promise<void> => {
-        const result = await resendConsent(id);
-        if (result.ok) appToast.success(result.message);
-        else appToast.error(result.message);
-    };
+    const [tab, setTab] = useState<Tab>("registrations");
 
     return (
         <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
             <DashboardHeader />
 
-            <div className="surface mt-4 overflow-hidden p-0">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="hover:bg-transparent">
-                            <TableHead>Finalist</TableHead>
-                            <TableHead>Level</TableHead>
-                            <TableHead className="hidden md:table-cell">Unit</TableHead>
-                            <TableHead className="hidden sm:table-cell">Contact</TableHead>
-                            <TableHead>Consent email</TableHead>
-                            <TableHead className="text-right">Registered</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {rows.map((r) => (
-                            <RegistrationRow
-                                key={r.id}
-                                registration={r}
-                                resending={resendingId === r.id}
-                                onResend={(id) => void handleResend(id)}
-                            />
-                        ))}
-                    </TableBody>
-                </Table>
-
-                {loading && (
-                    <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>
-                )}
-                {!loading && rows.length === 0 && (
-                    <div className="p-12 text-center">
-                        <p className="font-medium text-foreground">No registrations found</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            {search ? "Try a different search." : "They'll appear here as finalists register."}
-                        </p>
-                    </div>
-                )}
+            <div
+                role="tablist"
+                aria-label="Admin sections"
+                className="mt-6 flex gap-1 border-b border-border"
+            >
+                {TABS.map(({ key, label, icon: Icon }) => (
+                    <button
+                        key={key}
+                        role="tab"
+                        type="button"
+                        aria-selected={tab === key}
+                        onClick={() => setTab(key)}
+                        className={cn(
+                            "-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
+                            tab === key
+                                ? "border-primary text-primary"
+                                : "border-transparent text-muted-foreground hover:text-foreground"
+                        )}
+                    >
+                        <Icon size={16} />
+                        {label}
+                    </button>
+                ))}
             </div>
 
-            {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-between">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={page <= 1 || loading}
-                        onClick={() => void load({ page: page - 1 })}
-                    >
-                        <ChevronLeft size={16} /> Prev
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                        Page {page} of {totalPages}
-                    </span>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={page >= totalPages || loading}
-                        onClick={() => void load({ page: page + 1 })}
-                    >
-                        Next <ChevronRight size={16} />
-                    </Button>
-                </div>
-            )}
+            {tab === "registrations" && <RegistrationsPanel />}
+            {tab === "pairings" && <PairIntentsPanel />}
+            {tab === "settings" && <SettingsPanel />}
         </section>
     );
 };

@@ -23,7 +23,19 @@ const faqs: Faq[] = [
     },
     {
         question: "When do I actually use the token?",
-        answer: "When pairing opens. Registration is the part that's live now — the token is issued today so it's already in your hands when it's time. Nothing else to do until then except keep the email.",
+        answer: "On the pairing page — you enter yours, then your date's, and that pair of tokens is what proves you both agreed. If pairing hasn't opened yet, just hold on to the email.",
+    },
+    {
+        question: "I paid but someone else got my date. What now?",
+        answer: "Payment is what confirms a pairing, and the first confirmed payment wins — so if someone paid for the same person before you, their pairing stands. Payments aren't refunded, which is exactly why the page tells you to pay early rather than sit on it. Talk to the organizers if you think something went wrong.",
+    },
+    {
+        question: "Can I bring someone who isn't in the fellowship?",
+        answer: "Yes — we call them an associate. You fill in their name, email and phone yourself, and their invitation goes to that email. One catch: registering an associate takes you off the market immediately, so no other finalist can pair with you and you can't swap them for someone else.",
+    },
+    {
+        question: "Can I pair with more than one person?",
+        answer: "You can have more than one pairing waiting on payment — nothing is reserved until money is confirmed. But only one can ever be paid for, and the moment one is confirmed the others are cancelled automatically.",
     },
     {
         question: "Someone asked me to send them my token. Should I?",

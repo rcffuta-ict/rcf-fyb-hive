@@ -7,8 +7,8 @@ import { Menu, X } from "lucide-react";
 
 import Logo from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
-import { liveNavLinks } from "@/constants/navigation";
-import { isFeatureEnabled } from "@/config/site";
+import { useLiveNavLinks } from "@/hooks/use-navigation";
+import { useFeature } from "@/store/settings.store";
 import { cn } from "@/lib/utils";
 
 const Header = (): React.JSX.Element => {
@@ -23,7 +23,8 @@ const Header = (): React.JSX.Element => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const canRegister = isFeatureEnabled("registration");
+    const liveNavLinks = useLiveNavLinks();
+    const canRegister = useFeature("registration");
     const isAdmin = pathname.includes("/admin");
 
     return (

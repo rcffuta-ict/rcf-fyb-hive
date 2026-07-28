@@ -101,16 +101,29 @@ const ImageUpload = ({
             appToast.loading("Checking your face…", toastId);
             const fd = new FormData();
             fd.append("file", processed);
-            await verifyFacePhoto(fd);
+            const verified = await verifyFacePhoto(fd);
+
+            // The action reports failures rather than throwing, so the real
+            // reason survives the production build instead of being redacted.
+            if (!verified.ok) {
+                const message = verified.reference
+                    ? `${verified.message} (Reference: ${verified.reference})`
+                    : verified.message;
+                setUploadError(message);
+                appToast.error(message, toastId);
+                return;
+            }
 
             const previewUrl = URL.createObjectURL(processed);
             onSelect(processed, previewUrl);
             appToast.success("Face verified", toastId);
         } catch (err) {
+            // Only genuinely local faults land here now — a dead network, or a
+            // browser that can't decode the file.
+            console.error("photo verify failed:", err);
             const message =
-                err instanceof Error
-                    ? err.message
-                    : "We couldn't verify that photo. Please try again.";
+                "We couldn't send that photo for checking. Check your connection and try again — " +
+                "if it keeps happening, screenshot this and send it to the ICT Coordinator.";
             setUploadError(message);
             appToast.error(message, toastId);
         } finally {

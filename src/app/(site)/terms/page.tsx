@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import PolicyPage, { type PolicySection } from "@/components/shared/policy-page";
-import { site } from "@/config/site";
+import { formatMoney, site } from "@/config/site";
 
 export const metadata: Metadata = {
     title: `Terms of Use — ${site.name}`,
@@ -42,8 +42,24 @@ const sections: PolicySection[] = [
         body: "Attendees are expected to uphold the values of the fellowship and conduct themselves respectfully. Pairing is by mutual consent — pressuring anyone for their token, or pairing with a token you were not freely given, is a breach of these terms. Organizers may decline entry or remove anyone whose conduct disrupts the event.",
     },
     {
-        title: "Payments",
-        body: "Where a fee or pairing validation applies, payments are made to the account details provided in-app and confirmed by the organizers. Fees are non-transferable unless stated otherwise by the organizers.",
+        title: "Pairing",
+        list: [
+            "Pairing is by mutual consent: you pair by exchanging consent tokens, or by registering an associate — someone outside the fellowship whose details you provide.",
+            "The dinner pairs a brother with a sister.",
+            "Registering an associate takes you off the market immediately. No other finalist can pair with you and you cannot register a second associate unless the organizers cancel the first.",
+            "You may have more than one pairing awaiting payment. Only one can ever be confirmed.",
+        ],
+    },
+    {
+        title: "Payments, Conflicts and Refunds",
+        body: `The fee is ${formatMoney(site.payment.amount)} per pair, paid by transfer to the account shown when you pair, using the narration code given to you. Read the rest of this clause before you transfer anything.`,
+        list: [
+            "Submitting a pairing reserves nothing. A pairing is validated only when the organizers confirm your payment.",
+            "Where more than one person pairs with the same person, the first confirmed payment wins. Everyone else's pairing is cancelled.",
+            "Payments are non-refundable. This includes losing a conflict, a cancelled pairing, and not attending.",
+            "An approved pairing is final. Both people are locked to it and it cannot be swapped or transferred.",
+            "The organizers may cancel a pairing awaiting payment — for example a mistaken associate entry — and doing so creates no entitlement to a refund of any payment already made.",
+        ],
     },
     {
         title: "Email Communication",

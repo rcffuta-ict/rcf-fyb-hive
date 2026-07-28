@@ -1,6 +1,6 @@
 import { Home, UserPlus, HeartHandshake, Trophy, type LucideIcon } from "lucide-react";
 
-import { site, isFeatureEnabled, type FeatureKey } from "@/config/site";
+import { site, type FeatureKey } from "@/config/site";
 
 /** A header/footer nav link, resolved against the active feature flags. */
 export type NavLink = {
@@ -18,17 +18,18 @@ const NAV_ICONS: Record<string, LucideIcon> = {
     "/awards": Trophy,
 };
 
-/** All nav links from config, each tagged with whether its feature is live. */
-export const navLinks: NavLink[] = site.nav.map((item) => ({
+/**
+ * All nav links from config. `enabled` is resolved by the hooks below rather
+ * than here: the pairing flag lives in the database now, and a module-level
+ * constant would freeze whatever it was at import time — so admin could toggle
+ * pairing on and the nav would keep hiding it until a redeploy.
+ */
+export const baseLinks: Omit<NavLink, "enabled">[] = site.nav.map((item) => ({
     label: item.label,
     href: item.href,
     feature: item.feature,
-    enabled: item.feature === null || isFeatureEnabled(item.feature),
     icon: NAV_ICONS[item.href] ?? Home,
 }));
-
-/** Only the links a visitor can actually open right now. */
-export const liveNavLinks: NavLink[] = navLinks.filter((l) => l.enabled);
 
 /** Richer cards for the landing page's "what you can do" section. */
 export type FeatureCard = {
@@ -40,7 +41,7 @@ export type FeatureCard = {
     enabled: boolean;
 };
 
-const baseCards: Omit<FeatureCard, "enabled">[] = [
+export const baseCards: Omit<FeatureCard, "enabled">[] = [
     {
         feature: "registration",
         href: "/register",
@@ -66,8 +67,3 @@ const baseCards: Omit<FeatureCard, "enabled">[] = [
         icon: Trophy,
     },
 ];
-
-export const featureCards: FeatureCard[] = baseCards.map((c) => ({
-    ...c,
-    enabled: isFeatureEnabled(c.feature),
-}));

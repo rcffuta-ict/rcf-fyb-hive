@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
@@ -9,10 +10,14 @@ import {
     getConsentEmailStatuses,
     sendConsentEmail,
 } from "@/services/consent.service";
-import { getPairingStatuses } from "@/services/pairing.service";
+import { getPairIntents, getPairingStatuses } from "@/services/pairing.service";
+import { getSettings, updateSetting } from "@/services/settings.service";
+import { sendPairInvitations } from "@/services/invitation.service";
 import type {
     AdminProfile,
     Gender,
+    PairIntentRecord,
+    PairIntentStatus,
     RegistrationRecord,
 } from "@/types/fyb.types";
 
@@ -297,4 +302,216 @@ export async function sendPendingConsentEmails(): Promise<ConsentActionResult> {
 
     const skipped = skippedNoEmail > 0 ? ` ${skippedNoEmail} skipped (no email on file).` : "";
     return { ok: true, message: `Queued ${queued} consent email${queued === 1 ? "" : "s"}.${skipped}` };
+}
+
+// ─── Pairing ────────────────────────────────────────────────────────────────
+
+export type PairActionResult = { ok: boolean; message: string };
+
+/** Every pair intent, newest first. Cancelled ones included deliberately. */
+export async function listPairIntents(
+    statusFilter?: PairIntentStatus
+): Promise<PairIntentRecord[]> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return [];
+    return getPairIntents(statusFilter);
+}
+
+/**
+ * Confirm a payment and make the pairing official.
+ *
+ * This is the moment everything else defers to: it is exclusive (enforced by
+ * partial unique indexes, not by this code), irreversible, and it decides who
+ * loses a conflict. Every other pending intent involving either person is
+ * cancelled here — that is what makes "only the one paid for is recognized"
+ * actually true.
+ */
+export async function approvePairIntent(id: string): Promise<PairActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return { ok: false, message: "Not authorized." };
+
+    const supabase = createServerSupabase();
+
+    const { data: intent } = await supabase
+        .from("fyb_pair_intents")
+        .select("id, status, initiator_registration_id, partner_registration_id")
+        .eq("id", id)
+        .maybeSingle<{
+            id: string;
+            status: string;
+            initiator_registration_id: string;
+            partner_registration_id: string | null;
+        }>();
+
+    if (!intent) return { ok: false, message: "That pairing no longer exists." };
+    if (intent.status === "approved") return { ok: true, message: "Already approved." };
+    if (intent.status === "cancelled") {
+        return { ok: false, message: "That pairing was cancelled — it can't be approved." };
+    }
+
+    const { error } = await supabase
+        .from("fyb_pair_intents")
+        .update({
+            status: "approved",
+            approved_at: new Date().toISOString(),
+            approved_by: admin.profileId,
+        })
+        .eq("id", id)
+        .eq("status", "pending");
+
+    if (error) {
+        // The partial unique index rejected it: one of these two already has an
+        // approved pairing. A clean message beats a stack trace.
+        if (error.code === "23505") {
+            return {
+                ok: false,
+                message: "One of them is already in an approved pairing.",
+            };
+        }
+        console.error("approvePairIntent failed:", error.message);
+        return { ok: false, message: "Could not approve. Please try again." };
+    }
+
+    const people = [intent.initiator_registration_id, intent.partner_registration_id].filter(
+        (value): value is string => Boolean(value)
+    );
+
+    // Everyone else who paired with either of these two loses now.
+    const { error: cancelError } = await supabase
+        .from("fyb_pair_intents")
+        .update({ status: "cancelled", cancel_reason: "partner paired elsewhere" })
+        .neq("id", id)
+        .eq("status", "pending")
+        .or(
+            people
+                .map(
+                    (p) =>
+                        `initiator_registration_id.eq.${p},partner_registration_id.eq.${p}`
+                )
+                .join(",")
+        );
+    if (cancelError) console.error("cascade cancel failed:", cancelError.message);
+
+    const invited = await sendPairInvitations(id);
+    if (!invited.success) console.error("invitation enqueue failed:", invited.message);
+
+    revalidatePath("/admin");
+    revalidatePath("/pairing");
+    return { ok: true, message: "Approved — invitations are on their way." };
+}
+
+/** Cancel a pending intent. Ordinary housekeeping; carries no money meaning. */
+export async function cancelPairIntent(
+    id: string,
+    reason: string
+): Promise<PairActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return { ok: false, message: "Not authorized." };
+
+    const supabase = createServerSupabase();
+    const { error } = await supabase
+        .from("fyb_pair_intents")
+        .update({ status: "cancelled", cancel_reason: reason || "cancelled by organizer" })
+        .eq("id", id)
+        .eq("status", "pending");
+
+    if (error) {
+        console.error("cancelPairIntent failed:", error.message);
+        return { ok: false, message: "Could not cancel. Please try again." };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/pairing");
+    return { ok: true, message: "Cancelled." };
+}
+
+/**
+ * Undo an approval. Admin-error escape hatch only — an approved pairing is
+ * meant to be final, and this is never a refund route.
+ */
+export async function revokePairApproval(
+    id: string,
+    reason: string
+): Promise<PairActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return { ok: false, message: "Not authorized." };
+
+    const supabase = createServerSupabase();
+    const { error } = await supabase
+        .from("fyb_pair_intents")
+        .update({
+            status: "cancelled",
+            cancel_reason: `approval revoked by organizer: ${reason || "admin error"}`,
+        })
+        .eq("id", id)
+        .eq("status", "approved");
+
+    if (error) {
+        console.error("revokePairApproval failed:", error.message);
+        return { ok: false, message: "Could not revoke. Please try again." };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/pairing");
+    return { ok: true, message: "Approval revoked." };
+}
+
+export type AdminSettings = {
+    pairingEnabled: boolean;
+    pairAmount: number;
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
+};
+
+export async function getAdminSettings(): Promise<AdminSettings> {
+    const admin = await getCurrentAdmin();
+    if (!admin) {
+        return {
+            pairingEnabled: false,
+            pairAmount: 0,
+            bankName: "",
+            accountName: "",
+            accountNumber: "",
+        };
+    }
+    return getSettings();
+}
+
+export async function savePairingSettings(
+    input: AdminSettings
+): Promise<PairActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return { ok: false, message: "Not authorized." };
+
+    if (!Number.isFinite(input.pairAmount) || input.pairAmount < 0) {
+        return { ok: false, message: "Enter a valid amount." };
+    }
+
+    // This is where people's money goes — refuse to save it half-blank rather
+    // than let the payment screen show an incomplete account.
+    const accountNumber = input.accountNumber.trim();
+    if (!input.bankName.trim() || !input.accountName.trim() || !accountNumber) {
+        return { ok: false, message: "Bank, account name and account number are all required." };
+    }
+    if (!/^\d{10}$/.test(accountNumber)) {
+        return { ok: false, message: "A Nigerian account number is 10 digits." };
+    }
+
+    const by = admin.email ?? admin.profileId;
+    const results = await Promise.all([
+        updateSetting("pairing_enabled", input.pairingEnabled, by),
+        updateSetting("pair_amount", Math.round(input.pairAmount), by),
+        updateSetting("pay_bank_name", input.bankName.trim(), by),
+        updateSetting("pay_account_name", input.accountName.trim(), by),
+        updateSetting("pay_account_number", accountNumber, by),
+    ]);
+
+    if (results.some((r) => !r.success)) {
+        return { ok: false, message: "Could not save settings." };
+    }
+
+    // The flag is read per request, so every route picks this up immediately.
+    revalidatePath("/", "layout");
+    return { ok: true, message: "Settings saved." };
 }

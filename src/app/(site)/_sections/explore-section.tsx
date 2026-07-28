@@ -1,11 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Clock } from "lucide-react";
 
-import { featureCards } from "@/constants/navigation";
+import { useFeatureCards } from "@/hooks/use-navigation";
 import { site } from "@/config/site";
 import { cn } from "@/lib/utils";
 
 const ExploreSection = (): React.JSX.Element => {
+    const featureCards = useFeatureCards();
+
     return (
         <section className="py-20 md:py-28">
             <div className="mx-auto max-w-5xl px-4 sm:px-6">

@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { fybEnv, sharedEnv } from "./env.ts";
 import {
+    renderTicketBlock,
     renderButton,
     renderCallout,
     renderEventBlock,
@@ -192,17 +193,39 @@ const HEADINGS: Record<string, { heading: string; preheader: string }> = {
         heading: "You're on the list, {{first_name}}.",
         preheader: "Your consent token is inside — share it with the one you're bringing.",
     },
+    fyb_invitation: {
+        heading: "It's official, {{first_name}}.",
+        preheader: "Your invitation is inside — this email is your entry pass.",
+    },
 };
 
 // deno-lint-ignore no-explicit-any
 async function render(row: any) {
-    const context = row.context_id ? await loadContext(row.context_id) : null;
-    const vars = buildVariables(context);
-    const recipient = row.recipient_email || context?.email || "";
-    const recipientName =
-        row.recipient_name || [context?.first_name, context?.last_name].filter(Boolean).join(" ");
+    // `context_type` decides what this email is about. It has been on the queue
+    // table since the beginning and unread until now; pair invitations are the
+    // first thing that isn't a registration.
+    const isPair = row.context_type === "fyb_pair_intent";
 
+    const context = row.context_id
+        ? isPair
+            ? await loadPairContext(row.context_id)
+            : await loadContext(row.context_id)
+        : null;
+
+    const recipient = row.recipient_email || (isPair ? "" : context?.email) || "";
     if (!recipient) throw new Error("No recipient email");
+
+    // A pair email goes to both parties, and each must read from their own
+    // side — so the recipient address decides who is "you" and who is the date.
+    const vars = isPair
+        ? buildPairVariables(context, recipient)
+        : buildVariables(context);
+
+    const recipientName =
+        row.recipient_name ||
+        (isPair
+            ? vars.first_name
+            : [context?.first_name, context?.last_name].filter(Boolean).join(" "));
 
     const copy = HEADINGS[row.template_key];
     const heading = injectVars(copy?.heading ?? "FYB Dinner", vars);
@@ -218,7 +241,7 @@ async function render(row: any) {
                 bodyHtml: injectVars(row.body_html, vars),
                 heading,
                 preheader,
-                photoUrl: context?.photo_url,
+                photoUrl: isPair ? vars.recipient_photo : context?.photo_url,
             }),
             recipient,
             recipientName,
@@ -240,7 +263,7 @@ async function render(row: any) {
             bodyHtml: injectVars(template.body_html, vars),
             heading,
             preheader,
-            photoUrl: context?.photo_url,
+            photoUrl: isPair ? vars.recipient_photo : context?.photo_url,
         }),
         recipient,
         recipientName,
@@ -260,6 +283,88 @@ async function loadContext(id: string) {
         .eq("id", id)
         .single();
     return data;
+}
+
+/**
+ * PROJECT-SPECIFIC: an approved pairing, with both parties joined.
+ * Associates live on the intent row itself — they have no registration.
+ */
+async function loadPairContext(id: string) {
+    const { data } = await supabase
+        .from("fyb_pair_intents")
+        .select(
+            "id, code, kind, amount, associate_name, associate_email, associate_gender, " +
+                "initiator:fyb_registrations!fyb_pair_intents_initiator_registration_id_fkey(" +
+                "first_name, last_name, email, level, unit, photo_url), " +
+                "partner:fyb_registrations!fyb_pair_intents_partner_registration_id_fkey(" +
+                "first_name, last_name, email, level, unit, photo_url)"
+        )
+        .eq("id", id)
+        .single();
+    return data;
+}
+
+// deno-lint-ignore no-explicit-any
+function personDetail(person: any): string {
+    return [person?.level, person?.unit].filter(Boolean).join(" · ") || "FYB Dinner";
+}
+
+/**
+ * Variables for the invitation ticket.
+ *
+ * The same pairing produces two different emails: whoever this one is addressed
+ * to becomes "you", and the other becomes "your date". That is decided here
+ * from the recipient address, so the template stays a single piece of copy.
+ */
+// deno-lint-ignore no-explicit-any
+function buildPairVariables(context: any, recipient: string): Record<string, string> {
+    const base = buildVariables(null);
+    if (!context) return base;
+
+    const initiator = context.initiator;
+    const partner = context.partner;
+    const isAssociateIntent = context.kind === "associate";
+
+    const associate = isAssociateIntent
+        ? {
+              first_name: (context.associate_name ?? "Guest").split(" ")[0],
+              last_name: "",
+              full_name: context.associate_name ?? "Guest",
+              email: context.associate_email,
+              level: "Guest of the class",
+              unit: null,
+              photo_url: null,
+          }
+        : null;
+
+    const other = isAssociateIntent ? associate : partner;
+    const address = recipient.trim().toLowerCase();
+
+    // Default to the initiator's side; flip only if this email is addressed to
+    // the other party.
+    let me = initiator;
+    let date = other;
+    if (address && other?.email && other.email.trim().toLowerCase() === address) {
+        me = other;
+        date = initiator;
+    }
+
+    const nameOf = (p: any): string =>
+        p?.full_name ?? [p?.first_name, p?.last_name].filter(Boolean).join(" ").trim();
+
+    return {
+        ...base,
+        first_name: me?.first_name ?? "",
+        date_name: nameOf(date),
+        date_first_name: date?.first_name ?? "",
+        pair_code: context.code ?? "",
+        recipient_photo: me?.photo_url ?? "",
+        ticket_block: renderTicketBlock({
+            me: { name: nameOf(me), detail: personDetail(me), photoUrl: me?.photo_url },
+            date: { name: nameOf(date), detail: personDetail(date), photoUrl: date?.photo_url },
+            code: context.code ?? "",
+        }),
+    };
 }
 
 /** PROJECT-SPECIFIC: the {{variables}} template authors may use. */

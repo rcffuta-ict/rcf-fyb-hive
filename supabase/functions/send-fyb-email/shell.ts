@@ -340,3 +340,83 @@ export const wrapInEmailShell = (input: {
   </body>
 </html>`;
 };
+
+/**
+ * Avatar for the ticket. Photos come from Cloudinary; associates have none, so
+ * they get an initial on burgundy instead. Deliberately not an inline SVG —
+ * Outlook and Gmail both mangle those — just a coloured table cell with a
+ * letter, which renders everywhere and survives images being blocked.
+ */
+const ticketFace = (name: string, photoUrl?: string | null): string => {
+    const initial = (name.trim()[0] ?? "?").toUpperCase();
+
+    if (photoUrl && photoUrl.includes("/image/upload/")) {
+        const transform = [
+            "c_thumb",
+            "g_face",
+            "z_0.7",
+            "w_140",
+            "h_140",
+            "r_14",
+            `b_rgb:${COLORS.burgundy.slice(1)}`,
+            `bo_3px_solid_rgb:${COLORS.goldHighlight.slice(1)}`,
+            "f_jpg",
+            "q_auto:good",
+        ].join(",");
+        const src = photoUrl.replace("/image/upload/", `/image/upload/${transform}/`);
+        return `<img src="${src}" alt="" width="70" height="70" style="display:block;border:0;outline:none;width:70px;height:70px;border-radius:10%;" />`;
+    }
+
+    return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:70px;height:70px;">
+      <tr><td align="center" valign="middle" bgcolor="${COLORS.burgundy}" style="width:70px;height:70px;background-color:${COLORS.burgundy};border:3px solid ${COLORS.goldHighlight};border-radius:8px;font-family:${FONTS.display};font-size:28px;color:${COLORS.goldHighlight};">${initial}</td></tr>
+    </table>`;
+};
+
+/**
+ * The invitation ticket: the two of you, side by side, and the code.
+ *
+ * This is what gets shown at the door, so it must read with images blocked —
+ * every name, the code and the entry line are live text, never baked into an
+ * image.
+ */
+export const renderTicketBlock = (input: {
+    me: { name: string; detail: string; photoUrl?: string | null };
+    date: { name: string; detail: string; photoUrl?: string | null };
+    code: string;
+}): string => `
+<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0 0 26px;">
+  <tr>
+    <td bgcolor="${COLORS.accent}" style="background-color:${COLORS.accent};border:2px solid ${COLORS.goldMid};border-radius:14px;padding:22px 18px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+        <tr>
+          <td align="center" width="42%" style="background-color:${COLORS.accent};">
+            ${ticketFace(input.me.name, input.me.photoUrl)}
+            <p style="margin:10px 0 0;font-family:${FONTS.body};font-size:13.5px;font-weight:bold;color:${COLORS.ink};">${input.me.name}</p>
+            <p style="margin:2px 0 0;font-family:${FONTS.body};font-size:11.5px;color:${COLORS.inkMuted};">${input.me.detail}</p>
+          </td>
+          <td align="center" width="16%" style="background-color:${COLORS.accent};font-family:${FONTS.display};font-size:20px;color:${COLORS.goldMid};">
+            &amp;
+          </td>
+          <td align="center" width="42%" style="background-color:${COLORS.accent};">
+            ${ticketFace(input.date.name, input.date.photoUrl)}
+            <p style="margin:10px 0 0;font-family:${FONTS.body};font-size:13.5px;font-weight:bold;color:${COLORS.ink};">${input.date.name}</p>
+            <p style="margin:2px 0 0;font-family:${FONTS.body};font-size:11.5px;color:${COLORS.inkMuted};">${input.date.detail}</p>
+          </td>
+        </tr>
+      </table>
+
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin-top:18px;border-top:1px dashed ${COLORS.goldMid};">
+        <tr>
+          <td align="center" style="background-color:${COLORS.accent};padding-top:14px;">
+            <p style="margin:0 0 6px;font-family:${FONTS.body};font-size:10.5px;font-weight:bold;letter-spacing:2.5px;text-transform:uppercase;color:${COLORS.gold};">
+              Admit two &middot; Pair code
+            </p>
+            <p style="margin:0;font-family:${FONTS.mono};font-size:22px;font-weight:bold;letter-spacing:4px;color:${COLORS.burgundy};">
+              ${input.code}
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`;

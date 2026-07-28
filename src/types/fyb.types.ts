@@ -87,6 +87,51 @@ export type ConsentEmailStatus = "sent" | "queued" | "failed" | "not_sent" | "no
  */
 export type PairingStatus = "single" | "in_between" | "taken";
 
+export type PairIntentKind = "finalist" | "associate";
+export type PairIntentStatus = "pending" | "approved" | "cancelled";
+
+/**
+ * A person as shown on the pairing screen, resolved from a consent token.
+ * Deliberately has no token field — the token is the input, never the output.
+ */
+export type PairCard = {
+    registrationId: string;
+    firstName: string;
+    lastName: string;
+    gender: Gender | null;
+    level: string;
+    unit: string | null;
+    photoUrl: string;
+    pairingStatus: PairingStatus;
+    /** False when this person can no longer be paired with, with a reason. */
+    available: boolean;
+    unavailableReason?: string;
+};
+
+/** An associate — someone outside the fellowship a finalist is bringing. */
+export type AssociateDetails = {
+    name: string;
+    email: string;
+    phone: string;
+    relationship: string;
+    gender: Gender;
+};
+
+/** A pair intent as shown to admins. */
+export type PairIntentRecord = {
+    id: string;
+    code: string;
+    kind: PairIntentKind;
+    status: PairIntentStatus;
+    amount: number;
+    createdAt: string;
+    approvedAt: string | null;
+    cancelReason: string | null;
+    initiator: PairCard;
+    partner: PairCard | null;
+    associate: AssociateDetails | null;
+};
+
 export type ConsentStatusEntry = {
     registrationId: string;
     status: ConsentEmailStatus;

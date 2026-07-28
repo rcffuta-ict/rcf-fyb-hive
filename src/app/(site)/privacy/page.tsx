@@ -12,7 +12,7 @@ const LAST_UPDATED = "28 July 2026";
 const sections: PolicySection[] = [
     {
         title: "Information We Collect",
-        body: "We collect details you provide during registration — such as your name, email, RCF unit, level, and a photo — looked up against your RCF FUTA membership profile. We also collect basic technical data (device, browser, usage) to keep the platform reliable.",
+        body: "We collect details you provide during registration — such as your name, email, RCF unit, level, and a photo — looked up against your RCF FUTA membership profile. If you pair with an associate, you also give us their name, email and phone number so we can send them their invitation. We collect basic technical data (device, browser, usage) to keep the platform reliable, and log the IP addresses of consent-token lookups to prevent people guessing at tokens.",
     },
     {
         title: "How We Use Your Information",
@@ -35,6 +35,10 @@ const sections: PolicySection[] = [
     {
         title: "Email Delivery",
         body: `Transactional email is sent through ZeptoMail on our behalf from our verified ${site.name} sending domain. To deliver a message, they process your email address, your name, and the message content. We keep a delivery log — the recipient address, subject, and whether the send succeeded — so we can answer "did it actually arrive?" if you tell us you never got it. Delivery logs never contain your consent token.`,
+    },
+    {
+        title: "What Your Date Can See",
+        body: "Entering someone's consent token shows you their photo, full name, level, unit and pairing status — that is what sharing a token consents to, and it works both ways. Nothing else about them is revealed, and the token itself is never displayed back to anyone. The public pairing feed shows first names only, never surnames or units.",
     },
     {
         title: "Sharing of Information",

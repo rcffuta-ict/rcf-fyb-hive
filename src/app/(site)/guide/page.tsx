@@ -3,6 +3,7 @@ import Link from "next/link";
 import { KeyRound, Mail, ShieldCheck, Sparkles, UserCheck } from "lucide-react";
 
 import GuideFaq from "@/features/guide/guide-faq";
+import PairingGuide from "@/features/guide/pairing-guide";
 import { Button } from "@/components/ui/button";
 import { site } from "@/config/site";
 
@@ -46,14 +47,17 @@ export default function GuidePage(): React.JSX.Element {
         <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
             <div className="text-center">
                 <span className="eyebrow">How it works</span>
-                <h1 className="mt-2 font-luxury text-foreground">Registering for the dinner</h1>
+                <h1 className="mt-2 font-luxury text-foreground">How the dinner works</h1>
                 <p className="mx-auto mt-4 max-w-xl text-foreground/70">
-                    Four steps and about two minutes. Here&apos;s everything you need to get your
-                    spot at the {site.event.title}.
+                    Register, get your consent token, then pair up with the person you&apos;re
+                    bringing. Everything you need for the {site.event.title} is here.
                 </p>
             </div>
 
-            <ol className="mt-12 space-y-4">
+            <h2 className="mt-12 text-center font-luxury text-2xl text-foreground">
+                Registering
+            </h2>
+            <ol className="mt-6 space-y-4">
                 {steps.map((step, index) => (
                     <li key={step.title} className="surface flex gap-4 p-6">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
@@ -98,13 +102,15 @@ export default function GuidePage(): React.JSX.Element {
                 </ul>
             </div>
 
-            <h2 className="mt-12 text-center font-luxury text-2xl text-foreground">
+            <PairingGuide />
+
+            <h2 className="mt-14 text-center font-luxury text-2xl text-foreground">
                 Common questions
             </h2>
             <GuideFaq />
 
             <p className="mt-8 text-center text-sm text-muted-foreground">
-                Pairing and awards open later in the season — this guide grows as they do.
+                Awards open later in the season — this guide grows as they do.
             </p>
 
             <div className="surface mt-6 p-8 text-center">
