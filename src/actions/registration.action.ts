@@ -6,7 +6,6 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { computeLevel, isFinalistLevel, parseSessionYear } from "@/lib/eligibility";
 import { sendConsentEmail } from "@/services/consent.service";
 import { getPairingVibe } from "@/services/pairing.service";
-import { isFeatureLive } from "@/services/settings.service";
 import type {
     Gender,
     LookupResult,
@@ -260,12 +259,11 @@ export async function lookupMember(identifier: string): Promise<LookupResult> {
 
         if (existing) {
             const member = toMemberLookup(profile, level);
-            // Where they stand in the pairing race — but only once pairing is
-            // switched on. Teasing someone about being single before they can
-            // do anything about it is just noise.
-            const vibe = (await isFeatureLive("pairing"))
-                ? await getPairingVibe(existing.id, member.gender)
-                : null;
+            // Coming back to register a second time is the whole trigger for
+            // the nudge — so it always comes with one. Whether pairing is open
+            // yet only changes whether there's a button to press, and that call
+            // belongs to the UI, not here.
+            const vibe = await getPairingVibe(existing.id, member.gender);
             return { status: "already_registered", member, vibe: vibe ?? undefined };
         }
 

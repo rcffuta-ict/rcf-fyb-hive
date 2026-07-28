@@ -5,6 +5,7 @@ import { ArrowRight, Clock, Flame, PartyPopper } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import PairingBadge from "@/components/shared/pairing-badge";
+import { useFeature } from "@/store/settings.store";
 import type { Gender, PairingVibe } from "@/types/fyb.types";
 
 /**
@@ -15,8 +16,8 @@ import type { Gender, PairingVibe } from "@/types/fyb.types";
  * point is the pressure, and made-up pressure stops working the moment one
  * person compares notes with another.
  *
- * Rendered only while pairing is live; before that there's nothing to nudge
- * anyone towards.
+ * Coming back to register a second time is the trigger, so this always shows —
+ * pairing being open or not only decides whether there's a button under it.
  */
 
 /** Church register, and plural — the pool they're looking at. */
@@ -79,7 +80,11 @@ const RegisteredVibe = ({
     vibe: PairingVibe;
 }): React.JSX.Element => {
     const { Icon, headline, body } = buildLine(vibe, gender);
-    const done = vibe.status === "taken";
+    const pairingOpen = useFeature("pairing");
+    // A button is only worth showing when there's somewhere to press it to —
+    // before pairing opens, `/pairing` is a "coming soon" page, and sending
+    // someone there after telling them to go and pair is a dead end.
+    const showCta = pairingOpen && vibe.status !== "taken";
 
     return (
         <div className="surface mt-3 animate-scale-in p-6">
@@ -94,7 +99,7 @@ const RegisteredVibe = ({
                 </div>
             </div>
 
-            {!done && (
+            {showCta && (
                 <Button asChild className="sheen mt-5 w-full">
                     <Link href="/pairing">
                         {vibe.status === "in_between"
