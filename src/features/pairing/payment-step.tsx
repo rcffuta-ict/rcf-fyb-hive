@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import confetti from "canvas-confetti";
 import { BadgeCheck, Clock, PartyPopper } from "lucide-react";
 
@@ -26,8 +26,6 @@ const PaymentStep = (): React.JSX.Element | null => {
     const associate = usePairingStore((s) => s.associate);
     const existingStatus = usePairingStore((s) => s.existingStatus);
     const reset = usePairingStore((s) => s.reset);
-
-    const [acknowledged, setAcknowledged] = useState(false);
 
     // Bank details come from admin settings, not site.config.json — the
     // organizers can correct an account number without a redeploy.
@@ -104,7 +102,11 @@ const PaymentStep = (): React.JSX.Element | null => {
 
                 {!alreadyApproved && <RefundNotice partnerName={dateName} className="mt-5" />}
 
-                {alreadyApproved ? null : acknowledged ? (
+                {/* No gate in front of these. An acknowledgement checkbox used
+                    to sit here, and it just meant people reached the payment
+                    screen and found no account to pay into. The no-refund
+                    warning above still gets read; it no longer blocks. */}
+                {!alreadyApproved && (
                     <>
                         <PaymentDetails
                             bankName={bankName}
@@ -118,19 +120,6 @@ const PaymentStep = (): React.JSX.Element | null => {
                             get an invitation by email — that email is your entry pass.
                         </p>
                     </>
-                ) : (
-                    <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-token border border-border p-4 text-left">
-                        <input
-                            type="checkbox"
-                            checked={acknowledged}
-                            onChange={(e) => setAcknowledged(e.target.checked)}
-                            className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
-                        />
-                        <span className="text-sm text-foreground/80">
-                            I understand payment is what confirms the pairing, and that it&apos;s
-                            non-refundable. Show me the account details.
-                        </span>
-                    </label>
                 )}
 
                 <Button variant="outline" onClick={reset} className="mt-6 w-full">

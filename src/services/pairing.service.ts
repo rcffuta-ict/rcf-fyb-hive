@@ -52,7 +52,9 @@ const toLiveIntent = (row: IntentRow): LiveIntent => ({
 });
 
 /** Every live (pending or approved) intent touching any of these registrations. */
-export const getLiveIntents = async (registrationIds: string[]): Promise<LiveIntent[]> => {
+export const getLiveIntents = async (
+    registrationIds: string[]
+): Promise<LiveIntent[]> => {
     if (registrationIds.length === 0) return [];
 
     const supabase = createServerSupabase();
@@ -60,9 +62,13 @@ export const getLiveIntents = async (registrationIds: string[]): Promise<LiveInt
 
     const { data, error } = await supabase
         .from("fyb_pair_intents")
-        .select("id, kind, status, initiator_registration_id, partner_registration_id")
+        .select(
+            "id, kind, status, initiator_registration_id, partner_registration_id"
+        )
         .in("status", LIVE)
-        .or(`initiator_registration_id.in.${idList},partner_registration_id.in.${idList}`)
+        .or(
+            `initiator_registration_id.in.${idList},partner_registration_id.in.${idList}`
+        )
         .returns<IntentRow[]>();
 
     if (error) {
@@ -84,7 +90,8 @@ export const getPairingStatuses = async (
     const intents = await getLiveIntents(registrationIds);
 
     for (const intent of intents) {
-        const status: PairingStatus = intent.status === "approved" ? "taken" : "in_between";
+        const status: PairingStatus =
+            intent.status === "approved" ? "taken" : "in_between";
         for (const id of [intent.initiatorId, intent.partnerId]) {
             if (!id || !statuses.has(id)) continue;
             // `taken` outranks `in_between` — an approved pairing is final, and a
@@ -112,7 +119,9 @@ export type Availability = {
  *  • a live associate intent — the lock lands when the associate is submitted,
  *    so nobody can hold an associate while entertaining finalist offers
  */
-export const getAvailability = async (registrationId: string): Promise<Availability> => {
+export const getAvailability = async (
+    registrationId: string
+): Promise<Availability> => {
     const intents = await getLiveIntents([registrationId]);
 
     const approved = intents.find((i) => i.status === "approved");
@@ -120,7 +129,7 @@ export const getAvailability = async (registrationId: string): Promise<Availabil
         return {
             available: false,
             status: "taken",
-            reason: "Already spoken for — this pairing is paid and final.",
+            reason: "Already spoken for — this person is taken.",
         };
     }
 
@@ -148,13 +157,17 @@ export type PairCheck = { ok: true } | { ok: false; message: string };
  */
 export const canPair = async (a: PairCard, b: PairCard): Promise<PairCheck> => {
     if (a.registrationId === b.registrationId) {
-        return { ok: false, message: "That's your own token — you'll need someone else's." };
+        return {
+            ok: false,
+            message: "That's your own token — you'll need someone else's.",
+        };
     }
 
     if (!a.gender || !b.gender) {
         return {
             ok: false,
-            message: "One of these profiles has no gender on record. Contact the organizers.",
+            message:
+                "One of these profiles has no gender on record. Contact the organizers.",
         };
     }
 
@@ -275,7 +288,8 @@ const personToCard = (row: PairPersonRow, status: PairingStatus): PairCard => ({
     available: status === "single" || status === "in_between",
 });
 
-const PERSON_COLUMNS = "id, first_name, last_name, gender, level, unit, photo_url";
+const PERSON_COLUMNS =
+    "id, first_name, last_name, gender, level, unit, photo_url";
 
 const INTENT_SELECT =
     "id, code, kind, status, amount, created_at, approved_at, cancel_reason, " +
@@ -308,12 +322,16 @@ export const getPairIntents = async (
 
     const rows = data ?? [];
     const ids = rows.flatMap((row) =>
-        [row.initiator?.id, row.partner?.id].filter((id): id is string => Boolean(id))
+        [row.initiator?.id, row.partner?.id].filter((id): id is string =>
+            Boolean(id)
+        )
     );
     const statuses = await getPairingStatuses([...new Set(ids)]);
 
     return rows
-        .filter((row): row is IntentJoinRow & { initiator: PairPersonRow } => Boolean(row.initiator))
+        .filter((row): row is IntentJoinRow & { initiator: PairPersonRow } =>
+            Boolean(row.initiator)
+        )
         .map((row) => ({
             id: row.id,
             code: row.code,
@@ -328,7 +346,10 @@ export const getPairIntents = async (
                 statuses.get(row.initiator.id) ?? "single"
             ),
             partner: row.partner
-                ? personToCard(row.partner, statuses.get(row.partner.id) ?? "single")
+                ? personToCard(
+                      row.partner,
+                      statuses.get(row.partner.id) ?? "single"
+                  )
                 : null,
             associate: row.associate_name
                 ? {

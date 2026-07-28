@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { AlertTriangle, Check, Copy } from "lucide-react";
 
 import { appToast } from "@/providers/ToastProvider";
+import { site } from "@/config/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -74,10 +75,34 @@ const PaymentDetails = ({
 }: Props): React.JSX.Element => {
     const [copied, copy] = useCopy();
 
+    // Never render an empty account. If settings are missing or half-saved,
+    // say so loudly — a blank field on a payment screen reads as a broken page
+    // and gets money sent nowhere.
+    if (!accountNumber.trim() || !bankName.trim() || !accountName.trim()) {
+        return (
+            <div className="mt-5 flex gap-3 rounded-token border-2 border-destructive/50 bg-destructive/10 p-5 text-left">
+                <AlertTriangle size={18} className="mt-0.5 shrink-0 text-destructive" />
+                <div>
+                    <p className="text-sm font-semibold text-destructive">
+                        The payment account isn&apos;t set up yet
+                    </p>
+                    <p className="mt-1 text-sm text-foreground/80">
+                        Your pairing is saved under <strong>{narration}</strong> — nothing is
+                        lost. Please screenshot this and send it to the organizers at{" "}
+                        <a href={`mailto:${site.contact.email}`} className="text-primary underline">
+                            {site.contact.email}
+                        </a>{" "}
+                        so they can add the account details.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     const rows = [
-        { key: "bank", label: "Bank", value: bankName, mono: false },
-        { key: "name", label: "Account name", value: accountName, mono: false },
-        { key: "amount", label: "Amount", value: amountLabel, mono: false },
+        { key: "bank", label: "Bank", value: bankName },
+        { key: "name", label: "Account name", value: accountName },
+        { key: "amount", label: "Amount", value: amountLabel },
     ];
 
     return (
