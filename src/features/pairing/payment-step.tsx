@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
-import { BadgeCheck, Check, Clock, Copy, PartyPopper } from "lucide-react";
+import { BadgeCheck, Clock, PartyPopper } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { appToast } from "@/providers/ToastProvider";
 import { formatMoney } from "@/config/site";
 import { usePairingStore } from "@/store/pairing.store";
 import { useSettingsStore } from "@/store/settings.store";
+import PaymentDetails from "./payment-details";
 import RefundNotice from "./refund-notice";
 
 /**
@@ -18,33 +18,6 @@ import RefundNotice from "./refund-notice";
  * is real money and the pairing can still be lost to a faster payer, so the
  * rule gets read before it can be acted on rather than after.
  */
-
-const CopyRow = ({ label, value }: { label: string; value: string }): React.JSX.Element => {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = async (): Promise<void> => {
-        try {
-            await navigator.clipboard.writeText(value);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1800);
-        } catch {
-            appToast.error("Couldn't copy — long-press to select it instead.");
-        }
-    };
-
-    return (
-        <div className="flex items-center justify-between gap-3 border-b border-border py-3 last:border-0">
-            <div className="min-w-0">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-                <p className="truncate font-medium text-foreground">{value}</p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => void handleCopy()}>
-                {copied ? <Check size={15} className="text-primary" /> : <Copy size={15} />}
-                <span className="sr-only">Copy {label}</span>
-            </Button>
-        </div>
-    );
-};
 
 const PaymentStep = (): React.JSX.Element | null => {
     const code = usePairingStore((s) => s.code);
@@ -114,31 +87,37 @@ const PaymentStep = (): React.JSX.Element | null => {
                           : `One transfer left. Send ${formatMoney(amount)} and put the code below in the narration so the organizers can find it.`}
                 </p>
 
-                <div className="mt-6 rounded-token border-2 border-primary/40 bg-accent/60 p-5">
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
-                        Payment narration
-                    </p>
-                    <p className="mt-2 font-mono text-2xl font-bold tracking-[0.15em] text-secondary">
-                        {narration}
-                    </p>
-                </div>
+                {/* An approved pairing keeps its code visible — it's the
+                    reference for any question about the payment later. The
+                    copyable version lives in PaymentDetails, so this only shows
+                    once there's no payment step left to take. */}
+                {alreadyApproved && (
+                    <div className="mt-6 rounded-token border-2 border-primary/40 bg-accent/60 p-5">
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
+                            Pair code
+                        </p>
+                        <p className="mt-2 font-mono text-2xl font-bold tracking-[0.15em] text-secondary">
+                            {code}
+                        </p>
+                    </div>
+                )}
 
                 {!alreadyApproved && <RefundNotice partnerName={dateName} className="mt-5" />}
 
                 {alreadyApproved ? null : acknowledged ? (
-                    <div className="mt-5 text-left">
-                        <div className="surface p-5">
-                            <CopyRow label="Bank" value={bankName} />
-                            <CopyRow label="Account name" value={accountName} />
-                            <CopyRow label="Account number" value={accountNumber} />
-                            <CopyRow label="Amount" value={formatMoney(amount)} />
-                            <CopyRow label="Narration" value={narration} />
-                        </div>
+                    <>
+                        <PaymentDetails
+                            bankName={bankName}
+                            accountName={accountName}
+                            accountNumber={accountNumber}
+                            amountLabel={formatMoney(amount)}
+                            narration={narration}
+                        />
                         <p className="mt-4 text-center text-sm text-foreground/70">
                             Screenshot this. Once the organizers confirm your payment, both of you
                             get an invitation by email — that email is your entry pass.
                         </p>
-                    </div>
+                    </>
                 ) : (
                     <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-token border border-border p-4 text-left">
                         <input
@@ -149,7 +128,7 @@ const PaymentStep = (): React.JSX.Element | null => {
                         />
                         <span className="text-sm text-foreground/80">
                             I understand payment is what confirms the pairing, and that it&apos;s
-                            non-refundable.
+                            non-refundable. Show me the account details.
                         </span>
                     </label>
                 )}

@@ -8,7 +8,11 @@ import GenderBadge from "@/components/shared/gender-badge";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/config/site";
-import type { Gender, PairIntentRecord, PairIntentStatus } from "@/types/fyb.types";
+import type {
+    Gender,
+    PairIntentRecord,
+    PairIntentStatus,
+} from "@/types/fyb.types";
 
 /** One pair intent in the admin table. */
 
@@ -19,7 +23,10 @@ const dateFmt = new Intl.DateTimeFormat("en-NG", {
     minute: "2-digit",
 });
 
-const STATUS: Record<PairIntentStatus, { label: string; variant: BadgeProps["variant"] }> = {
+const STATUS: Record<
+    PairIntentStatus,
+    { label: string; variant: BadgeProps["variant"] }
+> = {
     pending: { label: "Awaiting payment", variant: "warning" },
     approved: { label: "Approved", variant: "success" },
     cancelled: { label: "Cancelled", variant: "outline" },
@@ -47,9 +54,14 @@ const Face = ({
             />
         ) : null}
         <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">{name}</p>
+            <p className="truncate text-sm font-medium text-foreground">
+                {name}
+            </p>
             <p className="truncate text-xs text-muted-foreground">{detail}</p>
-            <GenderBadge gender={gender} className="mt-1 px-1.5 py-0 text-[9px]" />
+            <GenderBadge
+                gender={gender}
+                className="mt-1 px-1.5 py-0 text-[9px]"
+            />
         </div>
     </div>
 );
@@ -62,28 +74,40 @@ type Props = {
     onRevoke: (id: string) => void;
 };
 
-const PairIntentRow = ({ intent, busy, onApprove, onCancel, onRevoke }: Props): React.JSX.Element => {
+const PairIntentRow = ({
+    intent,
+    busy,
+    onApprove,
+    onCancel,
+    onRevoke,
+}: Props): React.JSX.Element => {
     const badge = STATUS[intent.status];
 
     return (
         <div className="border-b border-border p-4 last:border-0">
             <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center">
                     <Face
                         photoUrl={intent.initiator.photoUrl}
                         name={`${intent.initiator.firstName} ${intent.initiator.lastName}`}
                         detail={`${intent.initiator.level}${
-                            intent.initiator.unit ? ` · ${intent.initiator.unit}` : ""
+                            intent.initiator.unit
+                                ? ` · ${intent.initiator.unit}`
+                                : ""
                         }`}
                         gender={intent.initiator.gender}
                     />
-                    <span className="hidden text-muted-foreground sm:inline">+</span>
+                    <span className="hidden text-muted-foreground sm:inline">
+                        And
+                    </span>
                     {intent.partner ? (
                         <Face
                             photoUrl={intent.partner.photoUrl}
                             name={`${intent.partner.firstName} ${intent.partner.lastName}`}
                             detail={`${intent.partner.level}${
-                                intent.partner.unit ? ` · ${intent.partner.unit}` : ""
+                                intent.partner.unit
+                                    ? ` · ${intent.partner.unit}`
+                                    : ""
                             }`}
                             gender={intent.partner.gender}
                         />
@@ -101,7 +125,8 @@ const PairIntentRow = ({ intent, busy, onApprove, onCancel, onRevoke }: Props): 
                                     </span>
                                 </p>
                                 <p className="truncate text-xs text-muted-foreground">
-                                    {intent.associate.relationship} · {intent.associate.phone}
+                                    {intent.associate.relationship} ·{" "}
+                                    {intent.associate.phone}
                                 </p>
                                 <GenderBadge
                                     gender={intent.associate.gender}
@@ -119,7 +144,8 @@ const PairIntentRow = ({ intent, busy, onApprove, onCancel, onRevoke }: Props): 
                         {intent.code}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        {formatMoney(intent.amount)} · {dateFmt.format(new Date(intent.createdAt))}
+                        {formatMoney(intent.amount)} ·{" "}
+                        {dateFmt.format(new Date(intent.createdAt))}
                     </p>
                 </div>
             </div>
@@ -137,9 +163,16 @@ const PairIntentRow = ({ intent, busy, onApprove, onCancel, onRevoke }: Props): 
                 <div className="flex items-center gap-2">
                     {intent.status === "pending" && (
                         <>
-                            <Button size="sm" disabled={busy} onClick={() => onApprove(intent.id)}>
+                            <Button
+                                size="sm"
+                                disabled={busy}
+                                onClick={() => onApprove(intent.id)}
+                            >
                                 {busy ? (
-                                    <Loader2 size={14} className="animate-spin" />
+                                    <Loader2
+                                        size={14}
+                                        className="animate-spin"
+                                    />
                                 ) : (
                                     <Check size={14} />
                                 )}
