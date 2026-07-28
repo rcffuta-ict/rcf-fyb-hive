@@ -43,11 +43,22 @@ export type LookupStatus =
     | "config_error"
     | "error";
 
+/** Where someone already registered stands in the pairing race. */
+export type PairingVibe = {
+    status: PairingStatus;
+    /** Opposite-gender finalists with no live intent — who's actually left. */
+    availableOpposite: number;
+    /** Everyone *else* on an unpaid pending intent — the field they're racing. */
+    inBetween: number;
+};
+
 /** Result of looking a member up by email/phone for registration. */
 export type LookupResult = {
     status: LookupStatus;
     member?: MemberLookup;
     message?: string;
+    /** Only on `already_registered`, and only while pairing is live. */
+    vibe?: PairingVibe;
 };
 
 /** A persisted FYB finalist registration (snapshot of member at sign-up). */

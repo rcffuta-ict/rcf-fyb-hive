@@ -10,12 +10,14 @@ import { Input } from "@/components/ui/input";
 import NotEligible from "@/components/ui/not-eligible";
 import { useRegistrationStore } from "@/store/registration.store";
 import { site } from "@/config/site";
+import RegisteredVibe from "./registered-vibe";
 import { identifySchema, type IdentifyValues } from "./schema";
 
 const IdentifyStep = (): React.JSX.Element => {
     const looking = useRegistrationStore((s) => s.looking);
     const status = useRegistrationStore((s) => s.lookupStatus);
     const member = useRegistrationStore((s) => s.member);
+    const vibe = useRegistrationStore((s) => s.vibe);
     const error = useRegistrationStore((s) => s.error);
     const lookup = useRegistrationStore((s) => s.lookup);
     const setIdentifier = useRegistrationStore((s) => s.setIdentifier);
@@ -104,15 +106,27 @@ const IdentifyStep = (): React.JSX.Element => {
             )}
 
             {status === "already_registered" && (
-                <div className="surface mt-5 flex animate-scale-in items-center gap-3 p-6">
-                    <CheckCircle2 className="shrink-0 text-primary" size={22} />
-                    <p className="text-sm text-foreground/80">
-                        <span className="font-semibold text-foreground">
-                            {member?.firstName}, you&apos;re already registered.
-                        </span>{" "}
-                        We&apos;ve got your spot — see you at the dinner.
-                    </p>
-                </div>
+                <>
+                    <div className="surface mt-5 flex animate-scale-in items-center gap-3 p-6">
+                        <CheckCircle2 className="shrink-0 text-primary" size={22} />
+                        <p className="text-sm text-foreground/80">
+                            <span className="font-semibold text-foreground">
+                                {member?.firstName}, you&apos;re already registered.
+                            </span>{" "}
+                            We&apos;ve got your spot — see you at the dinner.
+                        </p>
+                    </div>
+
+                    {/* Registered is only half the story once pairing is open.
+                        The vibe arrives from the server, and only then. */}
+                    {vibe && member && (
+                        <RegisteredVibe
+                            firstName={member.firstName}
+                            gender={member.gender}
+                            vibe={vibe}
+                        />
+                    )}
+                </>
             )}
 
             {(status === "error" || status === "config_error") && error && (

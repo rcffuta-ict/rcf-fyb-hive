@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { computeLevel, isFinalistLevel, parseSessionYear } from "@/lib/eligibility";
 import { sendConsentEmail } from "@/services/consent.service";
+import { getPairingVibe } from "@/services/pairing.service";
+import { isFeatureLive } from "@/services/settings.service";
 import type {
     Gender,
     LookupResult,
@@ -254,10 +256,17 @@ export async function lookupMember(identifier: string): Promise<LookupResult> {
             .from("fyb_registrations")
             .select("id")
             .eq("profile_id", profile.id)
-            .maybeSingle();
+            .maybeSingle<{ id: string }>();
 
         if (existing) {
-            return { status: "already_registered", member: toMemberLookup(profile, level) };
+            const member = toMemberLookup(profile, level);
+            // Where they stand in the pairing race — but only once pairing is
+            // switched on. Teasing someone about being single before they can
+            // do anything about it is just noise.
+            const vibe = (await isFeatureLive("pairing"))
+                ? await getPairingVibe(existing.id, member.gender)
+                : null;
+            return { status: "already_registered", member, vibe: vibe ?? undefined };
         }
 
         // Only the eligible path pays for affiliations — they enrich the preview.

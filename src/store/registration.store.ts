@@ -6,6 +6,7 @@ import { appToast } from "@/providers/ToastProvider";
 import type {
     LookupStatus,
     MemberLookup,
+    PairingVibe,
     RegistrationRecord,
 } from "@/types/fyb.types";
 
@@ -16,6 +17,7 @@ type RegistrationState = {
     identifier: string;
     member: MemberLookup | null;
     lookupStatus: LookupStatus | null;
+    vibe: PairingVibe | null;
     photoFile: File | null;
     photoPreview: string;
     photoUrl: string;
@@ -45,6 +47,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
     identifier: "",
     member: null,
     lookupStatus: null,
+    vibe: null,
     photoFile: null,
     photoPreview: "",
     photoUrl: "",
@@ -69,7 +72,12 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
     lookup: async (identifier) => {
         set({ looking: true, error: null });
         const result = await lookupMember(identifier);
-        set({ lookupStatus: result.status, member: result.member ?? null, looking: false });
+        set({
+            lookupStatus: result.status,
+            member: result.member ?? null,
+            vibe: result.vibe ?? null,
+            looking: false,
+        });
 
         if (result.status === "eligible") {
             // Start the photo step empty — registrants must pick a clear face shot.
@@ -157,6 +165,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
             step: "identify",
             lookupStatus: null,
             member: null,
+            vibe: null,
             photoFile: null,
             photoPreview: "",
             error: null,
@@ -170,6 +179,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
             identifier: "",
             member: null,
             lookupStatus: null,
+            vibe: null,
             photoFile: null,
             photoPreview: "",
             photoUrl: "",

@@ -8,6 +8,7 @@ import type {
     PairIntentRecord,
     PairIntentStatus,
     PairingStatus,
+    PairingVibe,
 } from "@/types/fyb.types";
 
 /**
@@ -103,6 +104,85 @@ export const getPairingStatuses = async (
     }
 
     return statuses;
+};
+
+/**
+ * The numbers behind the nudge shown to someone who is already registered.
+ *
+ * `availableOpposite` counts only people of the *opposite* gender with no live
+ * intent at all — the pool they could actually still pair with, not a headline
+ * "still single" number that includes their own gender and would be a lie.
+ * `inBetween` counts everybody sitting on an unpaid pending intent, which is
+ * the field they're racing against once they've submitted one.
+ */
+export const getPairingVibe = async (
+    registrationId: string,
+    gender: Gender | null
+): Promise<PairingVibe | null> => {
+    const supabase = createServerSupabase();
+
+    // Both tables are small (a cohort, not a population), so two unfiltered
+    // reads beat building a giant `.or()` over every registration id.
+    const [people, intents] = await Promise.all([
+        supabase
+            .from("fyb_registrations")
+            .select("id, gender")
+            .returns<{ id: string; gender: string | null }[]>(),
+        supabase
+            .from("fyb_pair_intents")
+            .select(
+                "status, initiator_registration_id, partner_registration_id"
+            )
+            .in("status", LIVE)
+            .returns<
+                {
+                    status: "pending" | "approved";
+                    initiator_registration_id: string;
+                    partner_registration_id: string | null;
+                }[]
+            >(),
+    ]);
+
+    if (people.error || intents.error) {
+        console.error(
+            "getPairingVibe failed:",
+            people.error?.message ?? intents.error?.message
+        );
+        return null;
+    }
+
+    const rows = people.data ?? [];
+    if (!rows.some((row) => row.id === registrationId)) return null;
+
+    const spoken = new Map<string, PairingStatus>();
+    for (const intent of intents.data ?? []) {
+        const status: PairingStatus =
+            intent.status === "approved" ? "taken" : "in_between";
+        for (const id of [
+            intent.initiator_registration_id,
+            intent.partner_registration_id,
+        ]) {
+            // `taken` outranks `in_between`, same rule as getPairingStatuses.
+            if (!id) continue;
+            if (status === "taken" || !spoken.has(id)) spoken.set(id, status);
+        }
+    }
+
+    const opposite = gender ? expectedPartnerGender(gender) : null;
+
+    return {
+        status: spoken.get(registrationId) ?? "single",
+        availableOpposite: opposite
+            ? rows.filter(
+                  (row) => row.gender === opposite && !spoken.has(row.id)
+              ).length
+            : 0,
+        // Everyone *else* in-between — the copy says "others", so counting
+        // them among the people they're racing would be wrong.
+        inBetween: [...spoken.entries()].filter(
+            ([id, s]) => s === "in_between" && id !== registrationId
+        ).length,
+    };
 };
 
 export type Availability = {
