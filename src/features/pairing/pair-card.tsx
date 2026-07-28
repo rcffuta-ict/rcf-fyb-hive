@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 
+import GenderBadge from "@/components/shared/gender-badge";
 import PairingBadge from "@/components/shared/pairing-badge";
 import type { PairCard as PairCardData } from "@/types/fyb.types";
 
@@ -56,7 +57,10 @@ const PairCard = ({
                 {card.level}
                 {card.unit ? ` · ${card.unit}` : ""}
             </p>
-            <PairingBadge status={card.pairingStatus} className="mt-2 px-2 py-0 text-[10px]" />
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <GenderBadge gender={card.gender} className="px-2 py-0 text-[10px]" />
+                <PairingBadge status={card.pairingStatus} className="px-2 py-0 text-[10px]" />
+            </div>
         </div>
     </motion.div>
 );

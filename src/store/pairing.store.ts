@@ -93,6 +93,17 @@ export const usePairingStore = create<PairingState>((set, get) => ({
             return set({ resolving: false, error: result.message });
         }
 
+        // No gender on record means we can't apply the brother/sister rule at
+        // lookup, and they'd only be stopped at submit. Say so now.
+        if (!result.card.gender) {
+            return set({
+                resolving: false,
+                error:
+                    "Your profile has no gender on record, so we can't pair you yet. " +
+                    "Reach out to the ICT Coordinator to get it fixed.",
+            });
+        }
+
         // Someone already paired and paid can't start a new pairing at all —
         // say so here rather than letting them fill in a partner first.
         if (!result.card.available) {
@@ -129,7 +140,14 @@ export const usePairingStore = create<PairingState>((set, get) => ({
         // Same gender: say so plainly and by name, right where they typed it.
         // This is the one mistake people will make repeatedly, so the message
         // names the person and what's actually needed.
-        if (expects && result.card.gender && result.card.gender !== expects) {
+        if (!result.card.gender) {
+            return set({
+                resolving: false,
+                partner: null,
+                error: `${result.card.firstName} has no gender on record, so we can't check the brother/sister rule. Ask them to contact the ICT Coordinator.`,
+            });
+        }
+        if (expects && result.card.gender !== expects) {
             const both = expects === "female" ? "brothers" : "sisters";
             return set({
                 resolving: false,

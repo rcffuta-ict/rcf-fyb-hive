@@ -7,9 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useRegistrationStore } from "@/store/registration.store";
 import Link from "next/link";
 
-const formatGender = (gender: string | null): string | null =>
-    gender ? gender.charAt(0).toUpperCase() + gender.slice(1) : null;
-
 const Detail = ({
     label,
     value,
@@ -38,9 +35,11 @@ const PreviewStep = (): React.JSX.Element | null => {
     const details: { label: string; value: string }[] = [
         member.email && { label: "Email", value: member.email },
         member.phoneNumber && { label: "Phone", value: member.phoneNumber },
-        formatGender(member.gender) && {
+        member.gender && {
+            // Brother / Sister — the register the fellowship uses, and the one
+            // the pairing rule is expressed in.
             label: "Gender",
-            value: formatGender(member.gender)!,
+            value: member.gender === "male" ? "Brother" : "Sister",
         },
         member.matricNumber && {
             label: "Matric No.",

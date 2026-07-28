@@ -4,10 +4,11 @@ import Image from "next/image";
 import { Check, Loader2, Undo2, X } from "lucide-react";
 
 import AssociateAvatar from "@/components/shared/associate-avatar";
+import GenderBadge from "@/components/shared/gender-badge";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/config/site";
-import type { PairIntentRecord, PairIntentStatus } from "@/types/fyb.types";
+import type { Gender, PairIntentRecord, PairIntentStatus } from "@/types/fyb.types";
 
 /** One pair intent in the admin table. */
 
@@ -28,10 +29,12 @@ const Face = ({
     photoUrl,
     name,
     detail,
+    gender,
 }: {
     photoUrl?: string;
     name: string;
     detail: string;
+    gender: Gender | null;
 }): React.JSX.Element => (
     <div className="flex min-w-0 items-center gap-2.5">
         {photoUrl ? (
@@ -46,6 +49,7 @@ const Face = ({
         <div className="min-w-0">
             <p className="truncate text-sm font-medium text-foreground">{name}</p>
             <p className="truncate text-xs text-muted-foreground">{detail}</p>
+            <GenderBadge gender={gender} className="mt-1 px-1.5 py-0 text-[9px]" />
         </div>
     </div>
 );
@@ -71,6 +75,7 @@ const PairIntentRow = ({ intent, busy, onApprove, onCancel, onRevoke }: Props): 
                         detail={`${intent.initiator.level}${
                             intent.initiator.unit ? ` · ${intent.initiator.unit}` : ""
                         }`}
+                        gender={intent.initiator.gender}
                     />
                     <span className="hidden text-muted-foreground sm:inline">+</span>
                     {intent.partner ? (
@@ -80,6 +85,7 @@ const PairIntentRow = ({ intent, busy, onApprove, onCancel, onRevoke }: Props): 
                             detail={`${intent.partner.level}${
                                 intent.partner.unit ? ` · ${intent.partner.unit}` : ""
                             }`}
+                            gender={intent.partner.gender}
                         />
                     ) : intent.associate ? (
                         <div className="flex min-w-0 items-center gap-2.5">
@@ -97,6 +103,10 @@ const PairIntentRow = ({ intent, busy, onApprove, onCancel, onRevoke }: Props): 
                                 <p className="truncate text-xs text-muted-foreground">
                                     {intent.associate.relationship} · {intent.associate.phone}
                                 </p>
+                                <GenderBadge
+                                    gender={intent.associate.gender}
+                                    className="mt-1 px-1.5 py-0 text-[9px]"
+                                />
                             </div>
                         </div>
                     ) : null}

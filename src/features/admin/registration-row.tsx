@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Loader2, Mail } from "lucide-react";
 
+import GenderBadge from "@/components/shared/gender-badge";
 import PairingBadge from "@/components/shared/pairing-badge";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,10 +60,16 @@ const RegistrationRow = ({ registration, resending, onResend }: Props): React.JS
                         <span className="block truncate font-medium text-foreground">
                             {registration.firstName} {registration.lastName}
                         </span>
-                        <PairingBadge
-                            status={registration.pairingStatus}
-                            className="mt-1 px-2 py-0 text-[10px]"
-                        />
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <GenderBadge
+                                gender={registration.gender}
+                                className="px-2 py-0 text-[10px]"
+                            />
+                            <PairingBadge
+                                status={registration.pairingStatus}
+                                className="px-2 py-0 text-[10px]"
+                            />
+                        </div>
                     </div>
                 </div>
             </TableCell>
