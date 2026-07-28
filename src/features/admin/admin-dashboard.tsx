@@ -45,7 +45,7 @@ const AdminDashboard = (): React.JSX.Element => {
                         <TableRow className="hover:bg-transparent">
                             <TableHead>Finalist</TableHead>
                             <TableHead>Level</TableHead>
-                            <TableHead className="hidden md:table-cell">Department</TableHead>
+                            <TableHead className="hidden md:table-cell">Unit</TableHead>
                             <TableHead className="hidden sm:table-cell">Contact</TableHead>
                             <TableHead>Consent email</TableHead>
                             <TableHead className="text-right">Registered</TableHead>

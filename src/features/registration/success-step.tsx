@@ -6,6 +6,7 @@ import Link from "next/link";
 import confetti from "canvas-confetti";
 import { CalendarDays, Mail, MapPin, PartyPopper } from "lucide-react";
 
+import PairingBadge from "@/components/shared/pairing-badge";
 import { Button } from "@/components/ui/button";
 import { useRegistrationStore } from "@/store/registration.store";
 import { site } from "@/config/site";
@@ -60,6 +61,11 @@ const SuccessStep = (): React.JSX.Element => {
                             <PartyPopper size={36} />
                         </div>
                     )}
+                </div>
+
+                {/* Everyone starts single — it flips as pairing happens. */}
+                <div className="mt-5 flex justify-center">
+                    <PairingBadge status={registration?.pairingStatus} />
                 </div>
 
                 <span className="eyebrow mt-6">You&apos;re on the list</span>

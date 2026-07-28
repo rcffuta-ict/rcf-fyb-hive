@@ -12,7 +12,7 @@ const LAST_UPDATED = "28 July 2026";
 const sections: PolicySection[] = [
     {
         title: "Information We Collect",
-        body: "We collect details you provide during registration — such as your name, email, department, level, and a photo — looked up against your RCF FUTA membership profile. We also collect basic technical data (device, browser, usage) to keep the platform reliable.",
+        body: "We collect details you provide during registration — such as your name, email, RCF unit, level, and a photo — looked up against your RCF FUTA membership profile. We also collect basic technical data (device, browser, usage) to keep the platform reliable.",
     },
     {
         title: "How We Use Your Information",

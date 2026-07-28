@@ -46,8 +46,12 @@ const PreviewStep = (): React.JSX.Element | null => {
             label: "Matric No.",
             value: member.matricNumber,
         },
-        member.department && { label: "Department", value: member.department },
-        member.faculty && { label: "Faculty", value: member.faculty },
+        // RCF units, not FUTA departments — the unit is what this app cares
+        // about, and the first one is what gets snapshotted onto the record.
+        member.units.length > 0 && {
+            label: member.units.length > 1 ? "Units" : "Unit",
+            value: member.units.map((u) => u.name).join(", "),
+        },
     ].filter((d): d is { label: string; value: string } => Boolean(d));
 
     return (

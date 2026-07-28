@@ -9,6 +9,7 @@ import {
     getConsentEmailStatuses,
     sendConsentEmail,
 } from "@/services/consent.service";
+import { getPairingStatuses } from "@/services/pairing.service";
 import type {
     AdminProfile,
     Gender,
@@ -159,7 +160,7 @@ type RegistrationRow = {
     gender: string | null;
     level: string;
     entry_year: number | null;
-    department: string | null;
+    unit: string | null;
     photo_url: string;
     photo_public_id: string | null;
     created_at: string;
@@ -175,7 +176,7 @@ const toRegistrationRecord = (row: RegistrationRow): RegistrationRecord => ({
     gender: (row.gender as Gender | null) ?? null,
     level: row.level,
     entryYear: row.entry_year,
-    department: row.department,
+    unit: row.unit,
     photoUrl: row.photo_url,
     photoPublicId: row.photo_public_id,
     createdAt: row.created_at,
@@ -229,15 +230,17 @@ export async function listRegistrations(params: {
 
     // Delivery state only — `getConsentEmailStatuses` reads the queue, never the
     // token table, so nothing token-shaped can reach the browser from here.
-    const statuses = await getConsentEmailStatuses(
-        registrations.map((r) => ({ id: r.id, email: r.email }))
-    );
+    const [statuses, pairingStatuses] = await Promise.all([
+        getConsentEmailStatuses(registrations.map((r) => ({ id: r.id, email: r.email }))),
+        getPairingStatuses(registrations.map((r) => r.id)),
+    ]);
     const statusById = new Map(statuses.map((s) => [s.registrationId, s.status]));
 
     return {
         registrations: registrations.map((r) => ({
             ...r,
             consentEmailStatus: statusById.get(r.id) ?? "not_sent",
+            pairingStatus: pairingStatuses.get(r.id) ?? "single",
         })),
         total: count ?? 0,
         page,

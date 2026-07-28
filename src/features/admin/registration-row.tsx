@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Loader2, Mail } from "lucide-react";
 
+import PairingBadge from "@/components/shared/pairing-badge";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -54,9 +55,15 @@ const RegistrationRow = ({ registration, resending, onResend }: Props): React.JS
                         height={36}
                         className="h-9 w-9 rounded-full object-cover ring-1 ring-border"
                     />
-                    <span className="font-medium text-foreground">
-                        {registration.firstName} {registration.lastName}
-                    </span>
+                    <div className="min-w-0">
+                        <span className="block truncate font-medium text-foreground">
+                            {registration.firstName} {registration.lastName}
+                        </span>
+                        <PairingBadge
+                            status={registration.pairingStatus}
+                            className="mt-1 px-2 py-0 text-[10px]"
+                        />
+                    </div>
                 </div>
             </TableCell>
             <TableCell>
@@ -65,7 +72,7 @@ const RegistrationRow = ({ registration, resending, onResend }: Props): React.JS
                 </span>
             </TableCell>
             <TableCell className="hidden text-foreground/80 md:table-cell">
-                {registration.department ?? "—"}
+                {registration.unit ?? "—"}
             </TableCell>
             <TableCell className="hidden text-foreground/80 sm:table-cell">
                 {registration.email ?? registration.phoneNumber ?? "—"}

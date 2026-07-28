@@ -27,8 +27,6 @@ export type MemberLookup = {
     email: string | null;
     phoneNumber: string | null;
     gender: Gender | null;
-    department: string | null;
-    faculty: string | null;
     matricNumber: string | null;
     avatarUrl: string | null;
     entryYear: number | null;
@@ -63,12 +61,14 @@ export type RegistrationRecord = {
     gender: Gender | null;
     level: string;
     entryYear: number | null;
-    department: string | null;
+    /** RCF unit (e.g. "Bible Study") — the fellowship unit, not a FUTA department. */
+    unit: string | null;
     photoUrl: string;
     photoPublicId: string | null;
     createdAt: string;
     /** Attached for admin listings only; absent on the registration flow. */
     consentEmailStatus?: ConsentEmailStatus;
+    pairingStatus?: PairingStatus;
 };
 
 /**
@@ -79,6 +79,13 @@ export type RegistrationRecord = {
  * `src/services/consent.service.ts`.
  */
 export type ConsentEmailStatus = "sent" | "queued" | "failed" | "not_sent" | "no_email";
+
+/**
+ * Relationship status for the dinner. `single` = unpaired, `in_between` =
+ * paired but not yet paid and approved, `taken` = paired, paid and confirmed.
+ * Derived from `fyb_pairings` — see `src/services/pairing.service.ts`.
+ */
+export type PairingStatus = "single" | "in_between" | "taken";
 
 export type ConsentStatusEntry = {
     registrationId: string;

@@ -61,6 +61,25 @@ const logo = (url: string | undefined, alt: string, height: number): string => {
 };
 
 /**
+ * A partner logo on a baked-in white chip.
+ *
+ * Gmail and Outlook mobile force-invert light emails in dark mode, and the
+ * RCF FUTA and ICT marks are near-black — on an inverted footer they became
+ * dark-on-dark and vanished. Inversion rewrites CSS colours but never touches
+ * image *pixels*, so the white background has to live inside the image itself.
+ * Cloudinary fits the mark into a uniform 190×72 rounded chip (`c_fit` then
+ * `c_pad`) so the three sit as an even row rather than three different shapes.
+ */
+const logoChip = (url: string | undefined, alt: string): string => {
+    if (!url) return `<span style="color:${COLORS.inkMuted};font-size:12px;">${alt}</span>`;
+    if (!url.includes("/image/upload/")) return logo(url, alt, 30);
+
+    const transform = "c_fit,h_44,w_150/c_pad,h_72,w_190,b_rgb:FFFFFF,r_14,f_png,q_auto";
+    const src = url.replace("/image/upload/", `/image/upload/${transform}/`);
+    return `<img src="${src}" alt="${alt}" width="95" height="36" style="display:block;border:0;outline:none;width:95px;height:36px;" />`;
+};
+
+/**
  * The finalist's registration photo as a rounded-square avatar with a thin
  * gold outline.
  *
@@ -286,9 +305,9 @@ export const wrapInEmailShell = (input: {
               <td align="center" bgcolor="${COLORS.accent}" style="background-color:${COLORS.accent};border-top:1px solid ${COLORS.border};padding:24px 22px;">
                 <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0 auto 16px;">
                   <tr>
-                    <td style="padding:0 11px;background-color:${COLORS.accent};">${logo(logoRcffuta, "RCF FUTA", 30)}</td>
-                    <td style="padding:0 11px;background-color:${COLORS.accent};">${logo(logoArmy, "Army of Light", 28)}</td>
-                    <td style="padding:0 11px;background-color:${COLORS.accent};">${logo(logoIct, "RCFFUTA ICT", 26)}</td>
+                    <td style="padding:0 6px;background-color:${COLORS.accent};">${logoChip(logoRcffuta, "RCF FUTA")}</td>
+                    <td style="padding:0 6px;background-color:${COLORS.accent};">${logoChip(logoArmy, "Army of Light")}</td>
+                    <td style="padding:0 6px;background-color:${COLORS.accent};">${logoChip(logoIct, "RCFFUTA ICT")}</td>
                   </tr>
                 </table>
                 <p style="margin:0 0 4px;font-family:${FONTS.body};font-size:12px;line-height:20px;color:${COLORS.ink};">

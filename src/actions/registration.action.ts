@@ -22,8 +22,6 @@ type ProfileRow = {
     gender: string | null;
     email: string | null;
     phone_number: string | null;
-    department: string | null;
-    faculty: string | null;
     matric_number: string | null;
     avatar_url: string | null;
     entry_year: number | null;
@@ -52,14 +50,14 @@ type RegistrationRow = {
     gender: string | null;
     level: string;
     entry_year: number | null;
-    department: string | null;
+    unit: string | null;
     photo_url: string;
     photo_public_id: string | null;
     created_at: string;
 };
 
 const PROFILE_COLUMNS =
-    "id, first_name, last_name, gender, email, phone_number, department, faculty, matric_number, avatar_url, entry_year, class_sets(entry_year)";
+    "id, first_name, last_name, gender, email, phone_number, matric_number, avatar_url, entry_year, class_sets(entry_year)";
 
 const isEmail = (value: string): boolean => value.includes("@");
 
@@ -89,7 +87,7 @@ const toRegistrationRecord = (row: RegistrationRow): RegistrationRecord => ({
     gender: (row.gender as Gender | null) ?? null,
     level: row.level,
     entryYear: row.entry_year,
-    department: row.department,
+    unit: row.unit,
     photoUrl: row.photo_url,
     photoPublicId: row.photo_public_id,
     createdAt: row.created_at,
@@ -107,9 +105,10 @@ const getActiveTenure = async (): Promise<ActiveTenure | null> => {
 };
 
 /**
- * Read-only affiliations (units + leadership) for the active tenure. Used purely
- * to enrich the preview screen — never persisted. Failures degrade gracefully to
- * empty lists so they can't block a registration.
+ * Affiliations (units + leadership) for the active tenure. Shown on the preview
+ * screen, and the unit list is the source for the unit snapshotted onto the
+ * registration. Failures degrade gracefully to empty lists so they can't block
+ * a registration.
  */
 const getMemberAffiliations = async (
     profileId: string,
@@ -133,9 +132,13 @@ const getMemberAffiliations = async (
             .returns<LeadershipRow[]>(),
     ]);
 
+    // `units.type` is 'UNIT' | 'TEAM'. This app deals in units only (Bible
+    // Study, Media, Choir…) — teams are filtered out everywhere, so nothing
+    // downstream has to know the distinction exists.
     const units: MemberUnit[] = (unitsRes.data ?? [])
-        .filter((row): row is MembershipUnitRow & { units: NonNullable<MembershipUnitRow["units"]> } =>
-            Boolean(row.units)
+        .filter(
+            (row): row is MembershipUnitRow & { units: NonNullable<MembershipUnitRow["units"]> } =>
+                Boolean(row.units) && row.units?.type === "UNIT"
         )
         .map((row) => ({ name: row.units.name, type: row.units.type, role: row.role }));
 
@@ -152,6 +155,32 @@ const getMemberAffiliations = async (
         }));
 
     return { units, leadership };
+};
+
+/**
+ * The unit to snapshot onto the registration — the RCF unit a member serves in
+ * (Bible Study, Media, Choir…), which is what this app cares about. FUTA
+ * departments and faculties are deliberately not used anywhere.
+ *
+ * A member can belong to more than one unit; we store one as their primary,
+ * since the door list and admin table show a single value. Chosen
+ * alphabetically so the value is deterministic — the backfill in
+ * `.temp/unit-migration.sql` picks `min(name)` and must agree with this, or a
+ * re-run would silently reshuffle people's units.
+ *
+ * Returns null rather than throwing: an unresolved unit must never block
+ * someone from registering.
+ */
+const getPrimaryUnitName = async (
+    profileId: string,
+    tenureId: string | null
+): Promise<string | null> => {
+    if (!tenureId) return null;
+
+    const { units } = await getMemberAffiliations(profileId, tenureId);
+    if (units.length === 0) return null;
+
+    return [...units].sort((a, b) => a.name.localeCompare(b.name))[0].name;
 };
 
 const resolveProfile = async (identifier: string): Promise<ProfileRow | null> => {
@@ -185,8 +214,6 @@ const toMemberLookup = (
     email: row.email,
     phoneNumber: row.phone_number,
     gender: (row.gender as Gender | null) ?? null,
-    department: row.department,
-    faculty: row.faculty,
     matricNumber: row.matric_number,
     avatarUrl: row.avatar_url,
     entryYear: row.class_sets?.entry_year ?? row.entry_year,
@@ -278,6 +305,8 @@ export async function registerFinalist(input: RegisterInput): Promise<RegisterRe
             };
         }
 
+        const primaryUnit = await getPrimaryUnitName(profile.id, tenure?.id ?? null);
+
         const { data, error } = await supabase
             .from("fyb_registrations")
             .insert({
@@ -289,7 +318,7 @@ export async function registerFinalist(input: RegisterInput): Promise<RegisterRe
                 gender: profile.gender,
                 level,
                 entry_year: entryYear,
-                department: profile.department,
+                unit: primaryUnit,
                 photo_url: input.photoUrl,
                 photo_public_id: input.photoPublicId ?? null,
             })

@@ -25,7 +25,7 @@ const steps = [
     {
         icon: UserCheck,
         title: "Confirm your details",
-        body: "Look over the name, department and level we pulled from your profile, then confirm. That's your registration in — no payment needed at this stage.",
+        body: "Look over the name, unit and level we pulled from your RCF profile, then confirm. That's your registration in — no payment needed at this stage.",
     },
     {
         icon: Mail,
