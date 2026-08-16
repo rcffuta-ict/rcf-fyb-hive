@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label";
 import { appToast } from "@/providers/ToastProvider";
 import { site } from "@/config/site";
 
-/** Runtime settings — the pairing switch and the fee. */
-const SettingsPanel = (): React.JSX.Element => {
+/** Runtime settings — the pairing switch, the fee, and where the money lands. */
+const PairingSettings = (): React.JSX.Element => {
     const [pairingEnabled, setPairingEnabled] = useState(false);
     const [pairAmount, setPairAmount] = useState(site.payment.amount);
     const [bankName, setBankName] = useState("");
@@ -142,4 +142,4 @@ const SettingsPanel = (): React.JSX.Element => {
     );
 };
 
-export default SettingsPanel;
+export default PairingSettings;

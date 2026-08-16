@@ -36,6 +36,28 @@ type RegistrationContact = {
 };
 
 /**
+ * Whether this finalist holds a consent token — existence only.
+ *
+ * Lives here rather than in the caller because this module owns the table, and
+ * the boundary is worth keeping even for a read that touches no token value:
+ * one query for `token` written elsewhere is how that rule stops holding.
+ */
+export const hasConsentToken = async (registrationId: string): Promise<boolean> => {
+    const supabase = createServerSupabase();
+    const { data, error } = await supabase
+        .from("fyb_consent_tokens")
+        .select("registration_id")
+        .eq("registration_id", registrationId)
+        .maybeSingle<{ registration_id: string }>();
+
+    if (error) {
+        console.error("hasConsentToken failed:", error.message);
+        return false;
+    }
+    return Boolean(data);
+};
+
+/**
  * Ensure a registration has a token. Idempotent by design: re-issuing would
  * invalidate a token the finalist has already shared with their date, so an
  * existing row is always left exactly as it is.

@@ -442,3 +442,121 @@ export const getPairIntents = async (
                 : null,
         }));
 };
+
+export type PairingStats = {
+    finalists: number;
+    /** Registrations in an approved pairing — people, not intents. */
+    pairedFinalists: number;
+    single: number;
+    approved: number;
+    pending: number;
+    cancelled: number;
+    finalistPairs: number;
+    associatePairs: number;
+    /** Naira actually collected, i.e. the sum over approved intents. */
+    confirmedRevenue: number;
+    /** Still owed: the sum over pending intents, most of which never lands. */
+    pendingRevenue: number;
+    timeline: { day: string; intents: number }[];
+};
+
+const emptyPairingStats: PairingStats = {
+    finalists: 0,
+    pairedFinalists: 0,
+    single: 0,
+    approved: 0,
+    pending: 0,
+    cancelled: 0,
+    finalistPairs: 0,
+    associatePairs: 0,
+    confirmedRevenue: 0,
+    pendingRevenue: 0,
+    timeline: [],
+};
+
+type StatRow = {
+    status: PairIntentStatus;
+    kind: PairIntentKind;
+    amount: number;
+    created_at: string;
+    initiator_registration_id: string;
+    partner_registration_id: string | null;
+};
+
+/** Local calendar day, so an 11pm pairing lands on the night it happened. */
+const lagosDay = (iso: string): string =>
+    new Date(iso).toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" });
+
+/**
+ * The whole pairing picture in one read.
+ *
+ * Unlike votes — which multiply out to voters × categories and had to be
+ * aggregated in Postgres — intents are bounded by the number of finalists, so a
+ * few hundred rows is the ceiling for one dinner and counting them here is
+ * honest. The `limit` is a guard, not a paging window: if it ever binds, this
+ * needs a view, and the assumption above was wrong.
+ */
+export const getPairingStats = async (): Promise<PairingStats> => {
+    try {
+        const supabase = createServerSupabase();
+        const [registrations, intents] = await Promise.all([
+            supabase.from("fyb_registrations").select("id", { count: "exact", head: true }),
+            supabase
+                .from("fyb_pair_intents")
+                .select(
+                    "status, kind, amount, created_at, initiator_registration_id, partner_registration_id"
+                )
+                .order("created_at", { ascending: true })
+                .limit(5000)
+                .returns<StatRow[]>(),
+        ]);
+
+        if (intents.error) {
+            console.error("getPairingStats failed:", intents.error.message);
+            return emptyPairingStats;
+        }
+
+        const rows = intents.data ?? [];
+        const finalists = registrations.count ?? 0;
+
+        // Count people, not intents: one finalist may hold several pending
+        // intents, and an associate intent occupies only its initiator.
+        const spokenFor = new Set<string>();
+        const paired = new Set<string>();
+        const byDay = new Map<string, number>();
+        const stats = { ...emptyPairingStats, finalists };
+
+        for (const row of rows) {
+            if (row.status === "cancelled") {
+                stats.cancelled += 1;
+                continue;
+            }
+
+            spokenFor.add(row.initiator_registration_id);
+            if (row.partner_registration_id) spokenFor.add(row.partner_registration_id);
+            byDay.set(lagosDay(row.created_at), (byDay.get(lagosDay(row.created_at)) ?? 0) + 1);
+
+            if (row.status === "approved") {
+                stats.approved += 1;
+                stats.confirmedRevenue += row.amount;
+                if (row.kind === "associate") stats.associatePairs += 1;
+                else stats.finalistPairs += 1;
+                paired.add(row.initiator_registration_id);
+                if (row.partner_registration_id) paired.add(row.partner_registration_id);
+            } else {
+                stats.pending += 1;
+                stats.pendingRevenue += row.amount;
+            }
+        }
+
+        return {
+            ...stats,
+            pairedFinalists: paired.size,
+            single: Math.max(0, finalists - spokenFor.size),
+            timeline: [...byDay.entries()].map(([day, count]) => ({ day, intents: count })),
+        };
+    } catch (error) {
+        console.error("getPairingStats threw:", error);
+        return emptyPairingStats;
+    }
+};

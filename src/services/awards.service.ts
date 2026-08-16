@@ -10,6 +10,7 @@ import type {
     CampaignCard,
     CandidateResult,
     CategoryResult,
+    FinalistOption,
     LevelTurnout,
     MultiLeader,
     TimelinePoint,
@@ -133,6 +134,61 @@ export const getAdminCandidates = async (
         categoryId: row.category_id,
         email: row.fyb_registrations.email,
     }));
+};
+
+type FinalistRow = {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string | null;
+    level: string;
+    unit: string | null;
+    photo_url: string;
+};
+
+const FINALIST_COLUMNS = "id, first_name, last_name, email, level, unit, photo_url";
+
+/**
+ * The dinner registration behind an email, annotated for one category.
+ *
+ * Returns null when the address belongs to no registration — the admin sees
+ * that as "not a dinner profile" rather than discovering it on submit.
+ */
+export const findFinalistByEmail = async (
+    categoryId: string,
+    email: string
+): Promise<FinalistOption | null> => {
+    const supabase = createServerSupabase();
+
+    const { data: row, error } = await supabase
+        .from("fyb_registrations")
+        .select(FINALIST_COLUMNS)
+        .ilike("email", email.trim())
+        .maybeSingle<FinalistRow>();
+
+    if (error) console.error("findFinalistByEmail failed:", error.message);
+    if (!row) return null;
+
+    // Which of their candidacies are in this category, and how many elsewhere.
+    const { data: candidacies } = await supabase
+        .from("fyb_award_candidates")
+        .select("category_id")
+        .eq("registration_id", row.id)
+        .returns<{ category_id: string }[]>();
+
+    const all = candidacies ?? [];
+
+    return {
+        registrationId: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        level: row.level,
+        unit: row.unit,
+        photoUrl: row.photo_url,
+        standing: all.some((c) => c.category_id === categoryId),
+        otherCategories: all.filter((c) => c.category_id !== categoryId).length,
+    };
 };
 
 /**

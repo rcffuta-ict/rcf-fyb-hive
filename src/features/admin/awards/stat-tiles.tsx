@@ -2,6 +2,7 @@
 
 import { BarChart3, ListChecks, Trophy, UserCheck, Users } from "lucide-react";
 
+import StatGrid, { type Tile } from "../stat-grid";
 import type { AwardStats } from "@/types/awards.types";
 
 /**
@@ -22,7 +23,7 @@ const StatTiles = ({ stats }: { stats: AwardStats }): React.JSX.Element => {
             ? 0
             : Math.round((stats.completion.finishedAll / stats.voters) * 100);
 
-    const tiles = [
+    const tiles: Tile[] = [
         {
             label: "Voters",
             value: stats.voters.toLocaleString(),
@@ -61,22 +62,7 @@ const StatTiles = ({ stats }: { stats: AwardStats }): React.JSX.Element => {
         },
     ];
 
-    return (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {tiles.map(({ label, value, hint, icon: Icon }) => (
-                <div key={label} className="surface p-4">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <Icon size={14} />
-                        <span className="text-xs uppercase tracking-wider">{label}</span>
-                    </div>
-                    <p className="mt-2 font-luxury text-3xl tabular-nums text-foreground">
-                        {value}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
-                </div>
-            ))}
-        </div>
-    );
+    return <StatGrid tiles={tiles} />;
 };
 
 export default StatTiles;

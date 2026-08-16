@@ -13,13 +13,16 @@ import {
     getCategoryResults,
     getLevelTurnout,
     getVoteTimeline,
+    findFinalistByEmail,
 } from "@/services/awards.service";
+import { hasConsentToken } from "@/services/consent.service";
 import { getSettings, updateSetting } from "@/services/settings.service";
 import type {
     AdminCandidate,
     AwardCategory,
     AwardSettings,
     AwardStats,
+    FinalistOption,
 } from "@/types/awards.types";
 
 /**
@@ -210,12 +213,68 @@ export async function listCandidates(categoryId: string): Promise<AdminCandidate
     return getAdminCandidates(categoryId);
 }
 
+type NamedRegistration = { id: string; first_name: string; last_name: string };
+
+/**
+ * Put one resolved registration on a category's ballot.
+ *
+ * Shared by the picker, the email form and the bulk paste, so all three agree
+ * on ordering, duplicate handling and the wording of the result.
+ */
+const standCandidate = async (
+    categoryId: string,
+    registration: NamedRegistration,
+    nickname: string
+): Promise<AwardActionResult> => {
+    // A candidacy is a registered finalist holding a consent token. Checked
+    // here rather than at each caller so the picker, the email form and the
+    // bulk paste cannot disagree about who is eligible to stand.
+    if (!(await hasConsentToken(registration.id))) {
+        return {
+            ok: false,
+            message: `${registration.first_name} registered but has no consent token yet — resend it from Registrations first.`,
+        };
+    }
+
+    const supabase = createServerSupabase();
+
+    const { data: last } = await supabase
+        .from("fyb_award_candidates")
+        .select("sort_order")
+        .eq("category_id", categoryId)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle<{ sort_order: number }>();
+
+    const { error } = await supabase.from("fyb_award_candidates").insert({
+        category_id: categoryId,
+        registration_id: registration.id,
+        nickname,
+        sort_order: (last?.sort_order ?? 0) + 1,
+    });
+
+    if (error) {
+        if (error.code === "23505") {
+            return {
+                ok: false,
+                message: `${registration.first_name} is already standing in this category.`,
+            };
+        }
+        console.error("standCandidate failed:", error.message);
+        return { ok: false, message: "Could not add the candidate." };
+    }
+
+    revalidatePath("/awards");
+    return { ok: true, message: `${registration.first_name} ${registration.last_name} added.` };
+};
+
 /**
  * Stand a finalist in a category by their dinner email.
  *
  * The email must belong to a `fyb_registrations` row — the finalists who
  * registered and hold consent tokens. A member who never registered has no
- * photo and no snapshot, so there is nothing to put on a card.
+ * photo and no snapshot, so there is nothing to put on a card. Kept for the
+ * bulk paste; the picker below is what admins use one at a time.
  */
 export async function addCandidate(input: {
     categoryId: string;
@@ -235,7 +294,7 @@ export async function addCandidate(input: {
         .from("fyb_registrations")
         .select("id, first_name, last_name")
         .ilike("email", email)
-        .maybeSingle<{ id: string; first_name: string; last_name: string }>();
+        .maybeSingle<NamedRegistration>();
 
     if (!registration) {
         return {
@@ -244,34 +303,76 @@ export async function addCandidate(input: {
         };
     }
 
-    const { data: last } = await supabase
-        .from("fyb_award_candidates")
-        .select("sort_order")
-        .eq("category_id", input.categoryId)
-        .order("sort_order", { ascending: false })
-        .limit(1)
-        .maybeSingle<{ sort_order: number }>();
+    return standCandidate(input.categoryId, registration, nickname);
+}
 
-    const { error } = await supabase.from("fyb_award_candidates").insert({
-        category_id: input.categoryId,
-        registration_id: registration.id,
-        nickname,
-        sort_order: (last?.sort_order ?? 0) + 1,
-    });
+export type FinalistLookup =
+    | { status: "ok"; finalist: FinalistOption }
+    | { status: "standing"; finalist: FinalistOption }
+    | { status: "no_token"; finalist: FinalistOption; message: string }
+    | { status: "not_found"; message: string };
 
-    if (error) {
-        if (error.code === "23505") {
-            return {
-                ok: false,
-                message: `${registration.first_name} is already standing in this category.`,
-            };
-        }
-        console.error("addCandidate failed:", error.message);
-        return { ok: false, message: "Could not add the candidate." };
+/**
+ * Check an email before anyone commits to it.
+ *
+ * The admin types the address they were given; this says whose it is, with the
+ * photo, so a typo is caught by not recognising the face rather than by a
+ * stranger appearing on the ballot.
+ */
+export async function lookupFinalist(
+    categoryId: string,
+    email: string
+): Promise<FinalistLookup> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return { status: "not_found", message: "Not authorized." };
+
+    const value = email?.trim();
+    if (!value) return { status: "not_found", message: "" };
+
+    const finalist = await findFinalistByEmail(categoryId, value);
+    if (!finalist) {
+        return {
+            status: "not_found",
+            message: `No dinner registration for ${value} — only finalists who registered can stand.`,
+        };
+    }
+    if (finalist.standing) return { status: "standing", finalist };
+
+    if (!(await hasConsentToken(finalist.registrationId))) {
+        return {
+            status: "no_token",
+            finalist,
+            message: `${finalist.firstName} has no consent token yet — resend it from Registrations first.`,
+        };
     }
 
-    revalidatePath("/awards");
-    return { ok: true, message: `${registration.first_name} ${registration.last_name} added.` };
+    return { status: "ok", finalist };
+}
+
+/** Stand the finalist the email resolved to — the id can't be mistyped. */
+export async function addCandidateById(input: {
+    categoryId: string;
+    registrationId: string;
+    nickname: string;
+}): Promise<AwardActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return denied;
+
+    const nickname = input.nickname?.trim();
+    if (!nickname) return { ok: false, message: "Give them a nickname for this category." };
+
+    const supabase = createServerSupabase();
+    const { data: registration } = await supabase
+        .from("fyb_registrations")
+        .select("id, first_name, last_name")
+        .eq("id", input.registrationId)
+        .maybeSingle<NamedRegistration>();
+
+    if (!registration) {
+        return { ok: false, message: "That registration no longer exists." };
+    }
+
+    return standCandidate(input.categoryId, registration, nickname);
 }
 
 export type BulkAddResult = {

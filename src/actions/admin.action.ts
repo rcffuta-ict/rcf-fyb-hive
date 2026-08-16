@@ -10,7 +10,12 @@ import {
     getConsentEmailStatuses,
     sendConsentEmail,
 } from "@/services/consent.service";
-import { getPairIntents, getPairingStatuses } from "@/services/pairing.service";
+import {
+    getPairIntents,
+    getPairingStats,
+    getPairingStatuses,
+    type PairingStats,
+} from "@/services/pairing.service";
 import { getSettings, updateSetting } from "@/services/settings.service";
 import { sendPairInvitations } from "@/services/invitation.service";
 import type {
@@ -432,6 +437,16 @@ export async function revokePairApproval(
     revalidatePath("/admin");
     revalidatePath("/pairing");
     return { ok: true, message: "Approval revoked." };
+}
+
+/**
+ * Pairing at a glance. Admin-only: it carries revenue and how many finalists
+ * are still unpaired, neither of which is anyone else's business.
+ */
+export async function getPairingStatsForAdmin(): Promise<PairingStats | null> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return null;
+    return getPairingStats();
 }
 
 export type AdminSettings = {

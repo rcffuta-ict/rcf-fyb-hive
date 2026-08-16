@@ -166,6 +166,26 @@ export type CampaignCard = {
     votingOpen: boolean;
 };
 
+/**
+ * The dinner registration an email resolved to, checked against one category.
+ *
+ * `standing` and `otherCategories` are what turn a bare "valid" into something
+ * an admin can act on — the mistake worth catching is standing the same person
+ * twice, and the useful context is where else they're already up.
+ */
+export type FinalistOption = {
+    registrationId: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    level: string;
+    unit: string | null;
+    photoUrl: string;
+    standing: boolean;
+    /** How many other categories they're already standing in. */
+    otherCategories: number;
+};
+
 /** Row shape for the admin candidate list (includes what voters don't see). */
 export type AdminCandidate = AwardCandidate & {
     categoryId: string;

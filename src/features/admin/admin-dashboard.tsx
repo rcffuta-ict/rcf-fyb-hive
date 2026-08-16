@@ -1,22 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { HeartHandshake, Settings, Trophy, Users } from "lucide-react";
+import { HeartHandshake, Trophy, Users } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import AwardsPanel from "./awards/awards-panel";
 import DashboardHeader from "./dashboard-header";
-import PairIntentsPanel from "./pair-intents-panel";
+import PairingPanel from "./pairing/pairing-panel";
 import RegistrationsPanel from "./registrations-panel";
-import SettingsPanel from "./settings-panel";
 
-type Tab = "registrations" | "pairings" | "awards" | "settings";
+/**
+ * One tab per feature, each owning its own stats and settings.
+ *
+ * There is deliberately no global Settings tab: everything it held was pairing
+ * configuration, and keeping the switch that opens pairing two tabs away from
+ * the pairings was the kind of split that gets a fee changed on the wrong night.
+ */
+type Tab = "registrations" | "pairings" | "awards";
 
 const TABS: { key: Tab; label: string; icon: typeof Users }[] = [
     { key: "registrations", label: "Registrations", icon: Users },
     { key: "pairings", label: "Pairings", icon: HeartHandshake },
     { key: "awards", label: "Awards", icon: Trophy },
-    { key: "settings", label: "Settings", icon: Settings },
 ];
 
 const AdminDashboard = (): React.JSX.Element => {
@@ -52,9 +57,8 @@ const AdminDashboard = (): React.JSX.Element => {
             </div>
 
             {tab === "registrations" && <RegistrationsPanel />}
-            {tab === "pairings" && <PairIntentsPanel />}
+            {tab === "pairings" && <PairingPanel />}
             {tab === "awards" && <AwardsPanel />}
-            {tab === "settings" && <SettingsPanel />}
         </section>
     );
 };
