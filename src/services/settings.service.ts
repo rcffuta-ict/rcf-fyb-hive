@@ -21,6 +21,9 @@ export type AppSettings = {
     bankName: string;
     accountName: string;
     accountNumber: string;
+    awardsEnabled: boolean;
+    /** Whether vote counts may be shown to anyone other than an admin. */
+    awardsResultsPublic: boolean;
 };
 
 type SettingRow = { key: string; value: unknown };
@@ -31,6 +34,10 @@ const defaults = (): AppSettings => ({
     bankName: site.payment.bankName,
     accountName: site.payment.accountName,
     accountNumber: site.payment.accountNumber,
+    awardsEnabled: site.features.awards,
+    // Never defaults open: a settings read that failed must not be the reason a
+    // tally goes public before the organizers meant it to.
+    awardsResultsPublic: false,
 });
 
 /**
@@ -56,12 +63,11 @@ export const getSettings = cache(async (): Promise<AppSettings> => {
             const value = byKey.get(key);
             return typeof value === "string" && value.trim() ? value : null;
         };
+        const flag = (key: string, fallbackValue: boolean): boolean =>
+            typeof byKey.get(key) === "boolean" ? (byKey.get(key) as boolean) : fallbackValue;
 
         return {
-            pairingEnabled:
-                typeof byKey.get("pairing_enabled") === "boolean"
-                    ? (byKey.get("pairing_enabled") as boolean)
-                    : fallback.pairingEnabled,
+            pairingEnabled: flag("pairing_enabled", fallback.pairingEnabled),
             pairAmount:
                 typeof byKey.get("pair_amount") === "number"
                     ? (byKey.get("pair_amount") as number)
@@ -69,6 +75,11 @@ export const getSettings = cache(async (): Promise<AppSettings> => {
             bankName: text("pay_bank_name") ?? fallback.bankName,
             accountName: text("pay_account_name") ?? fallback.accountName,
             accountNumber: text("pay_account_number") ?? fallback.accountNumber,
+            awardsEnabled: flag("awards_enabled", fallback.awardsEnabled),
+            awardsResultsPublic: flag(
+                "awards_results_public",
+                fallback.awardsResultsPublic
+            ),
         };
     } catch (error) {
         console.error("getSettings threw:", error);
@@ -78,9 +89,10 @@ export const getSettings = cache(async (): Promise<AppSettings> => {
 
 /** Server-side feature check. Client components use `useFeature()` instead. */
 export const isFeatureLive = async (feature: FeatureKey): Promise<boolean> => {
-    if (feature !== "pairing") return site.features[feature];
-    const { pairingEnabled } = await getSettings();
-    return pairingEnabled;
+    if (feature === "registration") return site.features.registration;
+
+    const settings = await getSettings();
+    return feature === "pairing" ? settings.pairingEnabled : settings.awardsEnabled;
 };
 
 export type SettingKey =
@@ -88,7 +100,9 @@ export type SettingKey =
     | "pair_amount"
     | "pay_bank_name"
     | "pay_account_name"
-    | "pay_account_number";
+    | "pay_account_number"
+    | "awards_enabled"
+    | "awards_results_public";
 
 export const updateSetting = async (
     key: SettingKey,

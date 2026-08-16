@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { KeyRound, Mail, ShieldCheck, Sparkles, UserCheck } from "lucide-react";
 
+import AwardsGuide from "@/features/guide/awards-guide";
 import GuideFaq from "@/features/guide/guide-faq";
 import PairingGuide from "@/features/guide/pairing-guide";
 import { Button } from "@/components/ui/button";
@@ -104,16 +105,14 @@ export default function GuidePage(): React.JSX.Element {
 
             <PairingGuide />
 
+            <AwardsGuide />
+
             <h2 className="mt-14 text-center font-luxury text-2xl text-foreground">
                 Common questions
             </h2>
             <GuideFaq />
 
-            <p className="mt-8 text-center text-sm text-muted-foreground">
-                Awards open later in the season — this guide grows as they do.
-            </p>
-
-            <div className="surface mt-6 p-8 text-center">
+            <div className="surface mt-10 p-8 text-center">
                 <h2 className="font-luxury text-xl text-foreground">Ready when you are</h2>
                 <p className="mx-auto mt-2 max-w-md text-foreground/70">
                     Registration takes about two minutes. Still stuck? Reach us at{" "}

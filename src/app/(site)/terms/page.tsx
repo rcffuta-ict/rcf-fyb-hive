@@ -62,6 +62,17 @@ const sections: PolicySection[] = [
         ],
     },
     {
+        title: "Awards and Voting",
+        body: "Where awards voting is open, any member with an RCF FUTA profile may vote, at any level. Candidates are drawn from finalists registered for the dinner.",
+        list: [
+            "One vote per person per category. You may change your pick at any time until voting closes; only your last pick counts.",
+            "Votes are private. Your picks are never shown to other voters or to the candidates.",
+            "Results are not public until the organizers publish them, and the organizers' declaration of a result is final.",
+            "Voting on behalf of another person, or any attempt to vote more than once in a category, may void the votes concerned.",
+            "The organizers may add, edit, archive or remove categories and candidates. Removing a candidate removes votes cast for them.",
+        ],
+    },
+    {
         title: "Email Communication",
         body: `Registering means we'll email you about your registration — your consent token and essential event updates. These are transactional messages, not marketing, so there's no unsubscribe: they only go out because you registered. Mail comes from our verified ${site.name} sending domain and we never ask for passwords or payment details by email.`,
     },

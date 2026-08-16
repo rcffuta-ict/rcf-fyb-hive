@@ -6,6 +6,11 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { computeLevel, isFinalistLevel, parseSessionYear } from "@/lib/eligibility";
 import { sendConsentEmail } from "@/services/consent.service";
 import { getPairingVibe } from "@/services/pairing.service";
+import {
+    PROFILE_COLUMNS,
+    resolveProfile,
+    type ProfileRow,
+} from "@/services/profile.service";
 import type {
     Gender,
     LookupResult,
@@ -15,19 +20,6 @@ import type {
     RegisterResult,
     RegistrationRecord,
 } from "@/types/fyb.types";
-
-type ProfileRow = {
-    id: string;
-    first_name: string;
-    last_name: string;
-    gender: string | null;
-    email: string | null;
-    phone_number: string | null;
-    matric_number: string | null;
-    avatar_url: string | null;
-    entry_year: number | null;
-    class_sets: { entry_year: number | null } | null;
-};
 
 type ActiveTenure = { id: string; sessionYear: number | null };
 
@@ -55,27 +47,6 @@ type RegistrationRow = {
     photo_url: string;
     photo_public_id: string | null;
     created_at: string;
-};
-
-const PROFILE_COLUMNS =
-    "id, first_name, last_name, gender, email, phone_number, matric_number, avatar_url, entry_year, class_sets(entry_year)";
-
-const isEmail = (value: string): boolean => value.includes("@");
-
-/** Generate plausible stored variants of a Nigerian phone number. */
-const phoneCandidates = (raw: string): string[] => {
-    const digits = raw.replace(/\D/g, "");
-    const variants = new Set<string>([raw.trim(), digits]);
-    let local = digits;
-    if (digits.startsWith("234")) local = digits.slice(3);
-    else if (digits.startsWith("0")) local = digits.slice(1);
-    if (local) {
-        variants.add(local); // 8012345678
-        variants.add(`0${local}`); // 08012345678
-        variants.add(`234${local}`); // 2348012345678
-        variants.add(`+234${local}`); // +2348012345678
-    }
-    return [...variants].filter(Boolean);
 };
 
 const toRegistrationRecord = (row: RegistrationRow): RegistrationRecord => ({
@@ -182,26 +153,6 @@ const getPrimaryUnitName = async (
     if (units.length === 0) return null;
 
     return [...units].sort((a, b) => a.name.localeCompare(b.name))[0].name;
-};
-
-const resolveProfile = async (identifier: string): Promise<ProfileRow | null> => {
-    const supabase = createServerSupabase();
-    const value = identifier.trim();
-
-    const orFilter = isEmail(value)
-        ? `email.eq.${value.toLowerCase()}`
-        : phoneCandidates(value)
-              .map((candidate) => `phone_number.eq.${candidate}`)
-              .join(",");
-
-    const { data } = await supabase
-        .from("profiles")
-        .select(PROFILE_COLUMNS)
-        .or(orFilter)
-        .limit(1)
-        .maybeSingle<ProfileRow>();
-
-    return data ?? null;
 };
 
 const toMemberLookup = (

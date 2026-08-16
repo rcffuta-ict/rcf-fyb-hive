@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { createHmac, timingSafeEqual } from "node:crypto";
 
+import { makeSignedToken, readSignedToken } from "@/lib/signed-cookie";
 import { createServerSupabase } from "@/lib/supabase/server";
 import {
     findRegistrationsNeedingConsentEmail,
@@ -24,29 +24,7 @@ import type {
 const COOKIE_NAME = "fyb_admin";
 const COOKIE_MAX_AGE = 60 * 60 * 8; // 8 hours
 
-const getSecret = (): string => {
-    const secret = process.env.ADMIN_COOKIE_SECRET;
-    if (!secret)
-        throw new Error("Missing ADMIN_COOKIE_SECRET environment variable.");
-    return secret;
-};
-
-const sign = (value: string): string =>
-    createHmac("sha256", getSecret()).update(value).digest("hex");
-
-const makeToken = (profileId: string): string =>
-    `${profileId}.${sign(profileId)}`;
-
-const verifyToken = (token: string | undefined): string | null => {
-    if (!token) return null;
-    const [profileId, signature] = token.split(".");
-    if (!profileId || !signature) return null;
-    const expected = sign(profileId);
-    const a = Buffer.from(signature);
-    const b = Buffer.from(expected);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
-    return profileId;
-};
+const COOKIE_SCOPE = "admin";
 
 type AdminRow = {
     role: string;
@@ -116,7 +94,7 @@ export async function adminLogin(email: string): Promise<AdminLoginResult> {
         }
 
         const jar = await cookies();
-        jar.set(COOKIE_NAME, makeToken(profile.id), {
+        jar.set(COOKIE_NAME, makeSignedToken(COOKIE_SCOPE, profile.id), {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
@@ -146,7 +124,7 @@ export async function adminLogout(): Promise<void> {
 export async function getCurrentAdmin(): Promise<AdminProfile | null> {
     try {
         const jar = await cookies();
-        const profileId = verifyToken(jar.get(COOKIE_NAME)?.value);
+        const profileId = readSignedToken(COOKIE_SCOPE, jar.get(COOKIE_NAME)?.value);
         if (!profileId) return null;
         return await fetchAdminByProfileId(profileId);
     } catch (error) {

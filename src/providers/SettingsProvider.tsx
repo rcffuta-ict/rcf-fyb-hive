@@ -27,13 +27,14 @@ const SettingsProvider = ({
     children: React.ReactNode;
 }): React.JSX.Element => {
     const current = useSettingsStore.getState();
+    // Compared key by key over whatever `AppSettings` currently holds, rather
+    // than a hand-written list: a new setting added to the type would otherwise
+    // be silently excluded from the staleness check and never re-hydrate.
     const stale =
         !current.hydrated ||
-        current.pairingEnabled !== settings.pairingEnabled ||
-        current.pairAmount !== settings.pairAmount ||
-        current.bankName !== settings.bankName ||
-        current.accountName !== settings.accountName ||
-        current.accountNumber !== settings.accountNumber;
+        (Object.keys(settings) as (keyof AppSettings)[]).some(
+            (key) => current[key] !== settings[key]
+        );
 
     if (stale) current.hydrate(settings);
 

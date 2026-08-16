@@ -24,17 +24,22 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     bankName: site.payment.bankName,
     accountName: site.payment.accountName,
     accountNumber: site.payment.accountNumber,
+    awardsEnabled: site.features.awards,
+    awardsResultsPublic: false,
     hydrated: false,
     hydrate: (settings) => set({ ...settings, hydrated: true }),
 }));
 
 /**
- * Whether a feature is live for the current visitor. `pairing` comes from the
- * database so admin can flip it without a redeploy; the rest are still
- * build-time flags in `site.config.json`.
+ * Whether a feature is live for the current visitor. `pairing` and `awards`
+ * come from the database so admin can flip them without a redeploy;
+ * `registration` is still a build-time flag in `site.config.json`.
  */
 export const useFeature = (feature: FeatureKey): boolean => {
     const pairingEnabled = useSettingsStore((s) => s.pairingEnabled);
+    const awardsEnabled = useSettingsStore((s) => s.awardsEnabled);
+
     if (feature === "pairing") return pairingEnabled;
-    return site.features[feature];
+    if (feature === "awards") return awardsEnabled;
+    return site.features.registration;
 };

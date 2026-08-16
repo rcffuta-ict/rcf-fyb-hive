@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { HeartHandshake, Settings, Users } from "lucide-react";
+import { HeartHandshake, Settings, Trophy, Users } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import AwardsPanel from "./awards/awards-panel";
 import DashboardHeader from "./dashboard-header";
 import PairIntentsPanel from "./pair-intents-panel";
 import RegistrationsPanel from "./registrations-panel";
 import SettingsPanel from "./settings-panel";
 
-type Tab = "registrations" | "pairings" | "settings";
+type Tab = "registrations" | "pairings" | "awards" | "settings";
 
 const TABS: { key: Tab; label: string; icon: typeof Users }[] = [
     { key: "registrations", label: "Registrations", icon: Users },
     { key: "pairings", label: "Pairings", icon: HeartHandshake },
+    { key: "awards", label: "Awards", icon: Trophy },
     { key: "settings", label: "Settings", icon: Settings },
 ];
 
@@ -27,7 +29,7 @@ const AdminDashboard = (): React.JSX.Element => {
             <div
                 role="tablist"
                 aria-label="Admin sections"
-                className="mt-6 flex gap-1 border-b border-border"
+                className="mt-6 flex gap-1 overflow-x-auto border-b border-border [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
                 {TABS.map(({ key, label, icon: Icon }) => (
                     <button
@@ -51,6 +53,7 @@ const AdminDashboard = (): React.JSX.Element => {
 
             {tab === "registrations" && <RegistrationsPanel />}
             {tab === "pairings" && <PairIntentsPanel />}
+            {tab === "awards" && <AwardsPanel />}
             {tab === "settings" && <SettingsPanel />}
         </section>
     );

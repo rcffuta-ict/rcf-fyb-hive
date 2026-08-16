@@ -41,7 +41,23 @@ const inter = Inter({
     display: "swap",
 });
 
+/**
+ * Absolute base for every generated URL in metadata — most importantly the
+ * campaign link previews, which WhatsApp fetches from a server that has no idea
+ * what "/awards/c/ABC123/opengraph-image" is relative to. Without this Next
+ * falls back to localhost:3000 and every shared link unfurls blank.
+ *
+ * Vercel supplies VERCEL_PROJECT_PRODUCTION_URL; NEXT_PUBLIC_SITE_URL overrides
+ * it for any other host.
+ */
+const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : "http://localhost:3004");
+
 export const metadata: Metadata = {
+    metadataBase: new URL(siteUrl),
     title: `${site.name} — ${site.tagline}`,
     description: site.description,
     icons: { icon: site.branding.favicon },
