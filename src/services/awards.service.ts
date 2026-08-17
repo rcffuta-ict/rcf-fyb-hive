@@ -55,6 +55,16 @@ type CandidateRow = {
 const CANDIDATE_COLUMNS =
     "id, category_id, registration_id, nickname, sort_order, share_code, fyb_registrations(first_name, last_name, email, level, unit, photo_url)";
 
+const CATEGORY_COLUMNS = "id, slug, title, description, sort_order, is_archived";
+
+/** Named once so the select string and the nested `order` calls can't drift apart. */
+const CANDIDATES = "fyb_award_candidates";
+
+/** A category with its candidates already attached — see `getBallotCategories`. */
+type BallotRow = CategoryRow & { fyb_award_candidates: CandidateRow[] };
+
+const BALLOT_COLUMNS = `${CATEGORY_COLUMNS}, ${CANDIDATES}(${CANDIDATE_COLUMNS})`;
+
 const toCategory = (row: CategoryRow): AwardCategory => ({
     id: row.id,
     slug: row.slug,
@@ -91,7 +101,7 @@ export const getCategories = async (
     const supabase = createServerSupabase();
     let query = supabase
         .from("fyb_award_categories")
-        .select("id, slug, title, description, sort_order, is_archived")
+        .select(CATEGORY_COLUMNS)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
 
@@ -198,39 +208,50 @@ export const findFinalistByEmail = async (
 export const getBallotCategories = async (
     voterProfileId: string
 ): Promise<BallotCategory[]> => {
-    const categories = await getCategories();
-    if (categories.length === 0) return [];
-
-    const ids = categories.map((c) => c.id);
     const supabase = createServerSupabase();
 
-    const [rows, votesRes] = await Promise.all([
-        getCandidateRows(ids),
+    // Categories and their candidates come back nested, in one trip. Reading
+    // them separately meant waiting for the category ids before the candidate
+    // query could even be sent, and a round trip to Supabase is the most
+    // expensive thing this page does — several hundred milliseconds when the
+    // database is a continent away, against microseconds of work at either end.
+    const [categoriesRes, votesRes] = await Promise.all([
+        supabase
+            .from("fyb_award_categories")
+            .select(BALLOT_COLUMNS)
+            .eq("is_archived", false)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true })
+            .order("sort_order", { referencedTable: CANDIDATES, ascending: true })
+            .order("created_at", { referencedTable: CANDIDATES, ascending: true })
+            .returns<BallotRow[]>(),
+        // Unfiltered by category on purpose: this voter holds at most one vote
+        // per category, so the result is a handful of rows either way, and
+        // filtering would have cost us the parallelism we just bought. Votes in
+        // archived categories are simply never looked up below.
         supabase
             .from("fyb_award_votes")
             .select("category_id, candidate_id")
             .eq("voter_profile_id", voterProfileId)
-            .in("category_id", ids)
             .returns<{ category_id: string; candidate_id: string }[]>(),
     ]);
 
+    if (categoriesRes.error) {
+        console.error("ballot read failed:", categoriesRes.error.message);
+        return [];
+    }
     if (votesRes.error) console.error("ballot votes read failed:", votesRes.error.message);
 
     const myVotes = new Map(
         (votesRes.data ?? []).map((v) => [v.category_id, v.candidate_id])
     );
 
-    const byCategory = new Map<string, AwardCandidate[]>();
-    for (const row of rows.filter(hasRegistration)) {
-        const list = byCategory.get(row.category_id) ?? [];
-        list.push(toCandidate(row));
-        byCategory.set(row.category_id, list);
-    }
-
-    return categories.map((category) => ({
-        ...category,
-        candidates: byCategory.get(category.id) ?? [],
-        myVoteCandidateId: myVotes.get(category.id) ?? null,
+    return (categoriesRes.data ?? []).map((row) => ({
+        ...toCategory(row),
+        candidates: (row.fyb_award_candidates ?? [])
+            .filter(hasRegistration)
+            .map(toCandidate),
+        myVoteCandidateId: myVotes.get(row.id) ?? null,
     }));
 };
 
