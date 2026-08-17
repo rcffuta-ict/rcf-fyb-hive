@@ -4,6 +4,7 @@ import { ArrowRight, Trophy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { site } from "@/config/site";
+import { facePortrait } from "@/lib/cloudinary";
 import ShareRow from "./share-row";
 import type { CampaignCard } from "@/types/awards.types";
 
@@ -23,12 +24,16 @@ const CampaignPage = ({ card }: { card: CampaignCard }): React.JSX.Element => {
             <div className="surface overflow-hidden">
                 <div className="relative aspect-[4/5] w-full">
                     <Image
-                        src={card.photoUrl}
+                        src={facePortrait(card.photoUrl, {
+                            width: 896,
+                            height: 1120,
+                            zoom: 0.55,
+                        })}
                         alt={fullName}
                         fill
                         priority
                         sizes="(min-width: 640px) 448px, 100vw"
-                        className="object-cover object-top"
+                        className="object-cover"
                     />
                     <span
                         aria-hidden

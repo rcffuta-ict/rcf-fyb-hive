@@ -313,19 +313,16 @@ export type FinalistLookup =
     | { status: "not_found"; message: string };
 
 /**
- * Check an email before anyone commits to it.
+ * Whether this email may stand in this category, and who it belongs to.
  *
- * The admin types the address they were given; this says whose it is, with the
- * photo, so a typo is caught by not recognising the face rather than by a
- * stranger appearing on the ballot.
+ * The single verdict shared by the one-at-a-time form and the bulk paste, so
+ * the two can never disagree about who is eligible. Unauthenticated on purpose
+ * — it is not exported; every caller is behind its own admin check.
  */
-export async function lookupFinalist(
+const verifyFinalist = async (
     categoryId: string,
     email: string
-): Promise<FinalistLookup> {
-    const admin = await getCurrentAdmin();
-    if (!admin) return { status: "not_found", message: "Not authorized." };
-
+): Promise<FinalistLookup> => {
     const value = email?.trim();
     if (!value) return { status: "not_found", message: "" };
 
@@ -347,6 +344,23 @@ export async function lookupFinalist(
     }
 
     return { status: "ok", finalist };
+};
+
+/**
+ * Check an email before anyone commits to it.
+ *
+ * The admin types the address they were given; this says whose it is, with the
+ * photo, so a typo is caught by not recognising the face rather than by a
+ * stranger appearing on the ballot.
+ */
+export async function lookupFinalist(
+    categoryId: string,
+    email: string
+): Promise<FinalistLookup> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return { status: "not_found", message: "Not authorized." };
+
+    return verifyFinalist(categoryId, email);
 }
 
 /** Stand the finalist the email resolved to — the id can't be mistyped. */
@@ -375,45 +389,154 @@ export async function addCandidateById(input: {
     return standCandidate(input.categoryId, registration, nickname);
 }
 
-export type BulkAddResult = {
-    added: number;
-    /** One line per email that didn't work, and why — shown verbatim to admin. */
-    failures: string[];
+/** A line the paste couldn't use, quoted back so admin can find it. */
+export type BulkProblem = {
+    /** 1-based, counting only non-blank lines — matches what admin sees. */
+    line: number;
+    text: string;
+    reason: string;
 };
 
+export type BulkAddResult =
+    | { ok: true; added: number }
+    | { ok: false; problems: BulkProblem[] };
+
+/** Deliberately loose: Postgres and the registrations table are the real check. */
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type ParsedLine = { line: number; text: string; email: string; nickname: string };
+
 /**
- * Paste a block of `email, nickname` lines. Sequential, not parallel: each line
- * is a few round trips and the failure report has to name the exact line that
- * failed, which a settled batch makes fiddlier than it's worth.
+ * Split `email, nickname` lines. The nickname may itself contain commas
+ * ("Ada, The Encourager" is a plausible thing to type), so only the first
+ * separator counts and the rest of the line is the nickname.
+ */
+const parseBulkLines = (raw: string): ParsedLine[] =>
+    raw
+        .split("\n")
+        .map((text) => text.trim())
+        .filter(Boolean)
+        .map((text, index) => {
+            const cut = text.search(/[,\t]/);
+            const email = (cut === -1 ? text : text.slice(0, cut)).trim().toLowerCase();
+            const nickname = cut === -1 ? "" : text.slice(cut + 1).trim();
+            return {
+                line: index + 1,
+                text,
+                email,
+                // A missing nickname is a typo, not a default worth inventing —
+                // "ada" is nobody's award title. Reported below rather than used.
+                nickname,
+            };
+        });
+
+/**
+ * Paste a block of `email, nickname` lines.
+ *
+ * **Nothing is written until every line checks out.** A nomination sheet is
+ * pasted once and then trusted; the old behaviour added the good lines and
+ * reported the rest, which left the category half-populated and the admin
+ * re-pasting a corrected sheet on top of it — at which point the lines that did
+ * work come back as "already standing" and the real failures are lost in the
+ * noise. Verify everything, then insert everything, or change nothing.
  */
 export async function addCandidatesBulk(
     categoryId: string,
     raw: string
 ): Promise<BulkAddResult> {
     const admin = await getCurrentAdmin();
-    if (!admin) return { added: 0, failures: ["Not authorized."] };
-
-    const lines = raw
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean);
-
-    let added = 0;
-    const failures: string[] = [];
-
-    for (const line of lines) {
-        const [email, ...rest] = line.split(/[,\t]/);
-        const nickname = rest.join(",").trim();
-        const result = await addCandidate({
-            categoryId,
-            email: email ?? "",
-            nickname: nickname || (email ?? "").split("@")[0],
-        });
-        if (result.ok) added += 1;
-        else failures.push(`${email?.trim() || line} — ${result.message}`);
+    if (!admin) {
+        return { ok: false, problems: [{ line: 0, text: "", reason: "Not authorized." }] };
     }
 
-    return { added, failures };
+    const parsed = parseBulkLines(raw);
+    if (parsed.length === 0) {
+        return { ok: false, problems: [{ line: 0, text: "", reason: "Nothing to add." }] };
+    }
+
+    const problems: BulkProblem[] = [];
+    const resolved: { registrationId: string; nickname: string }[] = [];
+    const seen = new Map<string, number>();
+
+    for (const entry of parsed) {
+        const fail = (reason: string): void => {
+            problems.push({ line: entry.line, text: entry.text, reason });
+        };
+
+        if (!EMAIL.test(entry.email)) {
+            fail("Doesn't look like an email address.");
+            continue;
+        }
+        if (!entry.nickname) {
+            fail("No nickname — add one after a comma.");
+            continue;
+        }
+
+        // Caught here rather than by the unique index, which would only fire
+        // once the batch was already halfway in.
+        const earlier = seen.get(entry.email);
+        if (earlier) {
+            fail(`Same email as line ${earlier}.`);
+            continue;
+        }
+        seen.set(entry.email, entry.line);
+
+        const verdict = await verifyFinalist(categoryId, entry.email);
+        if (verdict.status !== "ok") {
+            fail(verdict.status === "standing" ? "Already standing here." : verdict.message);
+            continue;
+        }
+
+        resolved.push({
+            registrationId: verdict.finalist.registrationId,
+            nickname: entry.nickname,
+        });
+    }
+
+    if (problems.length > 0) return { ok: false, problems };
+
+    const supabase = createServerSupabase();
+
+    const { data: last } = await supabase
+        .from("fyb_award_candidates")
+        .select("sort_order")
+        .eq("category_id", categoryId)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle<{ sort_order: number }>();
+
+    const base = last?.sort_order ?? 0;
+
+    // One statement, so the unique index can still make it all-or-nothing if
+    // someone stood one of these people while the sheet was being verified.
+    const { error } = await supabase.from("fyb_award_candidates").insert(
+        resolved.map((row, index) => ({
+            category_id: categoryId,
+            registration_id: row.registrationId,
+            nickname: row.nickname,
+            sort_order: base + index + 1,
+        }))
+    );
+
+    if (error) {
+        console.error("addCandidatesBulk failed:", error.message);
+        return {
+            ok: false,
+            problems: [
+                {
+                    line: 0,
+                    text: "",
+                    reason:
+                        error.code === "23505"
+                            ? "One of these people was added by someone else just now. Nothing was saved — check the list and paste again."
+                            : "Could not save the list. Nothing was added.",
+                },
+            ],
+        };
+    }
+
+    revalidatePath("/awards");
+    return { ok: true, added: resolved.length };
 }
 
 export async function updateCandidateNickname(

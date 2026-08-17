@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
+import FaceAvatar from "@/components/ui/face-avatar";
 import { cn } from "@/lib/utils";
 import type { FinalistOption } from "@/types/awards.types";
 
@@ -27,13 +27,7 @@ const FinalistPreview = ({
             valid ? "border-primary/40 bg-primary/5" : "border-amber-500/40 bg-amber-500/5"
         )}
     >
-        <Image
-            src={finalist.photoUrl}
-            alt=""
-            width={44}
-            height={44}
-            className="h-11 w-11 shrink-0 rounded-full object-cover"
-        />
+        <FaceAvatar src={finalist.photoUrl} size={44} className="h-11 w-11" />
 
         <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-foreground">

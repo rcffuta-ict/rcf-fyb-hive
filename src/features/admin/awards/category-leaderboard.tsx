@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 
+import FaceAvatar from "@/components/ui/face-avatar";
 import { cn } from "@/lib/utils";
 import ResultBars from "./result-bars";
 import type { CategoryResult } from "@/types/awards.types";
@@ -40,12 +40,10 @@ const CategoryLeaderboard = ({
                             className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-foreground/[0.03]"
                         >
                             {leader && leader.votes > 0 ? (
-                                <Image
+                                <FaceAvatar
                                     src={leader.photoUrl}
-                                    alt=""
-                                    width={36}
-                                    height={36}
-                                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-primary/40"
+                                    size={36}
+                                    className="h-9 w-9 ring-1 ring-primary/40"
                                 />
                             ) : (
                                 <span className="h-9 w-9 shrink-0 rounded-full border border-dashed border-border" />

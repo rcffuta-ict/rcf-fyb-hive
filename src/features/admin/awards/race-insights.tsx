@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Crown, Flame } from "lucide-react";
 
+import FaceAvatar from "@/components/ui/face-avatar";
 import type { CategoryResult, MultiLeader } from "@/types/awards.types";
 
 /**
@@ -69,12 +69,10 @@ const RaceInsights = ({
                     <ul className="mt-3 space-y-3">
                         {multiLeaders.slice(0, MAX_SHOWN).map((leader) => (
                             <li key={leader.registrationId} className="flex items-center gap-3">
-                                <Image
+                                <FaceAvatar
                                     src={leader.photoUrl}
-                                    alt=""
-                                    width={32}
-                                    height={32}
-                                    className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-primary/40"
+                                    size={32}
+                                    className="h-8 w-8 ring-1 ring-primary/40"
                                 />
                                 <div className="min-w-0 flex-1">
                                     <p className="truncate text-sm text-foreground">

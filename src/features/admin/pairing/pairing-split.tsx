@@ -8,6 +8,10 @@ import { Users2 } from "lucide-react";
  * Worth its own panel because the two kinds cost the organizers different
  * things: an associate pairing means a guest nobody in the fellowship knows,
  * and that is a headcount and a seating problem, not just a number.
+ *
+ * The gold is dimmed with `opacity`, never `bg-metallic-gold/70` — that utility
+ * sets the `background` shorthand to a gradient and has no alpha variant, so the
+ * suffixed class compiles to nothing and the segment vanishes.
  */
 const PairingSplit = ({
     finalistPairs,
@@ -30,7 +34,7 @@ const PairingSplit = ({
             label: "Finalist with an associate",
             value: associatePairs,
             hint: "a guest from outside",
-            bar: "bg-metallic-gold/70",
+            bar: "bg-metallic-gold opacity-80",
         },
     ];
 
@@ -52,7 +56,7 @@ const PairingSplit = ({
                             className="h-full bg-primary/60"
                             style={{ width: `${finalistPct}%` }}
                         />
-                        <div className="h-full flex-1 bg-metallic-gold/70" />
+                        <div className="h-full flex-1 bg-metallic-gold opacity-80" />
                     </div>
 
                     <ul className="mt-4 space-y-3">

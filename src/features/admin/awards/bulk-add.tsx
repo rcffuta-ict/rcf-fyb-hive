@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 
-import { addCandidatesBulk } from "@/actions/awards-admin.action";
+import { addCandidatesBulk, type BulkProblem } from "@/actions/awards-admin.action";
 import { Button } from "@/components/ui/button";
 import { appToast } from "@/providers/ToastProvider";
 
@@ -13,6 +13,10 @@ import { appToast } from "@/providers/ToastProvider";
  * Demoted behind a disclosure now that the picker exists — it's still the right
  * tool when someone hands you a nomination sheet, and the wrong one for adding
  * three people.
+ *
+ * All-or-nothing by design, so the textarea is never cleared on a failure: the
+ * paste in front of the admin is still exactly what is not yet in the database,
+ * and the problems below point at lines they can see.
  */
 const BulkAdd = ({
     categoryId,
@@ -24,23 +28,27 @@ const BulkAdd = ({
     const [open, setOpen] = useState(false);
     const [raw, setRaw] = useState("");
     const [busy, setBusy] = useState(false);
-    const [failures, setFailures] = useState<string[]>([]);
+    const [problems, setProblems] = useState<BulkProblem[]>([]);
 
     const handleBulk = async (): Promise<void> => {
         setBusy(true);
         const result = await addCandidatesBulk(categoryId, raw);
         setBusy(false);
-        setFailures(result.failures);
 
-        if (result.added > 0) {
-            appToast.success(`Added ${result.added} candidate${result.added === 1 ? "" : "s"}.`);
-            setRaw("");
-            onAdded();
+        if (!result.ok) {
+            setProblems(result.problems);
+            appToast.error(
+                `Nothing was added — ${result.problems.length} line${
+                    result.problems.length === 1 ? "" : "s"
+                } need${result.problems.length === 1 ? "s" : ""} fixing.`
+            );
             return;
         }
-        if (result.failures.length > 0) {
-            appToast.error("Nothing was added — see the details below.");
-        }
+
+        setProblems([]);
+        appToast.success(`Added ${result.added} candidate${result.added === 1 ? "" : "s"}.`);
+        setRaw("");
+        onAdded();
     };
 
     return (
@@ -78,11 +86,26 @@ const BulkAdd = ({
                         )}
                         Add all
                     </Button>
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                        Every line is checked first. If one fails, nothing is added.
+                    </p>
 
-                    {failures.length > 0 && (
-                        <ul className="mt-3 space-y-1 rounded-token border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
-                            {failures.map((failure) => (
-                                <li key={failure}>{failure}</li>
+                    {problems.length > 0 && (
+                        <ul className="mt-3 space-y-2 rounded-token border border-destructive/30 bg-destructive/5 p-3 text-xs">
+                            {problems.map((problem) => (
+                                <li key={`${problem.line}-${problem.reason}`}>
+                                    {problem.line > 0 && (
+                                        <span className="font-mono text-muted-foreground">
+                                            Line {problem.line}:{" "}
+                                        </span>
+                                    )}
+                                    <span className="text-destructive">{problem.reason}</span>
+                                    {problem.text && (
+                                        <span className="mt-0.5 block truncate font-mono text-[11px] text-muted-foreground">
+                                            {problem.text}
+                                        </span>
+                                    )}
+                                </li>
                             ))}
                         </ul>
                     )}

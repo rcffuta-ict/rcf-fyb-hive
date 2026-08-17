@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Crown } from "lucide-react";
 
+import { facePortrait } from "@/lib/cloudinary";
 import { cn } from "@/lib/utils";
 import type { AwardCandidate } from "@/types/awards.types";
 
@@ -18,6 +19,11 @@ import type { AwardCandidate } from "@/types/awards.types";
  * The selected state is carried by a `layoutId` halo that physically travels
  * from the old pick to the new one, so changing your mind reads as a movement
  * rather than as two cards quietly changing colour.
+ *
+ * The portrait is cropped around the detected face rather than pinned with
+ * `object-top`. Top-pinning is a guess that a face lives near the top of the
+ * frame, and it was wrong for anyone who uploaded a full-length photo — they
+ * arrived on the rail as a torso next to a row of faces.
  */
 
 const CandidateCard = ({
@@ -77,12 +83,12 @@ const CandidateCard = ({
             )}
         >
             <Image
-                src={candidate.photoUrl}
+                src={facePortrait(candidate.photoUrl, { width: 384, height: 480, zoom: 0.6 })}
                 alt={`${candidate.firstName} ${candidate.lastName}`}
                 fill
                 sizes="(min-width: 640px) 192px, 160px"
                 className={cn(
-                    "object-cover object-top transition-all duration-500",
+                    "object-cover transition-all duration-500",
                     selected
                         ? "scale-105 saturate-110"
                         : "saturate-[0.8] group-hover:scale-105 group-hover:saturate-100"

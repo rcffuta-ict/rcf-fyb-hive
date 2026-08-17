@@ -7,6 +7,11 @@ import type { LucideIcon } from "lucide-react";
  *
  * This is a shape-reader — "did the push after service work?" — not a
  * measuring instrument, so there's no axis; the exact figure is in the tooltip.
+ *
+ * Bars are dimmed with `opacity`, not with a `/70` colour suffix: the gold is a
+ * custom utility that sets the `background` shorthand to a gradient, and Tailwind
+ * has no alpha variant for that — `bg-metallic-gold/70` compiles to nothing, so
+ * the bars were invisible until the `hover:` rule brought the fill back.
  */
 
 export type DayPoint = { day: string; value: number };
@@ -48,7 +53,7 @@ const DayChart = ({
                             <div
                                 key={point.day}
                                 title={`${dayLabel(point.day)}: ${point.value} ${unit}`}
-                                className="flex-1 rounded-t bg-metallic-gold/70 transition-all hover:bg-metallic-gold"
+                                className="flex-1 rounded-t bg-metallic-gold opacity-80 transition-all hover:opacity-100"
                                 style={{
                                     height: `${Math.max(4, (point.value / top) * 100)}%`,
                                 }}

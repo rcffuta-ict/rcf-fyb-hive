@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Ban, Banknote, CalendarHeart, Clock, HeartHandshake, UserRound } from "lucide-react";
+import { Ban, CalendarHeart, Clock, HeartHandshake, UserRound } from "lucide-react";
 
 import { getPairingStatsForAdmin } from "@/actions/admin.action";
 import { site } from "@/config/site";

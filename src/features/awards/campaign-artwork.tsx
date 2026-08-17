@@ -1,5 +1,6 @@
 import { site } from "@/config/site";
 import { themes, type ThemeName } from "@/config/themes";
+import { facePortrait } from "@/lib/cloudinary";
 import type { CampaignCard } from "@/types/awards.types";
 
 /**
@@ -37,12 +38,33 @@ const COLORS = {
 export const OG_SIZE = { width: 1200, height: 630 };
 export const POSTER_SIZE = { width: 1080, height: 1920 };
 
+/** The portrait panel's pixel size in each shape — see `photo` below. */
+const PHOTO = {
+    og: { width: 528, height: OG_SIZE.height },
+    poster: { width: POSTER_SIZE.width, height: 1114 },
+};
+
 export const campaignArtwork = (
     card: CampaignCard,
     variant: "og" | "poster"
 ): React.JSX.Element => {
     const poster = variant === "poster";
     const scale = poster ? 1.6 : 1;
+
+    /**
+     * Satori fetches this URL itself, inside the request that a WhatsApp or X
+     * scraper is already timing. Asking Cloudinary for exactly the pixels the
+     * panel needs — as JPEG, because satori cannot decode WebP or AVIF — turns
+     * that fetch from the slowest thing in the render into a rounding error.
+     * A preview that renders slowly is a preview that doesn't render.
+     */
+    const photo = facePortrait(card.photoUrl, {
+        ...PHOTO[variant],
+        // Looser than the ballot cards: this panel is tall enough to carry
+        // shoulders, and a tight face fills a poster oddly.
+        zoom: 0.55,
+        format: "jpg",
+    });
 
     return (
         <div
@@ -67,10 +89,10 @@ export const campaignArtwork = (
             >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                    src={card.photoUrl}
+                    src={photo}
                     alt=""
-                    width={poster ? POSTER_SIZE.width : 528}
-                    height={poster ? 1114 : OG_SIZE.height}
+                    width={PHOTO[variant].width}
+                    height={PHOTO[variant].height}
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
                 <div

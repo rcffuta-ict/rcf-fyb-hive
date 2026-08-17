@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Crown } from "lucide-react";
 
+import FaceAvatar from "@/components/ui/face-avatar";
 import { cn } from "@/lib/utils";
 import type { CategoryResult } from "@/types/awards.types";
 
@@ -42,15 +42,10 @@ const ResultBars = ({
                 <ul className={cn("space-y-3", bare ? "mt-1" : "mt-4")}>
                     {result.candidates.map((candidate) => (
                         <li key={candidate.candidateId} className="flex items-center gap-3">
-                            <Image
+                            <FaceAvatar
                                 src={candidate.photoUrl}
-                                alt=""
-                                width={32}
-                                height={32}
-                                className={cn(
-                                    "h-8 w-8 shrink-0 rounded-full object-cover",
-                                    candidate.isLeader && "ring-2 ring-primary"
-                                )}
+                                size={32}
+                                className={cn("h-8 w-8", candidate.isLeader && "ring-2 ring-primary")}
                             />
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-baseline justify-between gap-2">

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { Check, Link2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import FaceAvatar from "@/components/ui/face-avatar";
 import { appToast } from "@/providers/ToastProvider";
 import type { AdminCandidate } from "@/types/awards.types";
 
@@ -38,13 +38,7 @@ const CandidateRow = ({
 
     return (
         <li className="flex items-center gap-3 rounded-token border border-border p-2.5">
-            <Image
-                src={candidate.photoUrl}
-                alt=""
-                width={36}
-                height={36}
-                className="h-9 w-9 shrink-0 rounded-full object-cover"
-            />
+            <FaceAvatar src={candidate.photoUrl} size={36} className="h-9 w-9" />
 
             <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">
