@@ -34,7 +34,7 @@ const StatsPanel = (): React.JSX.Element => {
 
     return (
         <div className="mt-4 space-y-5">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
                     Live tally. Nobody outside this dashboard sees these numbers until you
                     publish results in Settings.
@@ -44,6 +44,7 @@ const StatsPanel = (): React.JSX.Element => {
                     size="sm"
                     onClick={reload}
                     disabled={refreshing}
+                    className="self-start sm:self-auto"
                 >
                     <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
                     Refresh

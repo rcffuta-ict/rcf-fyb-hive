@@ -29,7 +29,7 @@ const CriteriaPanel = ({
                     This category&apos;s slug matches no award in the standard,
                     so it is not on anyone&apos;s ballot and voting cannot open
                     while it is live. Either archive it, or add the award to{" "}
-                    <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+                    <code className="break-all rounded bg-muted px-1 py-0.5 font-mono text-xs">
                         src/constants/award-standard.jsonrc
                     </code>{" "}
                     and deploy.
@@ -103,12 +103,9 @@ const CriteriaPanel = ({
             )}
 
             <p className="border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
-                Criteria are governed by{" "}
-                <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-                    the ICT Team
-                </code>{" "}
-                {/* and cannot be edited from here — that is what stops them changing the night
-                before voting. */}
+                The award&apos;s name and its criteria are governed by the ICT Team, in
+                the published standard, and cannot be edited from this dashboard — that
+                is what stops either of them changing the night before voting.
             </p>
         </div>
     );

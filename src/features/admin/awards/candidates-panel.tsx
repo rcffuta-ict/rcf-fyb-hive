@@ -70,7 +70,7 @@ const CandidatesPanel = ({
 
     return (
         <div>
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <h4 className="flex items-center gap-2 font-luxury text-base text-foreground">
                     <Users size={16} className="text-primary" />
                     Nominees ({candidates.length})
@@ -97,7 +97,7 @@ const CandidatesPanel = ({
             )}
 
             {candidates.length > 0 && (
-                <ul className="mt-6 grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
+                <ul className="mt-6 grid gap-2 md:grid-cols-2">
                     {candidates.map((candidate) => (
                         <CandidateRow
                             key={candidate.id}

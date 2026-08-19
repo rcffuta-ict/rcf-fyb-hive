@@ -16,10 +16,12 @@ import type { CategoryResult } from "@/types/awards.types";
  * collapses to the only line that matters at a glance (who leads, by how much),
  * and opens into the full bars on demand.
  *
- * A grid rather than a stack: the summary line is short, and one category per
- * full-width row meant scrolling past a screen of mostly-empty rows to compare
- * two races. Several cards open at once for the same reason — comparing is the
- * point, and a single-open accordion makes that impossible.
+ * From `lg` up this is a two-column grid rather than a stack: the summary line
+ * is short, and one category per full-width row meant scrolling past a screen of
+ * mostly-empty rows to compare two races. It stays a single column on a phone,
+ * where a card already fills the width. Several cards open at once for the same
+ * reason the grid exists — comparing is the point, and a single-open accordion
+ * makes that impossible.
  */
 
 const CategoryLeaderboard = ({
@@ -38,7 +40,7 @@ const CategoryLeaderboard = ({
     };
 
     return (
-        <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid gap-3 lg:grid-cols-2">
             {results.map((result) => {
                 const leader = result.candidates[0];
                 const open = openIds.has(result.categoryId);

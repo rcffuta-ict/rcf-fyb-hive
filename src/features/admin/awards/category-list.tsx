@@ -83,7 +83,7 @@ const CategoryList = ({
                                 aria-label={`Move ${category.title} up`}
                                 disabled={index === 0 || busyId === category.id}
                                 onClick={() => onMove(category.id, "up")}
-                                className="h-6 w-6"
+                                className="h-7 w-7 lg:h-6 lg:w-6"
                             >
                                 <ArrowUp size={13} />
                             </Button>
@@ -95,7 +95,7 @@ const CategoryList = ({
                                     index === categories.length - 1 || busyId === category.id
                                 }
                                 onClick={() => onMove(category.id, "down")}
-                                className="h-6 w-6"
+                                className="h-7 w-7 lg:h-6 lg:w-6"
                             >
                                 <ArrowDown size={13} />
                             </Button>

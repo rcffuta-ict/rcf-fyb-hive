@@ -163,7 +163,7 @@ const BrandLogoField = ({
                 Logo
             </label>
 
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <Input
                     value={pasted}
                     onChange={(e) => setPasted(e.target.value)}
@@ -174,7 +174,7 @@ const BrandLogoField = ({
                     }}
                     placeholder="https://… link to the logo"
                     aria-label="Link to the brand's logo"
-                    className="flex-1"
+                    className="sm:flex-1"
                     disabled={busy}
                 />
                 <Button

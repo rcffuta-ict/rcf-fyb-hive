@@ -25,9 +25,11 @@ import type { DocumentedCategory } from "@/types/awards.types";
  * Two panes fix both: the left rail is the ballot at a glance, and the right is
  * one thing at a time.
  *
- * The rail scrolls inside a capped height rather than running the length of the
- * page: there are twenty-odd awards, and a list that tall would push the detail
- * pane you are actually reading off the screen.
+ * From `lg` up the rail scrolls inside a capped height: there are twenty-odd
+ * awards, and a list that tall would push the detail pane beside it off the
+ * screen. Below `lg` there is no cap, because the rail is the whole page there —
+ * a scroll region inside a scrolling page is two scrollbars fighting on a
+ * touchscreen, and nothing is sitting next to it that needs to stay in view.
  *
  * On narrow screens the panes become one: the list, or the detail with a back
  * button. Side-by-side at phone width would give each half too little room to
@@ -128,7 +130,7 @@ const CategoryWorkbench = (): React.JSX.Element => {
                                 couldn&apos;t be reached.
                             </p>
                         ) : (
-                            <div className="mt-4 max-h-[min(60vh,32rem)] overflow-y-auto pr-1 lg:max-h-[calc(100vh-18rem)]">
+                            <div className="mt-4 lg:max-h-[calc(100vh-18rem)] lg:overflow-y-auto lg:pr-1">
                                 <CategoryList
                                     categories={categories}
                                     selectedId={selectedId}

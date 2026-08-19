@@ -77,7 +77,7 @@ const MemberEmailsField = ({
                 {label}
             </label>
 
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <Input
                     type="email"
                     value={email}
@@ -89,7 +89,7 @@ const MemberEmailsField = ({
                     }}
                     placeholder="Their dinner registration email"
                     aria-label={label}
-                    className="flex-1"
+                    className="sm:flex-1"
                 />
                 <Button
                     type="button"
