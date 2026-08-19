@@ -26,9 +26,9 @@ const CriteriaPanel = ({
                     <ShieldAlert size={16} /> No published criteria
                 </h4>
                 <p className="mt-2 text-sm leading-relaxed text-foreground/70">
-                    This category&apos;s slug matches no award in the standard, so it is not on
-                    anyone&apos;s ballot and voting cannot open while it is live. Either archive
-                    it, or add the award to{" "}
+                    This category&apos;s slug matches no award in the standard,
+                    so it is not on anyone&apos;s ballot and voting cannot open
+                    while it is live. Either archive it, or add the award to{" "}
                     <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
                         src/constants/award-standard.jsonrc
                     </code>{" "}
@@ -64,7 +64,10 @@ const CriteriaPanel = ({
                             key={item}
                             className="flex gap-2 text-sm leading-relaxed text-foreground/70"
                         >
-                            <Check size={14} className="mt-1 shrink-0 text-primary" />
+                            <Check
+                                size={14}
+                                className="mt-1 shrink-0 text-primary"
+                            />
                             <span>{item}</span>
                         </li>
                     ))}
@@ -100,12 +103,12 @@ const CriteriaPanel = ({
             )}
 
             <p className="border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
-                Criteria are governed in{" "}
+                Criteria are governed by{" "}
                 <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
-                    award-standard.jsonrc
+                    the ICT Team
                 </code>{" "}
-                and cannot be edited from here — that is what stops them changing the night
-                before voting.
+                {/* and cannot be edited from here — that is what stops them changing the night
+                before voting. */}
             </p>
         </div>
     );

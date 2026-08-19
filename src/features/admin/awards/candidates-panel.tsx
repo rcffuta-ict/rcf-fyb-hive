@@ -97,7 +97,7 @@ const CandidatesPanel = ({
             )}
 
             {candidates.length > 0 && (
-                <ul className="mt-6 space-y-2">
+                <ul className="mt-6 grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
                     {candidates.map((candidate) => (
                         <CandidateRow
                             key={candidate.id}

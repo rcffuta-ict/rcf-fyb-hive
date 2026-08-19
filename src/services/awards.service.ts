@@ -98,14 +98,26 @@ type BallotRow = CategoryRow & { fyb_award_candidates: CandidateRow[] };
 
 const BALLOT_COLUMNS = `${CATEGORY_COLUMNS}, ${CANDIDATES}(${CANDIDATE_COLUMNS})`;
 
-const toCategory = (row: CategoryRow): AwardCategory => ({
-    id: row.id,
-    slug: row.slug,
-    title: row.title,
-    description: row.description,
-    sortOrder: row.sort_order,
-    isArchived: row.is_archived,
-});
+/**
+ * The standard's wording wins over the stored columns.
+ *
+ * An award's name is part of the published standard, not a dashboard setting —
+ * "Most Likely to Succeed" has to read the same on the ballot, on the criteria
+ * page and in the file the committee ratified. The stored `title` survives only
+ * as the fallback for a row whose slug matches no award, which is exactly the
+ * case where there is no better name to use.
+ */
+const toCategory = (row: CategoryRow): AwardCategory => {
+    const standard = findStandard(row.slug);
+    return {
+        id: row.id,
+        slug: row.slug,
+        title: standard?.title ?? row.title,
+        description: standard?.blurb ?? row.description,
+        sortOrder: row.sort_order,
+        isArchived: row.is_archived,
+    };
+};
 
 const toMembers = (row: CandidateRow): CandidateMember[] =>
     (row.fyb_award_candidate_members ?? [])
@@ -188,9 +200,10 @@ const toCandidates = (rows: CandidateRow[]): AwardCandidate[] =>
  *   • `is_archived` is never reset, so a committee's decision to drop an award
  *     survives every subsequent sync. Re-archiving it on each deploy would be
  *     the platform silently overruling the committee.
- *   • `title` and `description` are never overwritten, so an admin's wording
- *     for the ballot is not reverted to the file's on the next page load. The
- *     file supplies them once, at provisioning.
+ *   • the stored `title` and `description` are never rewritten either, but they
+ *     are also never read for a documented award — `toCategory` overlays the
+ *     standard's wording. They are seeded here so anything querying the table
+ *     directly sees a sensible name.
  *
  * `ignoreDuplicates` makes concurrent calls harmless: two requests arriving
  * together both insert, and the unique index on `slug` discards the loser.
@@ -734,7 +747,8 @@ export const getCampaignCard = async (
     // A campaign link into an award with no published criteria would be an
     // invitation to vote on nothing — the ballot drops those categories, so the
     // link that leads to one must 404 rather than land on a dead rail.
-    if (!findStandard(data.fyb_award_categories.slug)) return null;
+    const standard = findStandard(data.fyb_award_categories.slug);
+    if (!standard) return null;
 
     const candidate = toCandidate(data);
     if (!candidate) return null;
@@ -748,8 +762,10 @@ export const getCampaignCard = async (
         nickname: candidate.nickname,
         imageUrl: candidate.imageUrl,
         members: candidate.members,
-        categoryTitle: data.fyb_award_categories.title,
-        categoryDescription: data.fyb_award_categories.description,
+        // The standard's wording, for the same reason `toCategory` uses it: the
+        // award is named by the file, not by whatever is in the column.
+        categoryTitle: standard.title,
+        categoryDescription: standard.blurb,
         categorySlug: data.fyb_award_categories.slug,
         votingOpen,
     };

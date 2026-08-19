@@ -9,12 +9,17 @@ import ResultBars from "./result-bars";
 import type { CategoryResult } from "@/types/awards.types";
 
 /**
- * Every category at a glance, one row each.
+ * Every category at a glance, one card each.
  *
- * Ten categories × thirty candidates rendered as bars is three hundred rows of
+ * Twenty categories × thirty candidates rendered as bars is six hundred rows of
  * chart — technically complete and practically unreadable. So each category
  * collapses to the only line that matters at a glance (who leads, by how much),
  * and opens into the full bars on demand.
+ *
+ * A grid rather than a stack: the summary line is short, and one category per
+ * full-width row meant scrolling past a screen of mostly-empty rows to compare
+ * two races. Several cards open at once for the same reason — comparing is the
+ * point, and a single-open accordion makes that impossible.
  */
 
 const CategoryLeaderboard = ({
@@ -22,20 +27,34 @@ const CategoryLeaderboard = ({
 }: {
     results: CategoryResult[];
 }): React.JSX.Element => {
-    const [openId, setOpenId] = useState<string | null>(null);
+    const [openIds, setOpenIds] = useState<ReadonlySet<string>>(new Set());
+
+    const handleToggle = (categoryId: string): void => {
+        setOpenIds((current) => {
+            const next = new Set(current);
+            if (!next.delete(categoryId)) next.add(categoryId);
+            return next;
+        });
+    };
 
     return (
-        <div className="surface divide-y divide-border">
+        <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {results.map((result) => {
                 const leader = result.candidates[0];
-                const open = openId === result.categoryId;
+                const open = openIds.has(result.categoryId);
                 const tied = result.margin === 0 && result.votesCast > 0;
 
                 return (
-                    <div key={result.categoryId}>
+                    <div
+                        key={result.categoryId}
+                        className={cn(
+                            "surface flex flex-col self-start overflow-hidden transition-colors",
+                            open && "ring-1 ring-primary/30"
+                        )}
+                    >
                         <button
                             type="button"
-                            onClick={() => setOpenId(open ? null : result.categoryId)}
+                            onClick={() => handleToggle(result.categoryId)}
                             aria-expanded={open}
                             className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-foreground/[0.03]"
                         >

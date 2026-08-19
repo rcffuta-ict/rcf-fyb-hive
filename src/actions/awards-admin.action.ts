@@ -65,48 +65,49 @@ export async function listCategories(): Promise<DocumentedCategory[]> {
 }
 
 /**
- * Categories are not created here, and there is no picker any more.
+ * Categories are not created here, and their wording is not edited here either.
  *
  * The jsonrc is the list of awards the fellowship recognises, so every award in
  * it gets a category automatically — `getCategories` provisions the missing
- * rows. An award the committee does not want to run this year is **archived**,
- * which is a recorded decision that survives every later sync, rather than a
- * category somebody simply never got round to creating.
+ * rows, and `toCategory` reads the title and blurb back out of the standard.
+ * An award's name is part of what the committee ratified; letting a dashboard
+ * rename it would mean the ballot and the published criteria could disagree,
+ * and the criteria page is the thing this app points people to when a result is
+ * disputed.
+ *
+ * That leaves exactly one decision an admin makes about a category: whether to
+ * run it this year. An award they are not running is **archived** — a recorded
+ * choice that survives every later sync, and keeps whatever votes it already
+ * had.
  */
-export async function updateCategory(input: {
-    id: string;
-    title: string;
-    description: string;
-    isArchived: boolean;
-}): Promise<AwardActionResult> {
+export async function setCategoryArchived(
+    id: string,
+    isArchived: boolean
+): Promise<AwardActionResult> {
     const admin = await getCurrentAdmin();
     if (!admin) return denied;
-
-    const title = input.title?.trim();
-    if (!title) return { ok: false, message: "Give the category a title." };
 
     const supabase = createServerSupabase();
     const { error } = await supabase
         .from("fyb_award_categories")
-        .update({
-            title,
-            description: input.description?.trim() || null,
-            is_archived: input.isArchived,
-        })
-        .eq("id", input.id);
+        .update({ is_archived: isArchived })
+        .eq("id", id);
 
     if (error) {
-        console.error("updateCategory failed:", error.message);
-        return { ok: false, message: "Could not save the category." };
+        console.error("setCategoryArchived failed:", error.message);
+        return { ok: false, message: "Could not change the category." };
     }
 
     // Archiving can take the last live category — and with it, every candidate.
-    const closed = input.isArchived
-        ? await closeVotingIfEmpty(admin.email ?? admin.profileId)
-        : "";
+    const closed = isArchived ? await closeVotingIfEmpty(admin.email ?? admin.profileId) : "";
 
     revalidatePath("/awards");
-    return { ok: true, message: `Saved.${closed}` };
+    return {
+        ok: true,
+        message: isArchived
+            ? `Archived — it is off this year's ballot.${closed}`
+            : "Restored to the ballot.",
+    };
 }
 
 /**

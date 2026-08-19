@@ -6,7 +6,7 @@ import { ListChecks, ScrollText } from "lucide-react";
 import { type AwardActionResult } from "@/actions/awards-admin.action";
 import { cn } from "@/lib/utils";
 import CandidatesPanel from "./candidates-panel";
-import CategoryForm from "./category-form";
+import CategoryArchiveToggle from "./category-archive-toggle";
 import CriteriaPanel from "./criteria-panel";
 import type { DocumentedCategory } from "@/types/awards.types";
 
@@ -18,10 +18,11 @@ import type { DocumentedCategory } from "@/types/awards.types";
  * "add nominee" box first and the criteria nowhere — which quietly made adding
  * the default action and screening an optional one.
  *
- * There is no delete control. A category is derived from the standard and would
- * be provisioned again on the next load — deleting it would destroy its
- * nominees and votes and change nothing else. Archiving, in the Criteria tab,
- * is the real opt-out.
+ * There is no delete control, and no title or description field. A category is
+ * derived from the standard: deleting it would destroy its nominees and votes
+ * and it would be provisioned straight back, and renaming it would put the
+ * ballot at odds with the published criteria. Archiving, in the Criteria tab,
+ * is the one lever an admin has here.
  */
 
 type Tab = "criteria" | "nominees";
@@ -79,10 +80,14 @@ const CategoryDetail = ({
                     <>
                         <CriteriaPanel standard={category.standard} />
                         <div className="mt-6 border-t border-border pt-5">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                Ballot presentation
+                            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Running this award
                             </h4>
-                            <CategoryForm category={category} busy={busy} run={run} />
+                            <CategoryArchiveToggle
+                                category={category}
+                                busy={busy}
+                                run={run}
+                            />
                         </div>
                     </>
                 ) : category.standard ? (
