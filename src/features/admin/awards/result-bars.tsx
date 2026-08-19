@@ -2,7 +2,7 @@
 
 import { Crown } from "lucide-react";
 
-import FaceAvatar from "@/components/ui/face-avatar";
+import EntryAvatar from "@/components/ui/entry-avatar";
 import { cn } from "@/lib/utils";
 import type { CategoryResult } from "@/types/awards.types";
 
@@ -42,15 +42,18 @@ const ResultBars = ({
                 <ul className={cn("space-y-3", bare ? "mt-1" : "mt-4")}>
                     {result.candidates.map((candidate) => (
                         <li key={candidate.candidateId} className="flex items-center gap-3">
-                            <FaceAvatar
-                                src={candidate.photoUrl}
+                            <EntryAvatar
+                                entryKind={candidate.entryKind}
+                                imageUrl={candidate.imageUrl}
+                                members={candidate.members}
+                                alt={candidate.displayName}
                                 size={32}
-                                className={cn("h-8 w-8", candidate.isLeader && "ring-2 ring-primary")}
+                                className={cn(candidate.isLeader && "ring-2 ring-primary")}
                             />
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-baseline justify-between gap-2">
                                     <p className="truncate text-sm text-foreground">
-                                        {candidate.firstName} {candidate.lastName}
+                                        {candidate.displayName}
                                         <span className="ml-1.5 text-xs text-primary">
                                             &ldquo;{candidate.nickname}&rdquo;
                                         </span>

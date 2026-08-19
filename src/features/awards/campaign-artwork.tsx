@@ -58,13 +58,25 @@ export const campaignArtwork = (
      * that fetch from the slowest thing in the render into a rounding error.
      * A preview that renders slowly is a preview that doesn't render.
      */
-    const photo = facePortrait(card.photoUrl, {
-        ...PHOTO[variant],
-        // Looser than the ballot cards: this panel is tall enough to carry
-        // shoulders, and a tight face fills a poster oddly.
-        zoom: 0.55,
-        format: "jpg",
-    });
+    /**
+     * A brand's logo is already the right picture and must not be face-cropped;
+     * a clique has no single picture at all, so the first member's face stands
+     * in — the poster is a link someone forwards, and one recognisable face
+     * beats an empty panel. The full roster is on the page the link opens.
+     */
+    const source =
+        card.entryKind === "clique" ? (card.members[0]?.photoUrl ?? "") : card.imageUrl;
+
+    const photo =
+        card.entryKind === "brand"
+            ? source
+            : facePortrait(source, {
+                  ...PHOTO[variant],
+                  // Looser than the ballot cards: this panel is tall enough to
+                  // carry shoulders, and a tight face fills a poster oddly.
+                  zoom: 0.55,
+                  format: "jpg",
+              });
 
     return (
         <div
@@ -93,7 +105,14 @@ export const campaignArtwork = (
                     alt=""
                     width={PHOTO[variant].width}
                     height={PHOTO[variant].height}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        // A logo cropped to fill is a logo with its edges cut
+                        // off; a portrait letterboxed is a portrait floating in
+                        // a grey box. Neither treatment suits the other.
+                        objectFit: card.entryKind === "brand" ? "contain" : "cover",
+                    }}
                 />
                 <div
                     style={{
@@ -140,7 +159,7 @@ export const campaignArtwork = (
                         marginTop: 18 * scale,
                     }}
                 >
-                    {card.firstName} {card.lastName}
+                    {card.displayName}
                 </div>
 
                 <div

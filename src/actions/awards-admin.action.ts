@@ -11,17 +11,19 @@ import {
     getBallotCompletion,
     getCategories,
     getCategoryResults,
+    getDocumentedCategories,
     getLevelTurnout,
     getVoteTimeline,
     findFinalistByEmail,
 } from "@/services/awards.service";
+import { isRenderableLogoUrl } from "@/constants/brand-logo";
 import { hasConsentToken } from "@/services/consent.service";
 import { getSettings, updateSetting } from "@/services/settings.service";
 import type {
     AdminCandidate,
-    AwardCategory,
     AwardSettings,
     AwardStats,
+    DocumentedCategory,
     FinalistOption,
 } from "@/types/awards.types";
 
@@ -56,58 +58,21 @@ const closeVotingIfEmpty = async (by: string): Promise<string> => {
     return " Voting was closed automatically — no candidates are left on the ballot.";
 };
 
-/** URL-safe slug from a title, with a short suffix keeping it unique. */
-const toSlug = (title: string): string => {
-    const base = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")
-        .slice(0, 48);
-    return `${base || "category"}-${Math.random().toString(36).slice(2, 6)}`;
-};
-
-export async function listCategories(): Promise<AwardCategory[]> {
+export async function listCategories(): Promise<DocumentedCategory[]> {
     const admin = await getCurrentAdmin();
     if (!admin) return [];
-    return getCategories(true);
+    return getDocumentedCategories(true);
 }
 
-export async function createCategory(input: {
-    title: string;
-    description: string;
-}): Promise<AwardActionResult> {
-    const admin = await getCurrentAdmin();
-    if (!admin) return denied;
-
-    const title = input.title?.trim();
-    if (!title) return { ok: false, message: "Give the category a title." };
-
-    const supabase = createServerSupabase();
-    // New categories land at the bottom of the ballot rather than jumping the
-    // order someone already arranged.
-    const { data: last } = await supabase
-        .from("fyb_award_categories")
-        .select("sort_order")
-        .order("sort_order", { ascending: false })
-        .limit(1)
-        .maybeSingle<{ sort_order: number }>();
-
-    const { error } = await supabase.from("fyb_award_categories").insert({
-        slug: toSlug(title),
-        title,
-        description: input.description?.trim() || null,
-        sort_order: (last?.sort_order ?? 0) + 1,
-    });
-
-    if (error) {
-        console.error("createCategory failed:", error.message);
-        return { ok: false, message: "Could not create the category." };
-    }
-
-    revalidatePath("/awards");
-    return { ok: true, message: `“${title}” added.` };
-}
-
+/**
+ * Categories are not created here, and there is no picker any more.
+ *
+ * The jsonrc is the list of awards the fellowship recognises, so every award in
+ * it gets a category automatically — `getCategories` provisions the missing
+ * rows. An award the committee does not want to run this year is **archived**,
+ * which is a recorded decision that survives every later sync, rather than a
+ * category somebody simply never got round to creating.
+ */
 export async function updateCategory(input: {
     id: string;
     title: string;
@@ -186,24 +151,15 @@ export async function moveCategory(
     return { ok: true, message: "" };
 }
 
-/** Deletes the category, its candidates and their votes. Archive instead if live. */
-export async function deleteCategory(id: string): Promise<AwardActionResult> {
-    const admin = await getCurrentAdmin();
-    if (!admin) return denied;
-
-    const supabase = createServerSupabase();
-    const { error } = await supabase.from("fyb_award_categories").delete().eq("id", id);
-
-    if (error) {
-        console.error("deleteCategory failed:", error.message);
-        return { ok: false, message: "Could not delete the category." };
-    }
-
-    const closed = await closeVotingIfEmpty(admin.email ?? admin.profileId);
-
-    revalidatePath("/awards");
-    return { ok: true, message: `Category deleted.${closed}` };
-}
+/**
+ * There is deliberately no `deleteCategory`.
+ *
+ * Deleting one would achieve nothing: the category is derived from the
+ * standard, so the next page load would provision it straight back — but its
+ * nominees and their votes would be gone for good. Archiving is the operation
+ * that actually expresses "we are not running this award", and it keeps the
+ * votes. Removing an award entirely means removing it from the jsonrc.
+ */
 
 // ─── Candidates ─────────────────────────────────────────────────────────────
 
@@ -248,6 +204,7 @@ const standCandidate = async (
 
     const { error } = await supabase.from("fyb_award_candidates").insert({
         category_id: categoryId,
+        entry_kind: "individual",
         registration_id: registration.id,
         nickname,
         sort_order: (last?.sort_order ?? 0) + 1,
@@ -512,6 +469,7 @@ export async function addCandidatesBulk(
     const { error } = await supabase.from("fyb_award_candidates").insert(
         resolved.map((row, index) => ({
             category_id: categoryId,
+            entry_kind: "individual",
             registration_id: row.registrationId,
             nickname: row.nickname,
             sort_order: base + index + 1,
@@ -537,6 +495,209 @@ export async function addCandidatesBulk(
 
     revalidatePath("/awards");
     return { ok: true, added: resolved.length };
+}
+
+/**
+ * Resolve a list of member emails to registrations, or explain what's wrong.
+ *
+ * Every member of a clique, and every founder behind a brand, must be a
+ * registered finalist. That is not bureaucracy: it is what guarantees each one
+ * has a photo, which is what lets a clique render as real faces instead of
+ * initials — and it keeps a group entry from smuggling someone onto the ballot
+ * who was never screened.
+ */
+const resolveMembers = async (
+    categoryId: string,
+    emails: string[]
+): Promise<{ ok: true; ids: string[] } | { ok: false; message: string }> => {
+    const cleaned = emails.map((email) => email.trim().toLowerCase()).filter(Boolean);
+    const unique = [...new Set(cleaned)];
+
+    if (unique.length !== cleaned.length) {
+        return { ok: false, message: "The same email is listed twice." };
+    }
+
+    const ids: string[] = [];
+    for (const email of unique) {
+        const finalist = await findFinalistByEmail(categoryId, email);
+        if (!finalist) {
+            return {
+                ok: false,
+                message: `No dinner registration for ${email} — every member must be a registered finalist.`,
+            };
+        }
+        if (!(await hasConsentToken(finalist.registrationId))) {
+            return {
+                ok: false,
+                message: `${finalist.firstName} has no consent token yet — resend it from Registrations first.`,
+            };
+        }
+        ids.push(finalist.registrationId);
+    }
+
+    return { ok: true, ids };
+};
+
+/**
+ * Insert a group candidacy and its roster.
+ *
+ * The two writes are not a transaction — Supabase's REST client has no way to
+ * ask for one — so the order matters: the candidate row goes in first, and if
+ * the member insert then fails the candidate is deleted again. A group entry
+ * with no members would render as an empty mosaic on a live ballot, which is
+ * worse than the entry simply not existing.
+ */
+const standGroup = async (input: {
+    categoryId: string;
+    entryKind: "clique" | "brand";
+    displayName: string;
+    nickname: string;
+    logoUrl: string | null;
+    members: { registrationId: string; role: string | null }[];
+}): Promise<AwardActionResult> => {
+    const supabase = createServerSupabase();
+
+    const { data: last } = await supabase
+        .from("fyb_award_candidates")
+        .select("sort_order")
+        .eq("category_id", input.categoryId)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle<{ sort_order: number }>();
+
+    const { data: created, error } = await supabase
+        .from("fyb_award_candidates")
+        .insert({
+            category_id: input.categoryId,
+            entry_kind: input.entryKind,
+            registration_id: null,
+            display_name: input.displayName,
+            logo_url: input.logoUrl,
+            nickname: input.nickname,
+            sort_order: (last?.sort_order ?? 0) + 1,
+        })
+        .select("id")
+        .maybeSingle<{ id: string }>();
+
+    if (error || !created) {
+        if (error?.code === "23505") {
+            return {
+                ok: false,
+                message: `“${input.displayName}” is already standing in this category.`,
+            };
+        }
+        console.error("standGroup failed:", error?.message);
+        return { ok: false, message: "Could not add the entry." };
+    }
+
+    const { error: memberError } = await supabase
+        .from("fyb_award_candidate_members")
+        .insert(
+            input.members.map((member, index) => ({
+                candidate_id: created.id,
+                registration_id: member.registrationId,
+                role: member.role,
+                sort_order: index,
+            }))
+        );
+
+    if (memberError) {
+        console.error("standGroup members failed:", memberError.message);
+        await supabase.from("fyb_award_candidates").delete().eq("id", created.id);
+        return { ok: false, message: "Could not save the members. Nothing was added." };
+    }
+
+    revalidatePath("/awards");
+    return { ok: true, message: `“${input.displayName}” added.` };
+};
+
+/** Stand a clique: a name, and the finalists who are actually in it. */
+export async function addCliqueCandidate(input: {
+    categoryId: string;
+    name: string;
+    nickname: string;
+    emails: string[];
+}): Promise<AwardActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return denied;
+
+    const name = input.name?.trim();
+    const nickname = input.nickname?.trim();
+    if (!name) return { ok: false, message: "Give the clique a name." };
+    if (!nickname) return { ok: false, message: "Give the clique a nickname for this category." };
+
+    const emails = input.emails.filter((email) => email.trim());
+    // Three is the standard's own floor for what counts as a clique rather than
+    // a friendship — enforced here so it can't be bypassed by the form.
+    if (emails.length < 3) {
+        return {
+            ok: false,
+            message: "A clique needs at least 3 members — that's the standard's own floor.",
+        };
+    }
+
+    const resolved = await resolveMembers(input.categoryId, emails);
+    if (!resolved.ok) return resolved;
+
+    return standGroup({
+        categoryId: input.categoryId,
+        entryKind: "clique",
+        displayName: name,
+        nickname,
+        logoUrl: null,
+        members: resolved.ids.map((registrationId) => ({ registrationId, role: null })),
+    });
+}
+
+/** Stand a brand: its name, its logo, and the FYB founders behind it. */
+export async function addBrandCandidate(input: {
+    categoryId: string;
+    name: string;
+    nickname: string;
+    logoUrl: string;
+    emails: string[];
+}): Promise<AwardActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return denied;
+
+    const name = input.name?.trim();
+    const nickname = input.nickname?.trim();
+    const logoUrl = input.logoUrl?.trim();
+
+    if (!name) return { ok: false, message: "Give the brand its name." };
+    if (!nickname) return { ok: false, message: "Give the brand a nickname for this category." };
+    if (!logoUrl || !isRenderableLogoUrl(logoUrl)) {
+        return {
+            ok: false,
+            message: "A brand needs a logo — upload one, or paste a public https image link.",
+        };
+    }
+
+    const emails = input.emails.filter((email) => email.trim());
+    if (emails.length === 0) {
+        return {
+            ok: false,
+            message: "Name at least one founder — the award is shared by whoever founded it.",
+        };
+    }
+
+    const resolved = await resolveMembers(input.categoryId, emails);
+    if (!resolved.ok) return resolved;
+
+    return standGroup({
+        categoryId: input.categoryId,
+        entryKind: "brand",
+        displayName: name,
+        nickname,
+        logoUrl,
+        // The first named person is the founder; anyone after is a co-founder.
+        // The standard treats them as equals for the award itself — this only
+        // records what the nominator said, for the stats panel.
+        members: resolved.ids.map((registrationId, index) => ({
+            registrationId,
+            role: index === 0 ? "founder" : "co-founder",
+        })),
+    });
 }
 
 export async function updateCandidateNickname(
@@ -593,6 +754,7 @@ const emptyStats: AwardStats = {
     candidateCount: 0,
     emptyCategories: [],
     thinCategories: [],
+    undocumentedCategories: [],
     zeroVoteCandidates: 0,
     completion: { averageVoted: 0, finishedAll: 0, votedOnce: 0 },
     levels: [],
@@ -605,7 +767,8 @@ export async function getAwardStats(): Promise<AwardStats> {
     const admin = await getCurrentAdmin();
     if (!admin) return emptyStats;
 
-    const liveCategories = (await getCategories()).length;
+    const live = await getDocumentedCategories();
+    const liveCategories = live.length;
 
     const [tally, eligibleVoters, levels, timeline, completion] = await Promise.all([
         getCategoryResults(),
@@ -629,6 +792,12 @@ export async function getAwardStats(): Promise<AwardStats> {
         thinCategories: tally.results
             .filter((result) => result.candidates.length > 0 && result.candidates.length < 3)
             .map((result) => result.title),
+        // The hard stop, separated from the nudges above: these categories are
+        // live in the database but match no award in the standard, so no voter
+        // will ever see them and voting cannot open while they exist.
+        undocumentedCategories: live
+            .filter((category) => !category.standard)
+            .map((category) => category.title),
         zeroVoteCandidates: tally.results
             .flatMap((result) => result.candidates)
             .filter((candidate) => candidate.votes === 0).length,
@@ -661,6 +830,24 @@ export async function saveAwardSettings(
     // nav link to a page of empty rails. Refuse it at the source rather than
     // handle it in the UI, so no route can reach that state.
     if (input.awardsEnabled) {
+        // The gate that makes the standard binding rather than advisory. A live
+        // category with no published criteria is invisible to voters already —
+        // but letting voting open around it would mean an award season running
+        // with a category nobody can screen against, which is exactly the state
+        // the standard exists to make impossible. Named, so the fix is obvious.
+        const undocumented = (await getDocumentedCategories()).filter(
+            (category) => !category.standard
+        );
+        if (undocumented.length > 0) {
+            const names = undocumented.map((category) => `“${category.title}”`).join(", ");
+            return {
+                ok: false,
+                message:
+                    `Voting can't open: ${names} ${undocumented.length === 1 ? "has" : "have"} no published criteria. ` +
+                    "Archive the category, or add its award to award-standard.jsonrc and deploy.",
+            };
+        }
+
         const candidates = await countVotableCandidates();
         if (candidates === 0) {
             return {

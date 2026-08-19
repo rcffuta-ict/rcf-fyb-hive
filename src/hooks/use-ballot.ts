@@ -99,7 +99,7 @@ export const useBallot = (
             if (result.status === "ok") {
                 appToast.success(
                     candidate
-                        ? `${candidate.firstName} it is — ${category.title}.`
+                        ? `${candidate.shortName} it is — ${category.title}.`
                         : `Vote recorded — ${category.title}.`,
                     toastId
                 );

@@ -5,6 +5,7 @@ import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import CandidateCard from "./candidate-card";
+import CriteriaSheet from "./criteria-sheet";
 import type { BallotCategory } from "@/types/awards.types";
 
 /**
@@ -55,11 +56,14 @@ const CategoryRail = ({
                     <h2 className="mt-1 font-luxury text-2xl leading-tight text-foreground sm:text-[28px]">
                         {category.title}
                     </h2>
-                    {category.description && (
-                        <p className="mt-1.5 max-w-2xl text-sm text-foreground/70">
-                            {category.description}
-                        </p>
-                    )}
+                    <p className="mt-1.5 max-w-2xl text-sm text-foreground/70">
+                        {category.description || category.standard.blurb}
+                    </p>
+
+                    {/* The criteria sit beside the faces, not on a page nobody
+                        visits — this is where "is this just a popularity vote?"
+                        gets asked, so it is where it gets answered. */}
+                    <CriteriaSheet standard={category.standard} />
                 </div>
 
                 <div className="flex items-center gap-2">

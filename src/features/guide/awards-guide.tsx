@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Trophy } from "lucide-react";
 
 /**
@@ -14,6 +15,7 @@ const rules = [
     "Changed your mind? Tap someone else. Only your last pick counts, right up until voting closes.",
     "Your picks are private. Nobody — not the other voters, not the candidates — sees who you chose.",
     "Results stay sealed until the organizers reveal them. Nobody is watching a live leaderboard.",
+    "Nominees aren't picked by popularity. Every category has a published checklist, and a nominee who can't satisfy theirs doesn't reach the ballot at all.",
     "Standing for something? You get a campaign link and a poster — share them anywhere. Campaigning is fair game; buying votes is not.",
 ];
 
@@ -39,6 +41,13 @@ const AwardsGuide = (): React.JSX.Element => (
                 </li>
             ))}
         </ul>
+
+        <Link
+            href="/awards/standard"
+            className="mt-5 inline-block text-sm font-medium text-primary hover:underline"
+        >
+            Read the full award standard →
+        </Link>
     </div>
 );
 

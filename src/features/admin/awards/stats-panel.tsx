@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, ShieldAlert, RefreshCw } from "lucide-react";
 
 import { getAwardStats } from "@/actions/awards-admin.action";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,18 @@ const StatsPanel = (): React.JSX.Element => {
             </div>
 
             <StatTiles stats={stats} />
+
+            {stats.undocumentedCategories.length > 0 && (
+                <div className="flex items-start gap-2 rounded-token border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+                    <ShieldAlert size={16} className="mt-0.5 shrink-0" />
+                    <span>
+                        No published criteria for:{" "}
+                        {stats.undocumentedCategories.join(", ")}. These are hidden from every
+                        ballot, and voting cannot open while they are live — archive them, or
+                        add the award to the standard and deploy.
+                    </span>
+                </div>
+            )}
 
             {(stats.emptyCategories.length > 0 || stats.thinCategories.length > 0) && (
                 <div className="space-y-2 rounded-token border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-600">

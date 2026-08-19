@@ -5,7 +5,7 @@ import { BarChart3, ListChecks, SlidersHorizontal } from "lucide-react";
 
 import PanelTabs, { type PanelTab } from "../panel-tabs";
 import AwardsSettings from "./awards-settings";
-import CategoriesPanel from "./categories-panel";
+import CategoryWorkbench from "./category-workbench";
 import StatsPanel from "./stats-panel";
 
 type View = "categories" | "stats" | "settings";
@@ -24,7 +24,7 @@ const AwardsPanel = (): React.JSX.Element => {
         <div className="mt-5">
             <PanelTabs tabs={VIEWS} active={view} onChange={setView} />
 
-            {view === "categories" && <CategoriesPanel />}
+            {view === "categories" && <CategoryWorkbench />}
             {view === "stats" && <StatsPanel />}
             {view === "settings" && <AwardsSettings />}
         </div>

@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!card) return { title: `Awards — ${site.name}` };
 
-    const name = `${card.firstName} ${card.lastName}`;
+    const name = card.displayName;
     const title = `Vote ${name} — ${card.categoryTitle}`;
     const description = `“${card.nickname}” is standing for ${card.categoryTitle} at the ${site.event.title}. One vote each, and it takes ten seconds.`;
 

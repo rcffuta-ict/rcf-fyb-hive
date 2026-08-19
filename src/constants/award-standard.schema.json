@@ -1,0 +1,119 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "RCFFUTA FYB Award Standard",
+    "description": "The award standard. A category that is not described here cannot go on a ballot.",
+    "type": "object",
+    "required": ["principle", "generalRules", "screeningStages", "definitions", "categories"],
+    "additionalProperties": false,
+    "properties": {
+        "principle": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The sentence that settles every close call."
+        },
+        "generalRules": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Rules applying to every category, in reading order.",
+            "items": { "type": "string", "minLength": 1 }
+        },
+        "screeningStages": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Nominate, screen, vote — in order. Voting is always last.",
+            "items": {
+                "type": "object",
+                "required": ["title", "body"],
+                "additionalProperties": false,
+                "properties": {
+                    "title": { "type": "string", "minLength": 1 },
+                    "body": { "type": "string", "minLength": 1 }
+                }
+            }
+        },
+        "definitions": {
+            "type": "array",
+            "description": "Terms the checklists lean on, so nobody has to guess.",
+            "items": {
+                "type": "object",
+                "required": ["term", "meaning"],
+                "additionalProperties": false,
+                "properties": {
+                    "term": { "type": "string", "minLength": 1 },
+                    "meaning": { "type": "string", "minLength": 1 }
+                }
+            }
+        },
+        "categories": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Every award the fellowship recognises.",
+            "items": {
+                "type": "object",
+                "required": [
+                    "key",
+                    "title",
+                    "entryKind",
+                    "gender",
+                    "blurb",
+                    "definition",
+                    "disqualifiers",
+                    "checklist"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+                        "description": "URL-safe id, and the category's slug. NEVER change it once a category exists — it is the only link between a live ballot and these criteria."
+                    },
+                    "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "What voters read as the award's name."
+                    },
+                    "entryKind": {
+                        "enum": ["individual", "clique", "brand"],
+                        "description": "individual = one registered finalist; clique = a named friend group of 3+; brand = a business with a name, logo and founders."
+                    },
+                    "gender": {
+                        "enum": ["any", "male", "female"],
+                        "description": "Admin-side check only. It never changes what a voter sees."
+                    },
+                    "blurb": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "One line, shown under the title on the ballot."
+                    },
+                    "definition": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "What the award actually recognises."
+                    },
+                    "disqualifiers": {
+                        "type": "array",
+                        "minItems": 1,
+                        "description": "The 'does NOT qualify on its own' list — the false signals that make awards feel rigged. Name them plainly.",
+                        "items": { "type": "string", "minLength": 1 }
+                    },
+                    "checklist": {
+                        "type": "array",
+                        "minItems": 1,
+                        "description": "Every box a nominee must clear at screening. Each needs a specific named instance: what happened, when, and who can confirm it.",
+                        "items": { "type": "string", "minLength": 1 }
+                    },
+                    "note": {
+                        "type": "object",
+                        "required": ["title", "body"],
+                        "additionalProperties": false,
+                        "description": "An extra test worth spelling out, e.g. the clique 'No Camera' test.",
+                        "properties": {
+                            "title": { "type": "string", "minLength": 1 },
+                            "body": { "type": "string", "minLength": 1 }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    /**
+     * The award standard is read from disk at runtime (see
+     * `award-standard.service.ts`). Next's tracer cannot see a `readFileSync`
+     * of a non-imported path, so the file would be missing from a standalone
+     * build and every ballot would boot with no criteria. Name it explicitly.
+     */
+    outputFileTracingIncludes: {
+        '/**': ['./src/constants/award-standard.jsonrc'],
+    },
     images: {
         remotePatterns: [
             {

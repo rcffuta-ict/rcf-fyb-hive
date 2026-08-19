@@ -1,10 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Trophy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { site } from "@/config/site";
-import { facePortrait } from "@/lib/cloudinary";
+import CampaignHero from "./campaign-hero";
 import ShareRow from "./share-row";
 import type { CampaignCard } from "@/types/awards.types";
 
@@ -17,24 +16,16 @@ import type { CampaignCard } from "@/types/awards.types";
  */
 
 const CampaignPage = ({ card }: { card: CampaignCard }): React.JSX.Element => {
-    const fullName = `${card.firstName} ${card.lastName}`;
+    const fullName = card.displayName;
+    const roster = card.members
+        .map((member) => `${member.firstName} ${member.lastName}`)
+        .join(" · ");
 
     return (
         <section className="mx-auto max-w-md px-4 py-12 sm:px-6">
             <div className="surface overflow-hidden">
                 <div className="relative aspect-[4/5] w-full">
-                    <Image
-                        src={facePortrait(card.photoUrl, {
-                            width: 896,
-                            height: 1120,
-                            zoom: 0.55,
-                        })}
-                        alt={fullName}
-                        fill
-                        priority
-                        sizes="(min-width: 640px) 448px, 100vw"
-                        className="object-cover"
-                    />
+                    <CampaignHero card={card} />
                     <span
                         aria-hidden
                         className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-background via-background/70 to-transparent"
@@ -55,6 +46,12 @@ const CampaignPage = ({ card }: { card: CampaignCard }): React.JSX.Element => {
                         <p className="mt-3 text-xs uppercase tracking-[0.2em] text-primary">
                             {card.nickname}
                         </p>
+                        {roster && (
+                            <p className="mt-2 text-[11px] leading-relaxed text-foreground/60">
+                                {card.entryKind === "brand" ? "Founded by " : ""}
+                                {roster}
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -69,7 +66,7 @@ const CampaignPage = ({ card }: { card: CampaignCard }): React.JSX.Element => {
                         <>
                             <Button asChild size="lg" className="sheen mt-5 w-full">
                                 <Link href={`/awards?pick=${card.shareCode}`}>
-                                    Vote {card.firstName} <ArrowRight size={18} />
+                                    Vote {card.shortName} <ArrowRight size={18} />
                                 </Link>
                             </Button>
                             <p className="mt-2.5 text-xs text-muted-foreground">
@@ -88,7 +85,7 @@ const CampaignPage = ({ card }: { card: CampaignCard }): React.JSX.Element => {
 
             <ShareRow
                 name={fullName}
-                firstName={card.firstName}
+                firstName={card.shortName}
                 nickname={card.nickname}
                 categoryTitle={card.categoryTitle}
                 shareCode={card.shareCode}

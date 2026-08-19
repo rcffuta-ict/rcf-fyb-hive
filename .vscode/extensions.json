@@ -4,6 +4,7 @@
         "dbaeumer.vscode-eslint",
         "bradlc.vscode-tailwindcss",
         "editorconfig.editorconfig",
-        "davidanson.vscode-markdownlint"
+        "davidanson.vscode-markdownlint",
+        "mrmlnc.vscode-json5"
     ]
 }

@@ -1,6 +1,76 @@
 /** Awards & voting domain types. */
 
-/** A category on the ballot — one award, many candidates, one vote each. */
+/**
+ * A category's id in the standard. Free-form by necessity — the set of awards
+ * lives in `award-standard.jsonrc`, not in this union, so that adding one is a
+ * data edit. Validity is checked on load (`award-standard.service.ts`) and
+ * again wherever a category is bound to it.
+ */
+export type StandardKey = string;
+
+/**
+ * What stands on the ballot in a category.
+ *
+ * - `individual` — one registered finalist, shown as a portrait.
+ * - `clique` — a named group of 3+ members, shown as the name over their faces.
+ * - `brand` — a business, shown as its logo and name. Its founders are recorded
+ *   and visible in admin stats, but the ballot frame carries the brand.
+ */
+export type EntryKind = "individual" | "clique" | "brand";
+
+/** Who a category is open to. Drives the admin nominee check, not the ballot. */
+export type StandardGender = "any" | "male" | "female";
+
+/** One category's entry in the published standard. Lives in code, never in DB. */
+export type AwardStandard = {
+    key: StandardKey;
+    title: string;
+    entryKind: EntryKind;
+    gender: StandardGender;
+    /** One line, shown under the title on the ballot. */
+    blurb: string;
+    /** What the award actually recognises. */
+    definition: string;
+    /** Common false signals — "does NOT qualify on its own". */
+    disqualifiers: string[];
+    /** Every box must be checked, with a named example, before the ballot. */
+    checklist: string[];
+    /** An extra test worth spelling out, e.g. the clique "No Camera" test. */
+    note?: { title: string; body: string };
+};
+
+/** The whole standard, as parsed from `award-standard.jsonrc`. */
+export type AwardStandardDoc = {
+    /** The sentence that settles every close call. */
+    principle: string;
+    generalRules: string[];
+    screeningStages: { title: string; body: string }[];
+    definitions: { term: string; meaning: string }[];
+    categories: AwardStandard[];
+};
+
+/** One person inside a clique or behind a brand. */
+export type CandidateMember = {
+    registrationId: string;
+    firstName: string;
+    lastName: string;
+    photoUrl: string;
+    /** "founder", "co-founder", or null for a plain clique member. */
+    role: string | null;
+};
+
+/**
+ * A category on the ballot — one award, many candidates, one vote each.
+ *
+ * **`slug` is the binding to the criteria.** It matches a `key` in
+ * `award-standard.jsonrc`, and that match is what lets the category exist on a
+ * ballot at all. No extra column and no migration: the slug column was already
+ * there, and reusing it means there is exactly one identifier to keep straight.
+ *
+ * The slug is set at creation and never edited — re-pointing a live category at
+ * different criteria would retroactively change what its nominees were screened
+ * against, which is the same as having no criteria.
+ */
 export type AwardCategory = {
     id: string;
     slug: string;
@@ -8,6 +78,11 @@ export type AwardCategory = {
     description: string | null;
     sortOrder: number;
     isArchived: boolean;
+};
+
+/** A category with its criteria resolved. `standard` is null when undocumented. */
+export type DocumentedCategory = AwardCategory & {
+    standard: AwardStandard | null;
 };
 
 /**
@@ -19,19 +94,38 @@ export type AwardCategory = {
  */
 export type AwardCandidate = {
     id: string;
-    registrationId: string;
-    firstName: string;
-    lastName: string;
+    entryKind: EntryKind;
+    /**
+     * What the ballot frame carries: a person's full name, a clique's name, or
+     * a brand's name. The frame renders this and never reassembles a name from
+     * parts, so a brand can never accidentally read as its founder.
+     */
+    displayName: string;
+    /** The short form for running copy — a first name, or the group's name. */
+    shortName: string;
     nickname: string;
-    photoUrl: string;
-    level: string;
+    /** Portrait for a person, logo for a brand. Empty string for a clique. */
+    imageUrl: string;
+    /** Non-null only for `individual` — a clique or brand is nobody's row. */
+    registrationId: string | null;
+    level: string | null;
     unit: string | null;
+    /** Clique roster or brand founders. Always empty for `individual`. */
+    members: CandidateMember[];
     /** Short code behind their campaign link, `/awards/c/<shareCode>`. */
     shareCode: string;
 };
 
-/** A category with its candidates, plus which one this voter picked. */
-export type BallotCategory = AwardCategory & {
+/**
+ * A category with its candidates, plus which one this voter picked.
+ *
+ * Extends `DocumentedCategory`, so `standard` is non-null by the time a rail
+ * renders: `getBallotCategories` drops anything undocumented before it gets
+ * here. The nullability lives one layer up, where it can still be acted on.
+ */
+export type BallotCategory = DocumentedCategory & {
+    /** Narrowed: nothing undocumented survives `getBallotCategories`. */
+    standard: AwardStandard;
     candidates: AwardCandidate[];
     /** `fyb_award_candidates.id` this voter chose, or null if they haven't. */
     myVoteCandidateId: string | null;
@@ -73,10 +167,12 @@ export type VoteResult = {
 /** One candidate's standing in a tally. Admin-side (or published) only. */
 export type CandidateResult = {
     candidateId: string;
-    firstName: string;
-    lastName: string;
+    entryKind: EntryKind;
+    displayName: string;
     nickname: string;
-    photoUrl: string;
+    imageUrl: string;
+    /** Founders behind a brand, members of a clique — stats only, never ballot. */
+    members: CandidateMember[];
     votes: number;
     /** Share of the votes cast *in this category*, 0–100, one decimal. */
     share: number;
@@ -97,7 +193,13 @@ export type CategoryResult = {
     candidates: CandidateResult[];
 };
 
-/** Someone leading in more than one category — the night's recurring name. */
+/**
+ * Someone leading in more than one category — the night's recurring name.
+ *
+ * Attribution reaches through group entries: a founder whose brand is leading
+ * counts as leading, because "one win per person" is a rule about people, and
+ * a brand award is still a person collecting it.
+ */
 export type MultiLeader = {
     registrationId: string;
     firstName: string;
@@ -142,6 +244,12 @@ export type AwardStats = {
     emptyCategories: string[];
     /** Live categories with fewer than three candidates — a thin race. */
     thinCategories: string[];
+    /**
+     * Live categories whose slug matches no entry in `award-standard.jsonrc`.
+     * These are off the ballot and block voting from opening — the one number
+     * on this page that is a hard stop rather than a nudge.
+     */
+    undocumentedCategories: string[];
     /** Candidates nobody has voted for yet. */
     zeroVoteCandidates: number;
     completion: BallotCompletion;
@@ -155,10 +263,12 @@ export type AwardStats = {
 export type CampaignCard = {
     candidateId: string;
     shareCode: string;
-    firstName: string;
-    lastName: string;
+    entryKind: EntryKind;
+    displayName: string;
+    shortName: string;
     nickname: string;
-    photoUrl: string;
+    imageUrl: string;
+    members: CandidateMember[];
     categoryTitle: string;
     categoryDescription: string | null;
     categorySlug: string;

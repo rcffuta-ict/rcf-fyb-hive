@@ -33,7 +33,7 @@ const CategoryForm = ({
         run(updateCategory({ id: category.id, title, description, isArchived }));
 
     return (
-        <div className="mt-4 space-y-3 border-t border-border pt-4">
+        <div className="mt-3 space-y-3">
             <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}

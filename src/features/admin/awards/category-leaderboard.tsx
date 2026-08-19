@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-import FaceAvatar from "@/components/ui/face-avatar";
+import EntryAvatar from "@/components/ui/entry-avatar";
 import { cn } from "@/lib/utils";
 import ResultBars from "./result-bars";
 import type { CategoryResult } from "@/types/awards.types";
@@ -40,10 +40,13 @@ const CategoryLeaderboard = ({
                             className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-foreground/[0.03]"
                         >
                             {leader && leader.votes > 0 ? (
-                                <FaceAvatar
-                                    src={leader.photoUrl}
+                                <EntryAvatar
+                                    entryKind={leader.entryKind}
+                                    imageUrl={leader.imageUrl}
+                                    members={leader.members}
+                                    alt={leader.displayName}
                                     size={36}
-                                    className="h-9 w-9 ring-1 ring-primary/40"
+                                    className="ring-1 ring-primary/40"
                                 />
                             ) : (
                                 <span className="h-9 w-9 shrink-0 rounded-full border border-dashed border-border" />
@@ -60,7 +63,7 @@ const CategoryLeaderboard = ({
                                           ? `${result.candidates.length} standing · no votes yet`
                                           : tied
                                             ? `Tied at the top · ${leader.votes} each`
-                                            : `${leader.firstName} leads · ${leader.share}%`}
+                                            : `${leader.displayName} leads · ${leader.share}%`}
                                 </p>
                             </div>
 

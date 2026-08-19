@@ -1,4 +1,22 @@
 {
+    // `.jsonrc` is JSON with comments. Mapping it to `jsonc` is what makes
+    // VS Code's built-in JSON language server stop flagging every `//` as a
+    // syntax error — no extension needed for that part.
+    "files.associations": {
+        "*.jsonrc": "jsonc"
+    },
+
+    // Validation and autocomplete for the award standard while you edit it:
+    // required fields, allowed `entryKind` values, and the doc string for each
+    // field, right in the editor. A category missing its checklist is caught
+    // here rather than by the server refusing to boot.
+    "json.schemas": [
+        {
+            "fileMatch": ["award-standard.jsonrc"],
+            "url": "./src/constants/award-standard.schema.json"
+        }
+    ],
+
     // Indentation: 4 spaces everywhere
     "editor.tabSize": 4,
     "editor.insertSpaces": true,

@@ -44,7 +44,7 @@ export default async function AwardsPage({
     const spotlight = pick ? await getCampaignCard(pick, true) : null;
 
     if (!ballot) {
-        return <VoterGate spotlightName={spotlight?.firstName ?? null} />;
+        return <VoterGate spotlightName={spotlight?.shortName ?? null} />;
     }
 
     return (

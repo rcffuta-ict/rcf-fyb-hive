@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { ScrollText } from "lucide-react";
+
 import { useBallot } from "@/hooks/use-ballot";
 import BallotHeader from "./ballot-header";
 import CategoryRail from "./category-rail";
@@ -34,6 +37,17 @@ const BallotBoard = ({
                     One vote in each category. Change your mind as many times as you like —
                     only your last pick counts, and only you can see it.
                 </p>
+
+                {/* Nobody on this ballot got here by being popular — everyone
+                    cleared a published checklist first. Said once at the top,
+                    and repeated per category in the rail disclosures. */}
+                <Link
+                    href="/awards/standard"
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-medium text-foreground/70 transition-colors hover:border-primary/50 hover:text-primary"
+                >
+                    <ScrollText size={13} />
+                    How these awards are decided
+                </Link>
             </header>
 
             <div className="mt-8">

@@ -2,6 +2,8 @@
 
 import { v2 as cloudinary, type UploadApiResponse } from "cloudinary";
 
+import { BRAND_LOGO, checkLogoDimensions } from "@/constants/brand-logo";
+
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
     api_key: process.env.CLOUDINARY_API_KEY!,
@@ -229,4 +231,51 @@ export async function deleteProfileImage(publicId: string): Promise<void> {
     } catch (err) {
         console.error("deleteProfileImage failed:", err);
     }
+}
+
+/**
+ * Upload and persist a brand logo, checked against the logo standard.
+ *
+ * Deliberately not routed through `uploadProfileImage`: that one requires
+ * exactly one clear face, which is the right rule for a portrait and the wrong
+ * one for a wordmark. What a logo needs instead is to be legible in a small
+ * square box, so this checks format, weight and geometry — the constants live
+ * in `constants/brand-logo.ts`, shared with the browser-side check, so the two
+ * cannot drift into disagreeing.
+ *
+ * A logo that fails is destroyed before the rejection returns, so a rejected
+ * upload leaves nothing behind in Cloudinary.
+ */
+export async function uploadBrandLogo(formData: FormData): Promise<UploadResponse> {
+    const file = formData.get("file") as File | null;
+
+    // Re-checked server-side. The browser check is a courtesy; this is the one
+    // that decides, because a Server Action is a public endpoint.
+    if (file && !BRAND_LOGO.acceptedTypes.includes(file.type as never)) {
+        return {
+            ok: false,
+            message: "Logos must be PNG, JPEG or WEBP. SVG files aren't accepted.",
+        };
+    }
+    if (file && file.size / 1024 / 1024 > BRAND_LOGO.maxSizeMb) {
+        return {
+            ok: false,
+            message: `That logo is over ${BRAND_LOGO.maxSizeMb}MB. Export a smaller version.`,
+        };
+    }
+
+    const uploaded = await uploadAndAnalyze(formData, "awards/brands");
+    if (!uploaded.ok) return uploaded;
+
+    const error = checkLogoDimensions(uploaded.result.width ?? 0, uploaded.result.height ?? 0);
+    if (error) {
+        await cloudinary.uploader.destroy(uploaded.result.public_id).catch(() => undefined);
+        return { ok: false, message: error };
+    }
+
+    return {
+        ok: true,
+        url: uploaded.result.secure_url,
+        publicId: uploaded.result.public_id,
+    };
 }

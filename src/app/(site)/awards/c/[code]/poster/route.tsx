@@ -23,7 +23,11 @@ export async function GET(
 
     if (!card) return new Response("Not found", { status: 404 });
 
-    const filename = `fyb-${card.firstName}-${card.shareCode}.png`.toLowerCase();
+    // The display name can be a brand or clique name with spaces in it, so it
+    // is slugged rather than interpolated — a filename with a space in it is
+    // mangled differently by every chat app it passes through.
+    const slug = card.shortName.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const filename = `fyb-${slug}-${card.shareCode}.png`.toLowerCase();
 
     return new ImageResponse(campaignArtwork(card, "poster"), {
         ...POSTER_SIZE,

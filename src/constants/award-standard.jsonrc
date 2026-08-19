@@ -1,0 +1,573 @@
+// ════════════════════════════════════════════════════════════════════════
+// RCFFUTA FYB Dinner — Award Nomination & Voting Standard
+//
+// THIS FILE IS THE AWARD STANDARD. Editing it changes what the fellowship
+// recognises, what each award means, and what a nominee must satisfy before
+// they can appear on a ballot.
+//
+// It lives here, in the repository, and not in the database on purpose. The
+// criteria are a governance document owned by the Screening Committee, not a
+// settings field: if an admin could rewrite a checklist at 11pm the night
+// before voting, the checklist would stop being a guarantee and become a
+// formality. Changing criteria should take a review and a deploy.
+//
+// ── ADDING AN AWARD ─────────────────────────────────────────────────────
+// Add an object to "categories" below. Every field marked required must be
+// filled. Then, in the admin dashboard, create the category — it will appear
+// in the picker. That order is enforced: a category whose slug does not match
+// a "key" here is dropped from the ballot and blocks voting from opening.
+// No criteria, no ballot.
+//
+// ── FIELD REFERENCE ─────────────────────────────────────────────────────
+//   key           required  URL-safe id. Becomes the category's slug. Never
+//                           change it once a category exists — it is the only
+//                           link between a live ballot and these criteria.
+//   title         required  What voters read as the award's name.
+//   entryKind     required  "individual" | "clique" | "brand"
+//                             individual — one registered finalist, one face
+//                             clique     — a named friend group, 3+ members
+//                             brand      — a business: name, logo, founders
+//   gender        required  "any" | "male" | "female". Admin-side check only;
+//                           it never changes what a voter sees.
+//   blurb         required  One line, shown under the title on the ballot.
+//   definition    required  What the award actually recognises.
+//   disqualifiers required  The "does NOT qualify on its own" list. These are
+//                           the false signals that make awards feel rigged, so
+//                           name them plainly.
+//   checklist     required  Every box a nominee must clear at screening. Each
+//                           needs a specific named instance — what happened,
+//                           when, and who can confirm it.
+//   note          optional  { title, body } — an extra test worth spelling
+//                           out, e.g. the clique "No Camera" test.
+//
+// Comments are allowed anywhere (// and /* */), and trailing commas are fine.
+// Source document: .temp/RCFFUTA-FYB-Award-Standard.md — keep the two in step.
+// ════════════════════════════════════════════════════════════════════════
+{
+    // The sentence that settles every close call. Shown at the top of the
+    // public standard page and the admin criteria panel.
+    "principle": "Voting determines the winner among qualified nominees. Voting never determines whether someone qualifies. If a nominee cannot satisfy their category's checklist, they do not appear on the ballot — no exceptions.",
+
+    // Apply to every category, in the order they should be read.
+    "generalRules": [
+        "Only active fellowship members can nominate or vote. One account, one person, one vote per category.",
+        "No self-nomination. Every nomination comes from at least 2 members who are not the nominee.",
+        "One win per person. Nobody takes home two categories.",
+        "Evidence over assumption. \"Everybody knows\" is never enough — every checklist item needs a specific named instance: what happened, when, and who can confirm it.",
+        "A Screening Committee of 3–5 people checks each nominee against their category's checklist, item by item, before voting opens. Every box, or no ballot.",
+        "One written appeal per disqualified nomination, within a fixed window, before voting opens.",
+        "No vote buying, no incentives, no multiple accounts. Violations can disqualify the beneficiary even after votes are counted.",
+        "A nominee found to have used manipulation, pressure, exclusion, or unkindness to win forfeits the award, even after voting."
+    ],
+
+    // The three stages, in order. Voting is the last one, never the first.
+    "screeningStages": [
+        {
+            "title": "Nominate",
+            "body": "Members put names forward with evidence — specific instances, dated, with someone who can confirm each one."
+        },
+        {
+            "title": "Screen",
+            "body": "The Committee clears or disqualifies each nomination against the category checklist, item by item. Decisions are documented."
+        },
+        {
+            "title": "Vote",
+            "body": "Only screened nominees reach the ballot. Voting decides who wins among qualified people — it never decides who qualifies."
+        }
+    ],
+
+    // Terms the checklists lean on, so nobody has to guess what they mean.
+    "definitions": [
+        {
+            "term": "Active fellowship member",
+            "meaning": "A registered member who has attended and participated in fellowship activities during the current academic session."
+        },
+        {
+            "term": "Academic session",
+            "meaning": "One full university session — typically two semesters, per FUTA's calendar."
+        },
+        {
+            "term": "Exco",
+            "meaning": "A member currently holding an Executive office — President, Vice President, Secretary, and other officially recognized Executive positions."
+        },
+        {
+            "term": "Worker",
+            "meaning": "A member serving in a fellowship unit (Bible Study, Prayer, Choir, Media, Protocol, Ushering, Follow-up, and so on) who does not hold an Exco office."
+        },
+        {
+            "term": "Non-worker",
+            "meaning": "A member not currently serving in any fellowship unit."
+        },
+        {
+            "term": "Corroboration",
+            "meaning": "Confirmation of a claimed instance by someone other than the nominator and the nominee."
+        }
+    ],
+
+    // ── The awards ──────────────────────────────────────────────────────
+    // Order here is the order they are offered in the admin picker and listed
+    // on the public standard page. It does not control ballot order — admin
+    // arranges that.
+    "categories": [
+        {
+            "key": "most-versatile",
+            "title": "Most Versatile",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "Real competence in several different arenas — not just a full calendar.",
+            "definition": "Demonstrates genuine competence across multiple, clearly different areas of fellowship and school life — not just being busy or involved in many things.",
+            "disqualifiers": [
+                "Being involved in many activities without demonstrated skill in them",
+                "Being generally \"busy\"",
+                "Being popular across different groups"
+            ],
+            "checklist": [
+                "Active member this session",
+                "Named competence shown in 3 or more distinct areas — academics, ministry, sports, creative work, leadership",
+                "At least one specific, dated example per area",
+                "Corroborated by 2+ members not from the same friend group",
+                "Sustained involvement in each area, not a one-off appearance"
+            ]
+        },
+        {
+            "key": "most-resourceful",
+            "title": "Most Resourceful",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "Finds a way. Repeatedly, for other people, usually with very little.",
+            "definition": "Consistently finds practical solutions to real problems for others or the fellowship, often with limited means.",
+            "disqualifiers": [
+                "A general reputation as \"smart\" or \"capable\"",
+                "One-time help with no pattern behind it",
+                "Having money or connections without personally solving a problem"
+            ],
+            "checklist": [
+                "Active member this session",
+                "2 or more specific instances of solving a real problem, each named with date and context",
+                "Who benefited from each instance is identified",
+                "Corroborated by someone who witnessed or benefited",
+                "Shows a repeated pattern, not a single incident"
+            ]
+        },
+        {
+            "key": "most-fashionable-male",
+            "title": "Most Fashionable (Male)",
+            "entryKind": "individual",
+            "gender": "male",
+            "blurb": "Consistent style across many occasions — not one very good Sunday.",
+            "definition": "Consistent, well-put-together personal style and grooming across multiple occasions — not one outfit.",
+            "disqualifiers": [
+                "One standout outfit at one event",
+                "Expensive clothing without a consistent styling sense",
+                "General popularity"
+            ],
+            "checklist": [
+                "Active member this session",
+                "Style observed on 3 or more separate, named occasions",
+                "Reflects personal effort and taste, not a one-off borrowed or rented outfit",
+                "Recognized by people outside the nominee's close circle",
+                "Nominator names the specific occasions and what stood out"
+            ]
+        },
+        {
+            "key": "most-fashionable-female",
+            "title": "Most Fashionable (Female)",
+            "entryKind": "individual",
+            "gender": "female",
+            "blurb": "Consistent style across many occasions — not one very good Sunday.",
+            "definition": "Consistent, well-put-together personal style and grooming across multiple occasions — not one outfit.",
+            "disqualifiers": [
+                "One standout outfit at one event",
+                "Expensive clothing without a consistent styling sense",
+                "General popularity"
+            ],
+            "checklist": [
+                "Active member this session",
+                "Style observed on 3 or more separate, named occasions",
+                "Reflects personal effort and taste, not a one-off borrowed or rented outfit",
+                "Recognized by people outside the nominee's close circle",
+                "Nominator names the specific occasions and what stood out"
+            ]
+        },
+        {
+            "key": "most-influential-male",
+            "title": "Most Influential (Male)",
+            "entryKind": "individual",
+            "gender": "male",
+            "blurb": "Someone's direction actually changed because of them. Named someones.",
+            "definition": "Positive influence that measurably shaped someone else's mindset, habit, or direction for the better.",
+            "disqualifiers": [
+                "Having many friends or followers",
+                "Being loud or outspoken",
+                "Holding a leadership title",
+                "Compliance driven by fear or pressure"
+            ],
+            "checklist": [
+                "Active member this session",
+                "2 or more named individuals whose growth or decision was genuinely shaped by this person",
+                "What changed, and how the nominee contributed, described clearly for each",
+                "Corroborated by the person influenced, or someone who knows the story directly",
+                "Influence was voluntarily received — not extracted through pressure, title, or popularity"
+            ]
+        },
+        {
+            "key": "most-influential-female",
+            "title": "Most Influential (Female)",
+            "entryKind": "individual",
+            "gender": "female",
+            "blurb": "Someone's direction actually changed because of them. Named someones.",
+            "definition": "Positive influence that measurably shaped someone else's mindset, habit, or direction for the better.",
+            "disqualifiers": [
+                "Having many friends or followers",
+                "Being loud or outspoken",
+                "Holding a leadership title",
+                "Compliance driven by fear or pressure"
+            ],
+            "checklist": [
+                "Active member this session",
+                "2 or more named individuals whose growth or decision was genuinely shaped by this person",
+                "What changed, and how the nominee contributed, described clearly for each",
+                "Corroborated by the person influenced, or someone who knows the story directly",
+                "Influence was voluntarily received — not extracted through pressure, title, or popularity"
+            ]
+        },
+        {
+            "key": "el-political-male",
+            "title": "EL-Political (Male)",
+            "entryKind": "individual",
+            "gender": "male",
+            "blurb": "Builds consensus and represents people fairly — without running a camp.",
+            "definition": "Genuine skill in fellowship \"politics\" — building consensus, representing others fairly, and resolving conflict without manipulation.",
+            "disqualifiers": [
+                "Being talkative or opinionated",
+                "Holding an Exco or leadership title alone",
+                "Being effective at rallying a personal camp or faction"
+            ],
+            "checklist": [
+                "Active member this session",
+                "2 or more specific instances of mediating, representing others, or organizing people fairly, with outcomes described",
+                "Corroborated by at least one person directly involved in the situation",
+                "Shows fairness toward people outside the nominee's own circle",
+                "No credible evidence of manipulation or factionalism raised during screening"
+            ]
+        },
+        {
+            "key": "el-political-female",
+            "title": "EL-Political (Female)",
+            "entryKind": "individual",
+            "gender": "female",
+            "blurb": "Builds consensus and represents people fairly — without running a camp.",
+            "definition": "Genuine skill in fellowship \"politics\" — building consensus, representing others fairly, and resolving conflict without manipulation.",
+            "disqualifiers": [
+                "Being talkative or opinionated",
+                "Holding an Exco or leadership title alone",
+                "Being effective at rallying a personal camp or faction"
+            ],
+            "checklist": [
+                "Active member this session",
+                "2 or more specific instances of mediating, representing others, or organizing people fairly, with outcomes described",
+                "Corroborated by at least one person directly involved in the situation",
+                "Shows fairness toward people outside the nominee's own circle",
+                "No credible evidence of manipulation or factionalism raised during screening"
+            ]
+        },
+        {
+            "key": "sports-man-of-the-year",
+            "title": "Sports Man of the Year",
+            "entryKind": "individual",
+            "gender": "male",
+            "blurb": "Played, and it can be verified. Not owned the boots.",
+            "definition": "Outstanding athletic participation, skill, or achievement in fellowship or inter-fellowship sports during the session.",
+            "disqualifiers": [
+                "Owning sports gear or being \"into sports\"",
+                "Watching or supporting without participating",
+                "One casual, unorganized game"
+            ],
+            "checklist": [
+                "Active member this session",
+                "Participated in 2 or more verifiable sporting events, named with dates",
+                "Role or result in each event stated",
+                "Independently confirmed by a teammate, opponent, or organizer",
+                "Skill or sportsmanship demonstrated, not just attendance"
+            ]
+        },
+        {
+            "key": "sports-woman-of-the-year",
+            "title": "Sports Woman of the Year",
+            "entryKind": "individual",
+            "gender": "female",
+            "blurb": "Played, and it can be verified. Not owned the boots.",
+            "definition": "Outstanding athletic participation, skill, or achievement in fellowship or inter-fellowship sports during the session.",
+            "disqualifiers": [
+                "Owning sports gear or being \"into sports\"",
+                "Watching or supporting without participating",
+                "One casual, unorganized game"
+            ],
+            "checklist": [
+                "Active member this session",
+                "Participated in 2 or more verifiable sporting events, named with dates",
+                "Role or result in each event stated",
+                "Independently confirmed by a teammate, opponent, or organizer",
+                "Skill or sportsmanship demonstrated, not just attendance"
+            ]
+        },
+        {
+            "key": "most-dedicated-worker-male",
+            "title": "Most Dedicated Worker, Non-Exco (Male)",
+            "entryKind": "individual",
+            "gender": "male",
+            "blurb": "Serving in a unit, holding no office, showing up anyway — every time.",
+            "definition": "A non-Exco member serving in a fellowship unit with unusual consistency, reliability, and heart.",
+            "disqualifiers": [
+                "Being registered in a unit but rarely showing up",
+                "General popularity",
+                "Holding an Exco office — automatically disqualifying for this category"
+            ],
+            "checklist": [
+                "Registered worker in a named unit this session",
+                "Confirmed to NOT currently hold an Exco office",
+                "Consistent attendance and participation record in the unit for the session",
+                "At least one specific, named instance of going beyond assigned duty",
+                "Corroborated directly by the unit head or a fellow unit worker"
+            ]
+        },
+        {
+            "key": "most-dedicated-worker-female",
+            "title": "Most Dedicated Worker, Non-Exco (Female)",
+            "entryKind": "individual",
+            "gender": "female",
+            "blurb": "Serving in a unit, holding no office, showing up anyway — every time.",
+            "definition": "A non-Exco member serving in a fellowship unit with unusual consistency, reliability, and heart.",
+            "disqualifiers": [
+                "Being registered in a unit but rarely showing up",
+                "General popularity",
+                "Holding an Exco office — automatically disqualifying for this category"
+            ],
+            "checklist": [
+                "Registered worker in a named unit this session",
+                "Confirmed to NOT currently hold an Exco office",
+                "Consistent attendance and participation record in the unit for the session",
+                "At least one specific, named instance of going beyond assigned duty",
+                "Corroborated directly by the unit head or a fellow unit worker"
+            ]
+        },
+        {
+            "key": "most-dedicated-non-worker",
+            "title": "Most Dedicated Non-Worker",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "In no unit, and still carrying more than most people in one.",
+            "definition": "A member not serving in any official unit, who still shows outstanding, consistent commitment to fellowship life.",
+            "disqualifiers": [
+                "Simply attending fellowship regularly — that is expected of every member",
+                "Being friendly or well-liked",
+                "Occasional participation dressed up as dedication"
+            ],
+            "checklist": [
+                "Confirmed to NOT be a registered worker in any unit this session",
+                "Consistent attendance beyond the general norm for the session",
+                "2 or more specific instances of voluntary, uncredited contribution — helping without being asked",
+                "Corroborated by another member",
+                "Not based on \"being regular\" alone — specific instances required"
+            ]
+        },
+        {
+            "key": "most-talented-general",
+            "title": "Most Talented (General)",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "One named talent, shown in public, more than once.",
+            "definition": "A specific, named talent — music, art, MC, writing, dance — demonstrated publicly more than once.",
+            "disqualifiers": [
+                "A claimed talent never publicly shown",
+                "A single performance",
+                "Being vaguely \"multi-talented\" without evidence of any one talent"
+            ],
+            "checklist": [
+                "Active member this session",
+                "Specific talent named — not \"talented\" in general",
+                "Demonstrated on 2 or more separate, named occasions",
+                "Recognized by people outside the nominee's close friend group"
+            ]
+        },
+        {
+            "key": "personality-of-the-year",
+            "title": "Personality of the Year",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "Marked the session across the whole fellowship — not inside one circle.",
+            "definition": "A person whose overall character and presence positively marked the session, recognized broadly across the fellowship — not just within one clique.",
+            "disqualifiers": [
+                "Popularity within one friend group",
+                "Being loud, funny, or entertaining alone",
+                "Visibility at events without character substance"
+            ],
+            "checklist": [
+                "Active member this session",
+                "Positive character demonstrated across 2 or more distinct, unconnected groups",
+                "Specific examples given for each group, not general praise",
+                "Corroborated by people from those different groups",
+                "Consistency shown in how the nominee treats different kinds of people"
+            ]
+        },
+        {
+            "key": "tech-guru-of-the-year",
+            "title": "Tech Guru of the Year",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "Shipped something real that someone else actually used.",
+            "definition": "Real technical skill applied to real, identifiable projects that benefited the fellowship or others.",
+            "disqualifiers": [
+                "Owning gadgets or \"being into tech\"",
+                "Talking about tech without shipped work",
+                "Fixing one phone or laptop issue once"
+            ],
+            "checklist": [
+                "Active member this session",
+                "At least 1 named project, tool, or technical contribution, with a description of what it does",
+                "Who benefited, and how, is clearly stated",
+                "The output is verifiable — it can be shown, tested, or confirmed by users",
+                "Reflects sustained skill, not a single small fix"
+            ]
+        },
+        {
+            "key": "academic-icon-of-the-year",
+            "title": "Academic Icon of the Year",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "A stated, checkable academic achievement — not a reputation for being sharp.",
+            "definition": "Demonstrated outstanding academic performance or achievement during the session.",
+            "disqualifiers": [
+                "A general reputation as \"smart\"",
+                "Being in a demanding department without a stated achievement",
+                "Assumptions based on how someone speaks or carries themselves"
+            ],
+            "checklist": [
+                "Active member this session",
+                "A specific, verifiable academic achievement stated — CGPA range, departmental award, competition result, dean's list, publication",
+                "Achievement can be independently confirmed",
+                "Not based on reputation or assumption alone"
+            ]
+        },
+        {
+            "key": "most-sociable",
+            "title": "Most Sociable",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "Genuinely connected across many groups — not loud inside one.",
+            "definition": "Genuinely connects with a wide range of people across different groups — not just being outgoing within one circle.",
+            "disqualifiers": [
+                "Being loud within one clique only",
+                "Having many social media followers",
+                "Being widely known but not genuinely connected"
+            ],
+            "checklist": [
+                "Active member this session",
+                "Named relationships or interactions across 3 or more distinct groups — different levels, departments, units",
+                "Specific people and groups named, outside the nominee's core clique",
+                "Corroborated by someone outside the nominee's closest friend group",
+                "Evidence of genuine connection — conversations, support, inclusion — not just visibility"
+            ]
+        },
+        {
+            "key": "most-supportive-general",
+            "title": "Most Supportive (General)",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "Shows up for people who didn't ask, and never mentions it after.",
+            "definition": "Consistently shows up for others — academically, personally, or spiritually — without being asked or seeking credit.",
+            "disqualifiers": [
+                "Being generally kind or friendly",
+                "Supporting only people within one's own clique",
+                "A single act of support with no pattern"
+            ],
+            "checklist": [
+                "Active member this session",
+                "2 or more specific instances of support given to different people — not the same person twice",
+                "The nature of each support instance is clearly described",
+                "Corroborated by at least one recipient",
+                "Support extends beyond the nominee's own clique"
+            ]
+        },
+        {
+            "key": "silent-backstage-hero",
+            "title": "Silent Backstage Hero",
+            "entryKind": "individual",
+            "gender": "any",
+            "blurb": "The reason it ran. You would only notice if they stopped.",
+            "definition": "Does essential, often uncredited work that keeps things running, without seeking recognition.",
+            "disqualifiers": [
+                "Any work the nominee actively publicized or sought credit for — that contradicts \"silent\"",
+                "General willingness to help, without specific instances",
+                "Unit work that is simply the normal expectation of the role"
+            ],
+            "checklist": [
+                "Active member this session",
+                "2 or more specific behind-the-scenes contributions named — setup, logistics, unseen coordination",
+                "Identified by the nominator, not self-reported by the nominee",
+                "Corroborated by someone who witnessed or directly benefited from the work",
+                "If the nominee is a worker, the contribution goes clearly beyond their normal unit duty"
+            ]
+        },
+        {
+            // A brand stands on the ballot as itself: its name and its logo.
+            // The founders are recorded and shown in admin stats, because
+            // "one win per person" is a rule about people — but the voter is
+            // voting for the business, not for a face.
+            "key": "brand-of-the-year",
+            "title": "Brand of the Year",
+            "entryKind": "brand",
+            "gender": "any",
+            "blurb": "A real, running business founded by an FYB — with real customers.",
+            "definition": "Recognizes a business or service founded or co-founded by an FYB member of the fellowship — not the member's personal image, and not a business they merely work for. Where there is more than one FYB co-founder, all named co-founders share the award.",
+            "disqualifiers": [
+                "A business page or Instagram account with no real customers",
+                "A business idea or plan not yet running",
+                "One sale or a one-off transaction",
+                "The owner's personal popularity, style, or likeability, separate from the business itself"
+            ],
+            "checklist": [
+                "Nominee is an active FYB member this session, and is the founder or co-founder — not an employee, staff, affiliate, or reseller",
+                "Business or service has been actively operating for at least 1 full semester, and is still running at the time of nomination",
+                "Named, verifiable customers or clients beyond the owner's close friends and family",
+                "Nominator describes specifically what the business offers, with concrete evidence of growth, quality, or reliability — repeat customers, specific outcomes, order volume",
+                "Corroborated by at least one customer or client who is not a close friend of the owner",
+                "No credible evidence raised during screening of poor service, unresolved complaints, or dishonest business practice"
+            ]
+        },
+        {
+            // A clique stands as a group. No logo — the faces of its members
+            // laid out together are the entry. Every member must be a
+            // registered finalist, so each one has a photo to show.
+            "key": "clique-of-the-year",
+            "title": "Clique of the Year",
+            "entryKind": "clique",
+            "gender": "any",
+            "blurb": "A real friendship, years deep. Not the most photographed table.",
+            "definition": "Recognizes a group demonstrating genuine, long-standing, close-knit friendship — mutual support, shared experiences, consistency, and positive Christian influence. Not the most popular, visible, or photographed group.",
+            "disqualifiers": [
+                "Attending church, Bible study, or fellowship together",
+                "Sitting together, or serving in the same unit",
+                "Same department, level, or class",
+                "Having a group chat, frequent photos, matching outfits, or a group nickname",
+                "Popularity, or one or two shared events"
+            ],
+            "checklist": [
+                "At least 3 members with genuine relationships with one another",
+                "Existed for 2 or more academic sessions, demonstrably",
+                "Members voluntarily spend time together outside required activities",
+                "Relationship extends beyond a shared class, level, department, unit, or fellowship group",
+                "Members have meaningful relationships with several others, not just one central person — no hub-and-spoke",
+                "Multiple genuine shared experiences over time, not just event photos",
+                "Evidence of mutual support in practical, academic, personal, or spiritual matters",
+                "Relationship remained meaningful despite changes in circumstances — classes, units, schedules",
+                "Healthy conduct consistent with Christian fellowship — not hostile or exclusive",
+                "Nominator provides specific supporting examples, not assumptions"
+            ],
+            "note": {
+                "title": "The \"No Camera\" Test",
+                "body": "If there were no pictures, no social media, no award, and nobody was watching — would these people still choose each other's company? If yes, that's real evidence."
+            }
+        }
+    ]
+}
