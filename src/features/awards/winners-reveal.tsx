@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { site } from "@/config/site";
 import { useRevealDeck } from "@/hooks/use-reveal-deck";
 import { cn } from "@/lib/utils";
@@ -51,6 +53,17 @@ const WinnersReveal = ({ reveal }: { reveal: AwardsReveal }): React.JSX.Element 
                 className="texture-grain pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay"
             />
 
+            {/* The crest, huge and faint, behind everything — a TV screen left idle
+                on this slide should still read as fyb-hive from across the hall. */}
+            <Image
+                aria-hidden
+                src={site.branding.logos.fybHive}
+                alt=""
+                width={800}
+                height={800}
+                className="pointer-events-none absolute left-1/2 top-1/2 h-[min(85vh,85vw)] w-[min(85vh,85vw)] -translate-x-1/2 -translate-y-1/2 select-none object-contain opacity-[0.05]"
+            />
+
             <div aria-hidden className="absolute inset-x-0 top-0 z-20 h-0.5 bg-border/50">
                 <div
                     className="h-full bg-primary transition-[width] duration-700 ease-out"
@@ -64,7 +77,16 @@ const WinnersReveal = ({ reveal }: { reveal: AwardsReveal }): React.JSX.Element 
                     deck.idle && "opacity-0"
                 )}
             >
-                <span>{site.event.title}</span>
+                <span className="flex items-center gap-[0.8vw]">
+                    <Image
+                        src={site.branding.logos.fybHive}
+                        alt=""
+                        width={32}
+                        height={32}
+                        className="h-[clamp(1rem,2vw,1.75rem)] w-[clamp(1rem,2vw,1.75rem)] select-none object-contain opacity-90 drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)]"
+                    />
+                    {site.event.title}
+                </span>
                 <span className={cn("tabular-nums", !reveal.published && "text-primary/60")}>
                     {reveal.published
                         ? `${reveal.totalVotes.toLocaleString()} votes · ${reveal.voters.toLocaleString()} voters`
