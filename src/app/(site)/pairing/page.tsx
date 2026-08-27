@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import NotAvailableYet from "@/components/ui/not-available-yet";
 import { PairingFlow } from "@/features/pairing";
-import { isFeatureLive } from "@/services/settings.service";
+import { getSettings } from "@/services/settings.service";
 import { site } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -17,10 +17,19 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function PairingPage(): Promise<React.JSX.Element> {
-    const live = await isFeatureLive("pairing");
+    const { pairingEnabled, pairingRan } = await getSettings();
 
-    if (!live) {
-        return (
+    if (!pairingEnabled) {
+        // "Off" means two opposite things, and the page used to say the same
+        // sentence for both. Before pairing opens it genuinely hasn't started;
+        // after it closes, telling somebody it's "opening soon" is how a person
+        // who has actually missed the deadline goes on waiting for it.
+        return pairingRan ? (
+            <NotAvailableYet
+                title="Pairing has closed"
+                description="The window for registering the person you're coming with is shut. If you paired in time, you're set — check the email that confirmed it. If you didn't, speak to an organizer directly."
+            />
+        ) : (
             <NotAvailableYet
                 title="Pairing opens soon"
                 description="No date, no entry. When pairing opens, you'll redeem your consent token here and lock in the person you're coming with."

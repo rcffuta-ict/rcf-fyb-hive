@@ -213,3 +213,17 @@ const { user } = useAuthStore();
 - **Consult local docs first:** Check `node_modules/next/dist/docs/` before assuming
   structural patterns for Next.js-specific APIs.
 - When there's a plan for the engineer to approve, as soon as it is approved, save the plan into the .temp/plans folder, now ensure that any other plan in that folder is deleted so there will only be one plan in that folder. Ensure that .temp is enlisted in .gitignore if it is not.
+
+---
+
+## Database migrations
+
+SQL migrations live in `migrations/`, numbered in the order they must be run,
+and they are **tracked in git** — never in `.temp/`, which is ignored. Each is
+pasted into the Supabase SQL editor by hand; nothing applies them automatically.
+
+- New migration → next number, dependency stated in the header, idempotent.
+- `migrations/ops/` (one-off scripts), `migrations/seeds/` (test data) and
+  `migrations/reference/` (a read-only schema dump) are **not** part of the
+  numbered sequence.
+- See `migrations/README.md` for the full order and what each file adds.
