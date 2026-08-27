@@ -13,8 +13,12 @@ import {
     getCategoryResults,
     getDocumentedCategories,
     getLevelTurnout,
+    getTieBreaks,
     getVoteTimeline,
     findFinalistByEmail,
+    candidateBelongsToCategory,
+    listUnsettledTies,
+    upsertTieBreak,
 } from "@/services/awards.service";
 import { isRenderableLogoUrl } from "@/constants/brand-logo";
 import { hasConsentToken } from "@/services/consent.service";
@@ -25,6 +29,7 @@ import type {
     AwardStats,
     DocumentedCategory,
     FinalistOption,
+    TieBreakCategory,
 } from "@/types/awards.types";
 
 /**
@@ -756,6 +761,7 @@ const emptyStats: AwardStats = {
     emptyCategories: [],
     thinCategories: [],
     undocumentedCategories: [],
+    tiedCategories: [],
     zeroVoteCandidates: 0,
     completion: { averageVoted: 0, finishedAll: 0, votedOnce: 0 },
     levels: [],
@@ -771,13 +777,15 @@ export async function getAwardStats(): Promise<AwardStats> {
     const live = await getDocumentedCategories();
     const liveCategories = live.length;
 
-    const [tally, eligibleVoters, levels, timeline, completion] = await Promise.all([
-        getCategoryResults(),
-        countEligibleVoters(),
-        getLevelTurnout(),
-        getVoteTimeline(),
-        getBallotCompletion(liveCategories),
-    ]);
+    const [tally, eligibleVoters, levels, timeline, completion, tiedCategories] =
+        await Promise.all([
+            getCategoryResults(),
+            countEligibleVoters(),
+            getLevelTurnout(),
+            getVoteTimeline(),
+            getBallotCompletion(liveCategories),
+            listUnsettledTies(),
+        ]);
 
     return {
         voters: tally.voters,
@@ -799,6 +807,7 @@ export async function getAwardStats(): Promise<AwardStats> {
         undocumentedCategories: live
             .filter((category) => !category.standard)
             .map((category) => category.title),
+        tiedCategories,
         zeroVoteCandidates: tally.results
             .flatMap((result) => result.candidates)
             .filter((candidate) => candidate.votes === 0).length,
@@ -859,10 +868,32 @@ export async function saveAwardSettings(
         }
     }
 
+    // The guard that keeps a screen in front of a hall from having no name on
+    // it. An award has one winner; a dead heat the committee has not settled
+    // has none, and there is no way to render that with any grace at a podium.
+    // So publication waits for the committee, and says which awards it is
+    // waiting on.
+    if (input.resultsPublic) {
+        const unsettled = await listUnsettledTies();
+        if (unsettled.length > 0) {
+            const names = unsettled.map((title) => `“${title}”`).join(", ");
+            return {
+                ok: false,
+                message:
+                    `Results can't be published: ${names} ${unsettled.length === 1 ? "is" : "are"} tied. ` +
+                    "Settle it on the Ties tab — the committee votes between the candidates the members left level.",
+            };
+        }
+    }
+
     const by = admin.email ?? admin.profileId;
     const results = await Promise.all([
         updateSetting("awards_enabled", input.awardsEnabled, by),
         updateSetting("awards_results_public", input.resultsPublic, by),
+        // Stamped the first time voting opens and never cleared. It is what
+        // keeps the awards link — and the winners screen behind it — in the nav
+        // after the ballot shuts, which is precisely when people come looking.
+        ...(input.awardsEnabled ? [updateSetting("awards_ran", true, by)] : []),
     ]);
 
     if (results.some((r) => !r.success)) {
@@ -872,4 +903,48 @@ export async function saveAwardSettings(
     // Flags are read per request, so every route picks this up immediately.
     revalidatePath("/", "layout");
     return { ok: true, message: "Settings saved." };
+}
+
+/**
+ * The awards the members left tied, and the committee's ballot on each.
+ *
+ * Admin-only, like every other read in this file — a tie is a fact about who is
+ * level with whom, and that is not public until the results are.
+ */
+export async function listTieBreaks(): Promise<TieBreakCategory[]> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return [];
+    return getTieBreaks(admin.profileId);
+}
+
+/**
+ * One admin's vote in a tie-break. One admin, one vote, changeable until the
+ * results are published.
+ *
+ * The candidate is checked against the category before anything is written.
+ * A committee vote for someone in another race would be counted by nothing —
+ * `resolveContest` only looks at candidates already tied at the top — but
+ * failing loudly beats writing a row that quietly does nothing.
+ */
+export async function castTieBreak(
+    categoryId: string,
+    candidateId: string
+): Promise<AwardActionResult> {
+    const admin = await getCurrentAdmin();
+    if (!admin) return denied;
+
+    if (!(await candidateBelongsToCategory(candidateId, categoryId))) {
+        return { ok: false, message: "That candidate isn't standing in this category." };
+    }
+
+    const saved = await upsertTieBreak({
+        categoryId,
+        candidateId,
+        adminProfileId: admin.profileId,
+    });
+
+    if (!saved) return { ok: false, message: "Could not record your vote." };
+
+    revalidatePath("/awards");
+    return { ok: true, message: "Your tie-break vote is in." };
 }

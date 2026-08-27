@@ -24,6 +24,21 @@ export type AppSettings = {
     awardsEnabled: boolean;
     /** Whether vote counts may be shown to anyone other than an admin. */
     awardsResultsPublic: boolean;
+    /**
+     * Whether these features have ever been live this season.
+     *
+     * A feature flag answers "can someone use this right now". A nav link
+     * answers a different question — is there anything at that address worth
+     * opening — and the two come apart the moment a season ends. Voting closes
+     * and the awards link would vanish, taking the winners screen with it on the
+     * one night it matters; pairing closes and the page that would tell someone
+     * they've missed it becomes unreachable.
+     *
+     * These are set once, when the feature is first switched on, and never
+     * cleared automatically. A season that happened stays having happened.
+     */
+    awardsRan: boolean;
+    pairingRan: boolean;
 };
 
 type SettingRow = { key: string; value: unknown };
@@ -38,6 +53,9 @@ const defaults = (): AppSettings => ({
     // Never defaults open: a settings read that failed must not be the reason a
     // tally goes public before the organizers meant it to.
     awardsResultsPublic: false,
+    // A failed read should hide a stale link, not invent one.
+    awardsRan: false,
+    pairingRan: false,
 });
 
 /**
@@ -80,6 +98,8 @@ export const getSettings = cache(async (): Promise<AppSettings> => {
                 "awards_results_public",
                 fallback.awardsResultsPublic
             ),
+            awardsRan: flag("awards_ran", fallback.awardsRan),
+            pairingRan: flag("pairing_ran", fallback.pairingRan),
         };
     } catch (error) {
         console.error("getSettings threw:", error);
@@ -102,7 +122,9 @@ export type SettingKey =
     | "pay_account_name"
     | "pay_account_number"
     | "awards_enabled"
-    | "awards_results_public";
+    | "awards_results_public"
+    | "awards_ran"
+    | "pairing_ran";
 
 export const updateSetting = async (
     key: SettingKey,

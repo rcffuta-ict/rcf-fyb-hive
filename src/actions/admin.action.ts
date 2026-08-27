@@ -494,6 +494,10 @@ export async function savePairingSettings(
     const by = admin.email ?? admin.profileId;
     const results = await Promise.all([
         updateSetting("pairing_enabled", input.pairingEnabled, by),
+        // Stamped once, never cleared: after pairing closes the link has to
+        // survive, or the page that would tell somebody they've missed the
+        // deadline is the one page they can no longer reach.
+        ...(input.pairingEnabled ? [updateSetting("pairing_ran", true, by)] : []),
         updateSetting("pair_amount", Math.round(input.pairAmount), by),
         updateSetting("pay_bank_name", input.bankName.trim(), by),
         updateSetting("pay_account_name", input.accountName.trim(), by),

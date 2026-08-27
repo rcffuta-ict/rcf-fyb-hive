@@ -1,4 +1,4 @@
-import { Trophy } from "lucide-react";
+import { Lock, Trophy } from "lucide-react";
 
 import WinnerStand from "./winner-stand";
 import type { AwardWinner } from "@/types/awards.types";
@@ -9,6 +9,11 @@ import type { AwardWinner } from "@/types/awards.types";
  * Before the reveal the screen carries the award and its blurb and nothing
  * else — the room is being told what is about to be given, and the point is
  * that nobody in it can read the answer off the wall early.
+ *
+ * Before the organizers publish, the second beat is a sealed envelope rather
+ * than a winner: the same slide, the same award, a blurred fan of the nominees.
+ * The screen is worth walking past for weeks that way, and there is nothing in
+ * it to leak.
  *
  * Everything is sized in viewport units rather than at breakpoints, because the
  * two screens this has to work on are a phone held in a hand and a television
@@ -48,13 +53,13 @@ const WinnerSlide = ({
                 <WinnerStand award={award} />
             ) : (
                 <div className="mt-[7vh] flex flex-col items-center text-foreground/40">
-                    <Trophy
-                        className="animate-float text-primary/70"
-                        strokeWidth={1.25}
-                        size={48}
-                    />
+                    {award.sealed ? (
+                        <Lock className="animate-float text-primary/60" strokeWidth={1.25} size={44} />
+                    ) : (
+                        <Trophy className="animate-float text-primary/70" strokeWidth={1.25} size={48} />
+                    )}
                     <p className="mt-[2.5vh] text-[clamp(0.62rem,1.05vw,1.05rem)] uppercase tracking-[0.22em]">
-                        Tap or press space to reveal
+                        {award.sealed ? "Tap to see who's in the running" : "Tap or press space to reveal"}
                     </p>
                 </div>
             )}

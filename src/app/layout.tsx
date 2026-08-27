@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cinzel, Playfair_Display, Cormorant_Garamond, Poppins, Inter } from "next/font/google";
 
+import ConsoleWarning from "@/components/layout/console-warning";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import ThemeProvider from "@/providers/ThemeProvider";
@@ -79,6 +80,7 @@ export default async function RootLayout({
                 <ThemeProvider>
                   <SettingsProvider settings={settings}>
                     <GlobalToastProvider>
+                        <ConsoleWarning />
                         <Header />
                         <main className="min-h-screen">{children}</main>
                         <Footer />

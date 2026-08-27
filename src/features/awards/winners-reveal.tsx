@@ -10,6 +10,13 @@ import type { AwardsReveal } from "@/types/awards.types";
 /**
  * The winners screen, for the night itself.
  *
+ * It runs in two states off one payload. Before the organizers publish, every
+ * slide is a sealed envelope — the award, its criteria, and a blurred fan of
+ * its nominees — which is a screen worth leaving up in the hall for weeks. On
+ * publication the same deck becomes the results. The server decides which;
+ * nothing here can unseal anything, because a sealed payload has no winner in
+ * it to unseal.
+ *
  * It is a fixed overlay rather than an ordinary page because it has to hold the
  * whole screen: the site's header and footer are the right frame for a ballot
  * and the wrong one for something projected onto a wall in front of a hall.
@@ -58,9 +65,10 @@ const WinnersReveal = ({ reveal }: { reveal: AwardsReveal }): React.JSX.Element 
                 )}
             >
                 <span>{site.event.title}</span>
-                <span className="tabular-nums">
-                    {reveal.totalVotes.toLocaleString()} votes ·{" "}
-                    {reveal.voters.toLocaleString()} voters
+                <span className={cn("tabular-nums", !reveal.published && "text-primary/60")}>
+                    {reveal.published
+                        ? `${reveal.totalVotes.toLocaleString()} votes · ${reveal.voters.toLocaleString()} voters`
+                        : "Sealed until the unveiling"}
                 </span>
             </header>
 

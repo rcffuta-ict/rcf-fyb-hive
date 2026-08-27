@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { getBallot } from "@/actions/awards.action";
 import NotAvailableYet from "@/components/ui/not-available-yet";
 import { site } from "@/config/site";
-import { BallotBoard, VoterGate } from "@/features/awards";
-import { getCampaignCard } from "@/services/awards.service";
+import { BallotBoard, VoterGate, VotingClosed } from "@/features/awards";
+import { getCampaignCard, getWinnersReveal } from "@/services/awards.service";
 import { isFeatureLive } from "@/services/settings.service";
 
 export const metadata: Metadata = {
@@ -27,12 +27,27 @@ export default async function AwardsPage({
     const live = await isFeatureLive("awards");
 
     if (!live) {
-        return (
-            <NotAvailableYet
-                title="Awards voting soon"
-                description="Celebrate the set. When voting opens, you'll crown the standout finalists right here."
-            />
-        );
+        // Voting being off means one of two very different things, and the page
+        // used to say the same thing for both. Before a season starts there is
+        // genuinely nothing here. After the ballot shuts there are categories,
+        // criteria and a full slate of nominees — and the people arriving are
+        // the most interested traffic this page ever gets. Sending them to a
+        // "coming soon" panel would be both untrue and a wasted moment.
+        const reveal = await getWinnersReveal();
+        const anythingToShow =
+            reveal.published ||
+            reveal.categories.some((category) => category.nominees.length > 0);
+
+        if (!anythingToShow) {
+            return (
+                <NotAvailableYet
+                    title="Awards voting soon"
+                    description="Celebrate the set. When voting opens, you'll crown the standout finalists right here."
+                />
+            );
+        }
+
+        return <VotingClosed reveal={reveal} />;
     }
 
     const [{ pick }, ballot] = await Promise.all([searchParams, getBallot()]);

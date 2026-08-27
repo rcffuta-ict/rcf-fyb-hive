@@ -11,6 +11,9 @@ import type {
     AwardsReveal,
     AwardStandard,
     AwardWinner,
+    SealedNominee,
+    TieBreakCategory,
+    TieBreakContender,
     BallotCategory,
     BallotCompletion,
     CampaignCard,
@@ -749,30 +752,139 @@ export const getCategoryResults = async (): Promise<{
     };
 };
 
-/**
- * The night's winners, for the reveal screen — and only once they are public.
- *
- * The published check lives here rather than in the page for the same reason
- * the ballot query never selects a vote count: the safest place to stop an
- * unpublished tally leaking is the one function that could leak it. A page
- * cannot forget to ask whether the organizers had published yet, because when
- * they haven't there is nothing to render.
- *
- * What this returns is deliberately thinner than `getCategoryResults`: the
- * winners of each category and the totals behind them, never the full standing
- * of everyone who lost. A room full of people watching a screen does not need
- * to know who came last, and publishing a result should not be the same act as
- * publishing a ranking of one's friends.
- *
- * Archived categories are absent — an award the committee chose not to run this
- * year has no winner — and so are undocumented ones, on the same rule that
- * keeps them off the ballot: nothing gets celebrated under criteria nobody can
- * go and read.
- */
-export const getPublishedWinners = async (): Promise<AwardsReveal | null> => {
-    const { awardsResultsPublic } = await getSettings();
-    if (!awardsResultsPublic) return null;
+type TieBreakRow = { category_id: string; candidate_id: string; votes: number };
 
+/** Committee votes, keyed `categoryId:candidateId`. */
+type CommitteeBallot = Map<string, number>;
+
+const ballotKey = (categoryId: string, candidateId: string): string =>
+    `${categoryId}:${candidateId}`;
+
+/**
+ * The committee's ballot, and how many people are on it.
+ *
+ * Read as one unit because a count of votes is meaningless without the number
+ * of admins it came out of: "2 votes" is decisive on a committee of three and
+ * nothing at all on a committee of nine.
+ */
+const readCommitteeBallot = async (): Promise<{
+    ballot: CommitteeBallot;
+    size: number;
+    votersByCategory: Map<string, number>;
+}> => {
+    const supabase = createServerSupabase();
+    const [tallyRes, sizeRes] = await Promise.all([
+        supabase
+            .from("fyb_award_tiebreak_tally")
+            .select("category_id, candidate_id, votes")
+            .returns<TieBreakRow[]>(),
+        supabase
+            .from("fyb_award_committee_size")
+            .select("admins")
+            .maybeSingle<{ admins: number }>(),
+    ]);
+
+    if (tallyRes.error) console.error("tie-break tally read failed:", tallyRes.error.message);
+
+    const ballot: CommitteeBallot = new Map();
+    const votersByCategory = new Map<string, number>();
+
+    for (const row of tallyRes.data ?? []) {
+        ballot.set(ballotKey(row.category_id, row.candidate_id), row.votes);
+        votersByCategory.set(
+            row.category_id,
+            (votersByCategory.get(row.category_id) ?? 0) + row.votes
+        );
+    }
+
+    return { ballot, size: sizeRes.data?.admins ?? 0, votersByCategory };
+};
+
+/** What this admin has already picked, by category. */
+const readMyTieBreaks = async (adminProfileId: string): Promise<Map<string, string>> => {
+    const supabase = createServerSupabase();
+    const { data, error } = await supabase
+        .from("fyb_award_tiebreaks")
+        .select("category_id, candidate_id")
+        .eq("admin_profile_id", adminProfileId)
+        .returns<{ category_id: string; candidate_id: string }[]>();
+
+    if (error) {
+        console.error("readMyTieBreaks failed:", error.message);
+        return new Map();
+    }
+    return new Map((data ?? []).map((row) => [row.category_id, row.candidate_id]));
+};
+
+/** How one category came out: one winner, and whoever finished level with them. */
+type Contest = {
+    winner: CandidateResult | null;
+    contenders: CandidateResult[];
+    decidedByCommittee: boolean;
+};
+
+/**
+ * Turn a ranking into a single winner, going to the committee if it has to.
+ *
+ * The order of the two tests is the whole safeguard. A clear winner is returned
+ * before the committee's ballot is ever looked at, so there is no path by which
+ * a committee vote overturns the members — and when it is consulted, it can
+ * only choose among candidates the members themselves left exactly level. A
+ * committee vote for anyone else counts for nothing, because `level` is what
+ * gets filtered, not the whole field.
+ *
+ * A dead heat the committee has not settled — nobody voted, or the admins are
+ * themselves level — returns no winner rather than guessing. Publishing the
+ * results refuses to proceed in that state, so the reveal screen never has to
+ * render it; the branch exists because "we couldn't decide" is still the honest
+ * answer if it ever does.
+ */
+const resolveContest = (ranked: CandidateResult[], committee: CommitteeBallot, categoryId: string): Contest => {
+    const top = ranked[0]?.votes ?? 0;
+    if (top === 0) return { winner: null, contenders: [], decidedByCommittee: false };
+
+    const level = ranked.filter((candidate) => candidate.votes === top);
+    if (level.length === 1) {
+        return { winner: level[0], contenders: [], decidedByCommittee: false };
+    }
+
+    const committeeVotes = (candidate: CandidateResult): number =>
+        committee.get(ballotKey(categoryId, candidate.candidateId)) ?? 0;
+
+    const best = Math.max(...level.map(committeeVotes));
+    const chosen = best > 0 ? level.filter((c) => committeeVotes(c) === best) : [];
+
+    if (chosen.length !== 1) {
+        return { winner: null, contenders: level, decidedByCommittee: false };
+    }
+
+    return {
+        winner: chosen[0],
+        contenders: level.filter((c) => c.candidateId !== chosen[0].candidateId),
+        decidedByCommittee: true,
+    };
+};
+
+/** One live, documented category with its standing already counted. */
+type DocumentedResult = {
+    category: AwardCategory;
+    standard: AwardStandard;
+    result: CategoryResult;
+};
+
+/**
+ * Every award actually running this year, with its votes counted.
+ *
+ * Archived categories are absent — an award the committee chose not to run has
+ * no standing to report — and so are undocumented ones, on the same rule that
+ * keeps them off the ballot: nothing is decided under criteria nobody can go
+ * and read. Shared by the winners screen and the tie-break screen so the two
+ * can never disagree about who is tied with whom.
+ */
+const readDocumentedResults = async (): Promise<{
+    entries: DocumentedResult[];
+    tally: Tallies;
+}> => {
     const categories = await getCategories();
     const documented = categories
         .map((category) => ({ category, standard: findStandard(category.slug) }))
@@ -781,7 +893,15 @@ export const getPublishedWinners = async (): Promise<AwardsReveal | null> => {
         );
 
     if (documented.length === 0) {
-        return { categories: [], voters: 0, totalVotes: 0 };
+        return {
+            entries: [],
+            tally: {
+                counts: new Map(),
+                castByCategory: new Map(),
+                voters: 0,
+                totalVotes: 0,
+            },
+        };
     }
 
     const [rows, tally] = await Promise.all([
@@ -790,31 +910,226 @@ export const getPublishedWinners = async (): Promise<AwardsReveal | null> => {
     ]);
     const candidatesByCategory = groupCandidates(rows);
 
-    const winners: AwardWinner[] = documented.map(({ category, standard }) => {
-        const result = tallyCategory(
+    const entries = documented.map(({ category, standard }) => ({
+        category,
+        standard,
+        result: tallyCategory(
             category,
             candidatesByCategory.get(category.id) ?? [],
             tally.counts,
             tally.castByCategory.get(category.id) ?? 0
-        );
+        ),
+    }));
 
-        // `tallyCategory` has already sorted by votes, so the top score is the
-        // first row. Taking everyone who matches it — rather than the single
-        // `isLeader`, which is nobody in a tie — is what lets the screen name
-        // two winners out loud instead of showing an empty stage.
-        const top = result.candidates[0]?.votes ?? 0;
+    return { entries, tally };
+};
+
+/**
+ * A nominee stripped to a face, for the sealed screen.
+ *
+ * Note what is dropped: `votes`, `share`, `isLeader`, and the name. What is
+ * left is what the ballot has shown publicly all along.
+ */
+const toSealedNominee = (candidate: CandidateResult): SealedNominee => ({
+    candidateId: candidate.candidateId,
+    entryKind: candidate.entryKind,
+    imageUrl: candidate.imageUrl,
+    members: candidate.members,
+});
+
+/**
+ * The winners screen's payload — sealed before the organizers publish, and the
+ * results after.
+ *
+ * The check lives here rather than in the page for the same reason the ballot
+ * query never selects a vote count: the safest place to stop an unpublished
+ * tally leaking is the one function that could leak it. A page cannot render
+ * the winners early by forgetting to ask, because until publication the winners
+ * are not in what it was handed.
+ *
+ * **The blur is a picture filter, not a secret.** A sealed slide carries the
+ * nominees' faces and nothing else — no names, no counts, no winner — so a
+ * viewer who removes the filter in devtools sees the ballot they could already
+ * see. That is the only honest way to build a "sealed envelope" screen: seal it
+ * on the server and decorate it in the browser, never the other way round.
+ *
+ * What the published half returns is deliberately thinner than
+ * `getCategoryResults`: each category's winner and the totals behind them,
+ * never the full standing of everyone who lost. A room watching a screen does
+ * not need to know who came last, and publishing a result should not be the
+ * same act as publishing a ranking of one's friends.
+ *
+ * Archived categories are absent — an award the committee chose not to run this
+ * year has no winner — and so are undocumented ones, on the same rule that
+ * keeps them off the ballot: nothing gets celebrated under criteria nobody can
+ * go and read.
+ */
+export const getWinnersReveal = async (): Promise<AwardsReveal> => {
+    const { awardsResultsPublic } = await getSettings();
+
+    if (!awardsResultsPublic) {
+        const { entries } = await readDocumentedResults();
 
         return {
-            categoryId: category.id,
-            slug: category.slug,
-            title: category.title,
-            blurb: standard.blurb,
-            votesCast: result.votesCast,
-            winners: top > 0 ? result.candidates.filter((c) => c.votes === top) : [],
+            published: false,
+            voters: 0,
+            totalVotes: 0,
+            categories: entries.map(({ category, standard, result }) => ({
+                categoryId: category.id,
+                slug: category.slug,
+                title: category.title,
+                blurb: standard.blurb,
+                votesCast: 0,
+                winner: null,
+                contenders: [],
+                decidedByCommittee: false,
+                sealed: true,
+                // Re-sorted by name on purpose. `tallyCategory` hands these
+                // back in vote order, and shipping that order would publish the
+                // entire ranking in the markup of a screen whose whole promise
+                // is that it has published nothing.
+                nominees: [...result.candidates]
+                    .sort((a, b) => a.displayName.localeCompare(b.displayName))
+                    .map(toSealedNominee),
+            })),
         };
-    });
+    }
 
-    return { categories: winners, voters: tally.voters, totalVotes: tally.totalVotes };
+    const [{ entries, tally }, committee] = await Promise.all([
+        readDocumentedResults(),
+        readCommitteeBallot(),
+    ]);
+
+    const winners: AwardWinner[] = entries.map(({ category, standard, result }) => ({
+        categoryId: category.id,
+        slug: category.slug,
+        title: category.title,
+        blurb: standard.blurb,
+        votesCast: result.votesCast,
+        sealed: false,
+        nominees: [],
+        // `tallyCategory` has already sorted by votes, so the ranking handed to
+        // `resolveContest` is in order and the top score is the first row.
+        ...resolveContest(result.candidates, committee.ballot, category.id),
+    }));
+
+    return {
+        categories: winners,
+        published: true,
+        voters: tally.voters,
+        totalVotes: tally.totalVotes,
+    };
+};
+
+/**
+ * Every award the members left tied, as the committee's own ballot.
+ *
+ * Admin-only: it names candidates nobody outside the dashboard is meant to know
+ * are level yet, and it carries the counts behind them.
+ *
+ * A category appears here only while it is genuinely undecided *or* recently
+ * decided by the committee — both, because an admin needs to see the vote they
+ * already cast and the standing it produced, not have the card vanish the
+ * moment one contender edges ahead and reappear if someone changes their mind.
+ */
+export const getTieBreaks = async (adminProfileId: string): Promise<TieBreakCategory[]> => {
+    const [{ entries }, committee, mine] = await Promise.all([
+        readDocumentedResults(),
+        readCommitteeBallot(),
+        readMyTieBreaks(adminProfileId),
+    ]);
+
+    const ties: TieBreakCategory[] = [];
+
+    for (const { category, result } of entries) {
+        const top = result.candidates[0]?.votes ?? 0;
+        if (top === 0) continue;
+
+        const level = result.candidates.filter((candidate) => candidate.votes === top);
+        if (level.length < 2) continue;
+
+        const contenders: TieBreakContender[] = level.map((candidate) => ({
+            ...candidate,
+            committeeVotes:
+                committee.ballot.get(ballotKey(category.id, candidate.candidateId)) ?? 0,
+        }));
+
+        const best = Math.max(...contenders.map((c) => c.committeeVotes));
+
+        ties.push({
+            categoryId: category.id,
+            title: category.title,
+            tiedAt: top,
+            votesCast: result.votesCast,
+            contenders,
+            myVoteCandidateId: mine.get(category.id) ?? null,
+            votesIn: committee.votersByCategory.get(category.id) ?? 0,
+            committeeSize: committee.size,
+            settled: best > 0 && contenders.filter((c) => c.committeeVotes === best).length === 1,
+        });
+    }
+
+    return ties;
+};
+
+/**
+ * Record one admin's tie-break pick, replacing whatever they picked before.
+ *
+ * Upserted on `(category_id, admin_profile_id)` for the same reason a member's
+ * vote is: one admin is one vote, changing your mind is an edit, and there is
+ * no arrangement of concurrent requests that can turn a committee of seven into
+ * eight votes.
+ *
+ * Nothing here checks that the candidate is actually tied. It does not need to:
+ * `resolveContest` only ever counts committee votes for candidates already
+ * level at the top of the members' vote, so a stray row for anybody else is
+ * inert. The caller checks anyway, to give a useful error rather than a silent
+ * no-op.
+ */
+export const upsertTieBreak = async (input: {
+    categoryId: string;
+    candidateId: string;
+    adminProfileId: string;
+}): Promise<boolean> => {
+    const supabase = createServerSupabase();
+    const { error } = await supabase.from("fyb_award_tiebreaks").upsert(
+        {
+            category_id: input.categoryId,
+            candidate_id: input.candidateId,
+            admin_profile_id: input.adminProfileId,
+            updated_at: new Date().toISOString(),
+        },
+        { onConflict: "category_id,admin_profile_id" }
+    );
+
+    if (error) {
+        console.error("upsertTieBreak failed:", error.message);
+        return false;
+    }
+    return true;
+};
+
+/**
+ * The titles of every award still deadlocked.
+ *
+ * This is what stands between a dead heat and a screen in front of a hall with
+ * no name on it: publishing the results refuses while this is non-empty.
+ */
+export const listUnsettledTies = async (): Promise<string[]> => {
+    const [{ entries }, committee] = await Promise.all([
+        readDocumentedResults(),
+        readCommitteeBallot(),
+    ]);
+
+    return entries
+        .filter(({ category, result }) => {
+            const contest = resolveContest(result.candidates, committee.ballot, category.id);
+            // No winner *and* contenders means a deadlock. No winner and no
+            // contenders is simply a category nobody voted in, which is a
+            // thin ballot, not an undecided one.
+            return contest.winner === null && contest.contenders.length > 0;
+        })
+        .map(({ category }) => category.title);
 };
 
 type CampaignRow = CandidateRow & {

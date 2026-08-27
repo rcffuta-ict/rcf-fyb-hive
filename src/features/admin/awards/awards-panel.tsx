@@ -1,18 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, ListChecks, SlidersHorizontal } from "lucide-react";
+import { BarChart3, ListChecks, Scale, SlidersHorizontal } from "lucide-react";
 
 import PanelTabs, { type PanelTab } from "../panel-tabs";
 import AwardsSettings from "./awards-settings";
 import CategoryWorkbench from "./category-workbench";
 import StatsPanel from "./stats-panel";
+import TieBreaksPanel from "./tie-breaks-panel";
 
-type View = "categories" | "stats" | "settings";
+type View = "categories" | "stats" | "ties" | "settings";
 
 const VIEWS: PanelTab<View>[] = [
     { key: "categories", label: "Categories", icon: ListChecks },
     { key: "stats", label: "Stats", icon: BarChart3 },
+    { key: "ties", label: "Ties", icon: Scale },
     { key: "settings", label: "Settings", icon: SlidersHorizontal },
 ];
 
@@ -26,6 +28,7 @@ const AwardsPanel = (): React.JSX.Element => {
 
             {view === "categories" && <CategoryWorkbench />}
             {view === "stats" && <StatsPanel />}
+            {view === "ties" && <TieBreaksPanel />}
             {view === "settings" && <AwardsSettings />}
         </div>
     );

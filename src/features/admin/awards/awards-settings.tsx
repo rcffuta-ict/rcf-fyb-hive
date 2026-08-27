@@ -75,28 +75,29 @@ const AwardsSettings = (): React.JSX.Element => {
                     className="mt-1 h-4 w-4 shrink-0 accent-primary"
                 />
                 <span>
-                    <span className="block font-medium text-foreground">Publish the results</span>
+                    <span className="block font-medium text-foreground">Unveil the winners</span>
                     <span className="mt-0.5 block text-sm text-muted-foreground">
-                        Until you flip this, the tally exists only in this dashboard — voters see
-                        their own pick and nothing else. Flip it and the counts become public.
-                        Usually a decision for the night itself.
+                        The winners screen is already live and already sealed — every award and
+                        its nominees, behind a blur, with no winner in the page at all. This is
+                        the switch that unseals it: the counts go public and the names appear.
+                        Usually a decision for the night itself, and it won&apos;t save while any
+                        award is still tied.
                     </span>
                 </span>
             </label>
 
-            {resultsPublic && (
-                <Link
-                    href="/awards/winners"
-                    target="_blank"
-                    className="mt-4 flex items-center gap-2 rounded-token border border-primary/40 p-3 text-sm text-primary transition-colors hover:bg-primary/10"
-                >
-                    <MonitorPlay size={16} className="shrink-0" />
-                    <span>
-                        Open the winners screen — the full-screen reveal to project on the
-                        night. Save first if you have just ticked the box.
-                    </span>
-                </Link>
-            )}
+            <Link
+                href="/awards/winners"
+                target="_blank"
+                className="mt-4 flex items-center gap-2 rounded-token border border-primary/40 p-3 text-sm text-primary transition-colors hover:bg-primary/10"
+            >
+                <MonitorPlay size={16} className="shrink-0" />
+                <span>
+                    {resultsPublic
+                        ? "Open the winners screen — the full-screen reveal to project on the night. Save first if you have just ticked the box."
+                        : "Preview the winners screen — sealed, exactly as everyone else sees it right now."}
+                </span>
+            </Link>
 
             <Button onClick={() => void handleSave()} disabled={saving} className="mt-6">
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}

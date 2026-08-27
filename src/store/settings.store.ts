@@ -26,6 +26,8 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     accountNumber: site.payment.accountNumber,
     awardsEnabled: site.features.awards,
     awardsResultsPublic: false,
+    awardsRan: false,
+    pairingRan: false,
     hydrated: false,
     hydrate: (settings) => set({ ...settings, hydrated: true }),
 }));

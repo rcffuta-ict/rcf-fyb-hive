@@ -196,11 +196,19 @@ export type CategoryResult = {
 /**
  * One category's outcome, as the reveal screen states it.
  *
- * `winners` is a list rather than a single entry because a tie is a real
- * result: `tallyCategory` refuses to crown anybody when two candidates are
- * level, and a screen projected in front of the whole room is the last place to
- * paper over that. One name is the ordinary case, two or more is a tie, and an
- * empty list means nobody voted in this category at all.
+ * An award has exactly one winner. When the members' vote finishes level,
+ * `tallyCategory` still refuses to crown anybody — but the awards committee
+ * then votes among the tied candidates and that decides it, which is what
+ * `decidedByCommittee` records.
+ *
+ * `contenders` is the rest of the dead heat: the people the room put level with
+ * the winner. They are on the screen deliberately. One name goes on the award,
+ * but "this one came down to a coin's edge" is true, and saying it is fairer to
+ * everyone involved than a silent single name.
+ *
+ * `winner` is null in exactly two cases: nobody voted in the category at all,
+ * or a dead heat the committee has not settled yet — which publishing the
+ * results refuses to let happen.
  */
 export type AwardWinner = {
     categoryId: string;
@@ -209,13 +217,86 @@ export type AwardWinner = {
     /** The award's line from the standard — what it was actually given for. */
     blurb: string;
     votesCast: number;
-    winners: CandidateResult[];
+    winner: CandidateResult | null;
+    /** Others level with the winner on the members' vote. Empty in the usual case. */
+    contenders: CandidateResult[];
+    /** The members' vote was a dead heat and the committee's ballot settled it. */
+    decidedByCommittee: boolean;
+    /**
+     * Nothing has been unveiled yet. The slide shows the award and a blurred
+     * fan of its nominees; `winner`, `contenders` and `votesCast` are all empty
+     * because the answer is not in the payload at all — see `nominees`.
+     */
+    sealed: boolean;
+    /**
+     * The faces behind the blur, while sealed. Deliberately just faces: no
+     * names, no counts, no ordering that means anything.
+     */
+    nominees: SealedNominee[];
 };
 
-/** Everything the winners screen renders. Only ever built once results are public. */
+/**
+ * One nominee as the sealed slide shows them — a face and nothing else.
+ *
+ * This is the whole trick behind the blurred screen. A CSS blur is a picture
+ * filter, not a secret: anybody can open devtools and turn it off. So the blur
+ * is laid over information that is *already public* — the nominees, who have
+ * been on the ballot for weeks — and the winner is simply not sent until the
+ * organizers publish. Unblurring the sealed screen reveals the nominees, which
+ * is what it looks like it is revealing.
+ *
+ * It carries no name for a second reason: a single blurred face with a name
+ * under it, screenshotted by somebody who removed the filter, is a rumour about
+ * who won. A fan of every nominee's face cannot be mistaken for an answer.
+ */
+export type SealedNominee = {
+    candidateId: string;
+    entryKind: EntryKind;
+    imageUrl: string;
+    members: CandidateMember[];
+};
+
+/** One candidate in a dead heat, as the committee's ballot shows them. */
+export type TieBreakContender = CandidateResult & {
+    /** Votes from the committee, not the members. */
+    committeeVotes: number;
+};
+
+/**
+ * A category the members left tied, waiting on the committee.
+ *
+ * `myVoteCandidateId` is the signed-in admin's own pick — the screen shows it
+ * back the way the ballot shows a member theirs, so nobody has to remember
+ * whether they already voted.
+ */
+export type TieBreakCategory = {
+    categoryId: string;
+    title: string;
+    /** Votes each tied candidate drew from the members — identical, by definition. */
+    tiedAt: number;
+    votesCast: number;
+    contenders: TieBreakContender[];
+    myVoteCandidateId: string | null;
+    /** Admins who have voted, out of how many there are. */
+    votesIn: number;
+    committeeSize: number;
+    /** True once one contender is strictly ahead on the committee's ballot. */
+    settled: boolean;
+};
+
+/**
+ * Everything the winners screen renders, published or not.
+ *
+ * The screen is always reachable — that is the point of it. Before the
+ * organizers publish it is a hall of sealed envelopes, which is a better
+ * "coming soon" than a coming-soon page; after, it is the results. `published`
+ * is the difference, and it is the server that decides it, not the page.
+ */
 export type AwardsReveal = {
     /** In the admin's category order, so the reveal runs in the arranged sequence. */
     categories: AwardWinner[];
+    /** False while sealed — and then `voters` and `totalVotes` are both 0. */
+    published: boolean;
     voters: number;
     totalVotes: number;
 };
@@ -278,6 +359,13 @@ export type AwardStats = {
      * on this page that is a hard stop rather than a nudge.
      */
     undocumentedCategories: string[];
+    /**
+     * Live categories finishing level at the top with the committee's own
+     * ballot not yet decisive. The other hard stop: results cannot be published
+     * while this is non-empty, because an award has one winner and a dead heat
+     * has none.
+     */
+    tiedCategories: string[];
     /** Candidates nobody has voted for yet. */
     zeroVoteCandidates: number;
     completion: BallotCompletion;
