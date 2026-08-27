@@ -1,5 +1,6 @@
 import { Lock, Trophy } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import WinnerStand from "./winner-stand";
 import type { AwardWinner } from "@/types/awards.types";
 
@@ -34,23 +35,46 @@ const WinnerSlide = ({
     revealed: boolean;
 }): React.JSX.Element => {
     return (
-        <div className="flex h-full w-full flex-col items-center justify-center overflow-y-auto px-[6vw] py-[7vh] text-center">
+        <div
+            className={cn(
+                "flex h-full w-full flex-col items-center overflow-y-auto px-[5vw] py-[4vh] text-center",
+                revealed ? "justify-start" : "justify-center"
+            )}
+        >
             <p className="eyebrow justify-center text-[clamp(0.58rem,1vw,1rem)]">
                 Award {position} of {total}
             </p>
 
-            <h1 className="mt-[2vh] max-w-[22ch] font-luxury text-[clamp(1.5rem,4.4vw,4.5rem)] leading-tight text-foreground">
+            {/* Once revealed, the award's own name steps back so the winner can be
+                the biggest thing on the screen — that's the point of the slide now. */}
+            <h1
+                className={cn(
+                    "font-luxury text-foreground transition-[font-size] duration-500",
+                    revealed
+                        ? "mt-[1vh] max-w-[36ch] text-[clamp(1rem,2.1vw,2.1rem)] leading-tight text-foreground/60"
+                        : "mt-[2vh] max-w-[22ch] text-[clamp(1.5rem,4.4vw,4.5rem)] leading-tight"
+                )}
+            >
                 {award.title}
             </h1>
 
-            <div className="divider-gold my-[2.5vh] w-[min(80vw,44rem)]" />
+            <div
+                className={cn(
+                    "divider-gold",
+                    revealed ? "my-[1.5vh] w-[min(46vw,26rem)]" : "my-[2.5vh] w-[min(80vw,44rem)]"
+                )}
+            />
 
-            <p className="max-w-[46ch] font-elegant text-[clamp(0.95rem,1.9vw,2rem)] italic leading-relaxed text-foreground/65">
-                {award.blurb}
-            </p>
+            {!revealed && (
+                <p className="max-w-[46ch] font-elegant text-[clamp(0.95rem,1.9vw,2rem)] italic leading-relaxed text-foreground/65">
+                    {award.blurb}
+                </p>
+            )}
 
             {revealed ? (
-                <WinnerStand award={award} />
+                <div className="flex w-full flex-1 items-center justify-center">
+                    <WinnerStand award={award} />
+                </div>
             ) : (
                 <div className="mt-[7vh] flex flex-col items-center text-foreground/40">
                     {award.sealed ? (

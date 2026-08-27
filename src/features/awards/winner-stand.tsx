@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { Crown, Users } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import SealedEnvelope from "./sealed-envelope";
@@ -49,24 +49,35 @@ const WinnerStand = ({ award }: { award: AwardWinner }): React.JSX.Element => {
     const { winner } = award;
 
     return (
-        <div className="mt-[4vh] w-full animate-scale-in">
-            <figure className="flex flex-col items-center">
+        <div className="flex w-full flex-col items-center animate-scale-in">
+            <Crown
+                className="mb-[1vh] animate-float text-primary drop-shadow-[0_0_24px_hsl(var(--primary)/0.6)]"
+                strokeWidth={1.25}
+                size={32}
+            />
+
+            <figure className="relative flex flex-col items-center">
+                <div
+                    aria-hidden
+                    className="absolute left-1/2 top-1/2 -z-10 h-[min(70vh,60rem)] w-[min(70vh,60rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,hsl(var(--primary)/0.22),transparent_65%)] blur-2xl"
+                />
+
                 <WinnerPortrait winner={winner} shared={false} />
 
-                <figcaption className="mt-[2.5vh] max-w-[min(90vw,60rem)]">
-                    <p className="font-luxury text-[clamp(1.75rem,5.5vw,5rem)] leading-tight text-primary drop-shadow-[0_0_36px_hsl(var(--primary)/0.45)]">
+                <figcaption className="mt-[2.5vh] max-w-[min(90vw,64rem)]">
+                    <p className="font-luxury text-[clamp(2rem,6.5vw,6.5rem)] leading-[1.05] text-primary drop-shadow-[0_0_48px_hsl(var(--primary)/0.5)]">
                         {winner.displayName}
                     </p>
 
                     {winner.nickname && (
-                        <p className="mt-[0.2vh] font-elegant text-[clamp(0.95rem,2vw,2rem)] italic text-foreground/70">
+                        <p className="mt-[0.4vh] font-elegant text-[clamp(1rem,2.2vw,2.25rem)] italic text-foreground/70">
                             &ldquo;{winner.nickname}&rdquo;
                         </p>
                     )}
 
                     {winner.members.length > 0 && (
-                        <p className="mt-[1.2vh] flex items-center justify-center gap-2 text-[clamp(0.7rem,1.2vw,1.15rem)] leading-relaxed text-foreground/55">
-                            <Users size={14} className="shrink-0" />
+                        <p className="mt-[1.4vh] flex items-center justify-center gap-2 text-[clamp(0.75rem,1.3vw,1.25rem)] leading-relaxed text-foreground/55">
+                            <Users size={16} className="shrink-0" />
                             {roster(winner)}
                         </p>
                     )}

@@ -22,12 +22,12 @@ const frameFor = (shared: boolean): string =>
     cn(
         "relative shrink-0 overflow-hidden",
         shared
-            ? "h-[clamp(5rem,15vh,10rem)] w-[clamp(5rem,15vh,10rem)]"
-            : "h-[clamp(7.5rem,26vh,17rem)] w-[clamp(7.5rem,26vh,17rem)]"
+            ? "h-[clamp(7rem,26vh,19rem)] w-[clamp(7rem,26vh,19rem)]"
+            : "h-[clamp(11rem,50vh,36rem)] w-[clamp(11rem,50vh,36rem)]"
     );
 
 const GLOW =
-    "shadow-[0_0_80px_-24px_hsl(var(--primary)/0.85)] ring-2 ring-primary/50";
+    "shadow-[0_0_140px_-20px_hsl(var(--primary)/0.9)] ring-[0.3vh] ring-primary/60 ring-offset-[0.6vh] ring-offset-background";
 
 const WinnerPortrait = ({
     winner,
@@ -104,13 +104,13 @@ const WinnerPortrait = ({
     }
 
     return (
-        <div className={cn(frame, GLOW, "rounded-md")}>
+        <div className={cn(frame, GLOW, "rounded-3xl")}>
             <Image
-                src={facePortrait(winner.imageUrl, { width: 1000, zoom: 0.7 })}
+                src={facePortrait(winner.imageUrl, { width: 1600, zoom: 0.7 })}
                 alt={winner.displayName}
                 fill
                 priority
-                sizes="(min-width: 1024px) 17rem, 45vw"
+                sizes="(min-width: 1024px) 36rem, 80vw"
                 className="object-cover"
             />
         </div>

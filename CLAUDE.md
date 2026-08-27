@@ -1,5 +1,24 @@
 # CLAUDE.md — Next.js 16 (App Router) Project Instructions
 
+## Commit Authorship
+
+Every commit in this repo is authored as the engineer, never as Claude:
+
+- Name: codepraycode
+- Email: preciousolusola16@gmail.com
+
+Do not add a `Co-Authored-By: Claude` trailer, a `Claude-Session:` line, or any
+other Claude/Anthropic attribution to commits, PR bodies, or comments in this
+repo. Use `git commit --author="codepraycode <preciousolusola16@gmail.com>"`
+(and matching `GIT_COMMITTER_NAME`/`GIT_COMMITTER_EMAIL`) instead of relying on
+whatever `user.name`/`user.email` happens to be configured — never edit git
+config to do this.
+
+If a future engineer's name/email isn't recorded above (a new contributor, a
+different project), ask for it before making the first commit rather than
+guessing or defaulting to a generic identity — then record it here so later
+sessions don't have to ask again.
+
 ## Role & Context
 
 You are an expert Next.js Senior Full-Stack Engineer specializing in Next.js 16, React 19,
