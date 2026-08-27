@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, MonitorPlay, Save } from "lucide-react";
 
 import { getAwardSettings, saveAwardSettings } from "@/actions/awards-admin.action";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,20 @@ const AwardsSettings = (): React.JSX.Element => {
                     </span>
                 </span>
             </label>
+
+            {resultsPublic && (
+                <Link
+                    href="/awards/winners"
+                    target="_blank"
+                    className="mt-4 flex items-center gap-2 rounded-token border border-primary/40 p-3 text-sm text-primary transition-colors hover:bg-primary/10"
+                >
+                    <MonitorPlay size={16} className="shrink-0" />
+                    <span>
+                        Open the winners screen — the full-screen reveal to project on the
+                        night. Save first if you have just ticked the box.
+                    </span>
+                </Link>
+            )}
 
             <Button onClick={() => void handleSave()} disabled={saving} className="mt-6">
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}

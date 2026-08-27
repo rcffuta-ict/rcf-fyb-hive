@@ -194,6 +194,34 @@ export type CategoryResult = {
 };
 
 /**
+ * One category's outcome, as the reveal screen states it.
+ *
+ * `winners` is a list rather than a single entry because a tie is a real
+ * result: `tallyCategory` refuses to crown anybody when two candidates are
+ * level, and a screen projected in front of the whole room is the last place to
+ * paper over that. One name is the ordinary case, two or more is a tie, and an
+ * empty list means nobody voted in this category at all.
+ */
+export type AwardWinner = {
+    categoryId: string;
+    slug: string;
+    title: string;
+    /** The award's line from the standard — what it was actually given for. */
+    blurb: string;
+    votesCast: number;
+    winners: CandidateResult[];
+};
+
+/** Everything the winners screen renders. Only ever built once results are public. */
+export type AwardsReveal = {
+    /** In the admin's category order, so the reveal runs in the arranged sequence. */
+    categories: AwardWinner[];
+    voters: number;
+    totalVotes: number;
+};
+
+
+/**
  * Someone leading in more than one category — the night's recurring name.
  *
  * Attribution reaches through group entries: a founder whose brand is leading

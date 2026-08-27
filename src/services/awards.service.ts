@@ -2,11 +2,15 @@ import "server-only";
 
 import { createServerSupabase } from "@/lib/supabase/server";
 import { findStandard, listStandards } from "@/services/award-standard.service";
+import { getSettings } from "@/services/settings.service";
 import type {
     AdminCandidate,
     EntryKind,
     AwardCandidate,
     AwardCategory,
+    AwardsReveal,
+    AwardStandard,
+    AwardWinner,
     BallotCategory,
     BallotCompletion,
     CampaignCard,
@@ -570,6 +574,71 @@ const tallyCategory = (
     };
 };
 
+type Tallies = {
+    /** Votes by candidate id. */
+    counts: Map<string, number>;
+    /** Votes cast by category id — the denominator behind every share. */
+    castByCategory: Map<string, number>;
+    voters: number;
+    totalVotes: number;
+};
+
+/**
+ * Every count the app keeps, read together.
+ *
+ * The three views answer three different questions — who got what, how many
+ * ballots a category drew, and how many people voted at all — and a page that
+ * shows a tally invariably needs all three. Fetching them in one place keeps
+ * `getCategoryResults` and `getPublishedWinners` reading the same numbers by
+ * construction rather than by two similar-looking query blocks staying in sync.
+ *
+ * A failed read degrades to zero rather than throwing: a missing count renders
+ * as "no votes", which is visibly wrong and easily spotted, where a crashed
+ * results screen mid-ceremony is not recoverable from the podium.
+ */
+const readTallies = async (): Promise<Tallies> => {
+    const supabase = createServerSupabase();
+    const [tallyRes, totalsRes, turnoutRes] = await Promise.all([
+        supabase
+            .from("fyb_award_tally")
+            .select("candidate_id, category_id, votes")
+            .returns<TallyRow[]>(),
+        supabase
+            .from("fyb_award_category_totals")
+            .select("category_id, votes_cast")
+            .returns<{ category_id: string; votes_cast: number }[]>(),
+        supabase
+            .from("fyb_award_turnout")
+            .select("voters, total_votes")
+            .maybeSingle<{ voters: number; total_votes: number }>(),
+    ]);
+
+    if (tallyRes.error) console.error("tally read failed:", tallyRes.error.message);
+    if (totalsRes.error) console.error("category totals read failed:", totalsRes.error.message);
+
+    return {
+        counts: new Map((tallyRes.data ?? []).map((row) => [row.candidate_id, row.votes])),
+        castByCategory: new Map(
+            (totalsRes.data ?? []).map((row) => [row.category_id, row.votes_cast])
+        ),
+        voters: turnoutRes.data?.voters ?? 0,
+        totalVotes: turnoutRes.data?.total_votes ?? 0,
+    };
+};
+
+/** Candidate rows folded into their categories, malformed rows dropped. */
+const groupCandidates = (rows: CandidateRow[]): Map<string, AwardCandidate[]> => {
+    const byCategory = new Map<string, AwardCandidate[]>();
+    for (const row of rows) {
+        const candidate = toCandidate(row);
+        if (!candidate) continue;
+        const list = byCategory.get(row.category_id) ?? [];
+        list.push(candidate);
+        byCategory.set(row.category_id, list);
+    }
+    return byCategory;
+};
+
 /**
  * Full tally, every category. Admin-only — never call this from the ballot.
  *
@@ -590,39 +659,13 @@ export const getCategoryResults = async (): Promise<{
         return { results: [], voters: 0, totalVotes: 0, candidateCount: 0, multiLeaders: [] };
     }
 
-    const supabase = createServerSupabase();
-    const [rows, tallyRes, totalsRes, turnoutRes] = await Promise.all([
+    const [rows, tally] = await Promise.all([
         getCandidateRows(categories.map((c) => c.id)),
-        supabase
-            .from("fyb_award_tally")
-            .select("candidate_id, category_id, votes")
-            .returns<TallyRow[]>(),
-        supabase
-            .from("fyb_award_category_totals")
-            .select("category_id, votes_cast")
-            .returns<{ category_id: string; votes_cast: number }[]>(),
-        supabase
-            .from("fyb_award_turnout")
-            .select("voters, total_votes")
-            .maybeSingle<{ voters: number; total_votes: number }>(),
+        readTallies(),
     ]);
 
-    if (tallyRes.error) console.error("tally read failed:", tallyRes.error.message);
-    if (totalsRes.error) console.error("category totals read failed:", totalsRes.error.message);
-
-    const counts = new Map((tallyRes.data ?? []).map((row) => [row.candidate_id, row.votes]));
-    const castByCategory = new Map(
-        (totalsRes.data ?? []).map((row) => [row.category_id, row.votes_cast])
-    );
-
-    const candidatesByCategory = new Map<string, AwardCandidate[]>();
-    for (const row of rows) {
-        const candidate = toCandidate(row);
-        if (!candidate) continue;
-        const list = candidatesByCategory.get(row.category_id) ?? [];
-        list.push(candidate);
-        candidatesByCategory.set(row.category_id, list);
-    }
+    const { counts, castByCategory } = tally;
+    const candidatesByCategory = groupCandidates(rows);
 
     const results = categories.map((category) =>
         tallyCategory(
@@ -699,11 +742,79 @@ export const getCategoryResults = async (): Promise<{
 
     return {
         results,
-        voters: turnoutRes.data?.voters ?? 0,
-        totalVotes: turnoutRes.data?.total_votes ?? 0,
+        voters: tally.voters,
+        totalVotes: tally.totalVotes,
         candidateCount: rows.length,
         multiLeaders,
     };
+};
+
+/**
+ * The night's winners, for the reveal screen — and only once they are public.
+ *
+ * The published check lives here rather than in the page for the same reason
+ * the ballot query never selects a vote count: the safest place to stop an
+ * unpublished tally leaking is the one function that could leak it. A page
+ * cannot forget to ask whether the organizers had published yet, because when
+ * they haven't there is nothing to render.
+ *
+ * What this returns is deliberately thinner than `getCategoryResults`: the
+ * winners of each category and the totals behind them, never the full standing
+ * of everyone who lost. A room full of people watching a screen does not need
+ * to know who came last, and publishing a result should not be the same act as
+ * publishing a ranking of one's friends.
+ *
+ * Archived categories are absent — an award the committee chose not to run this
+ * year has no winner — and so are undocumented ones, on the same rule that
+ * keeps them off the ballot: nothing gets celebrated under criteria nobody can
+ * go and read.
+ */
+export const getPublishedWinners = async (): Promise<AwardsReveal | null> => {
+    const { awardsResultsPublic } = await getSettings();
+    if (!awardsResultsPublic) return null;
+
+    const categories = await getCategories();
+    const documented = categories
+        .map((category) => ({ category, standard: findStandard(category.slug) }))
+        .filter((pair): pair is { category: AwardCategory; standard: AwardStandard } =>
+            pair.standard !== null
+        );
+
+    if (documented.length === 0) {
+        return { categories: [], voters: 0, totalVotes: 0 };
+    }
+
+    const [rows, tally] = await Promise.all([
+        getCandidateRows(documented.map((pair) => pair.category.id)),
+        readTallies(),
+    ]);
+    const candidatesByCategory = groupCandidates(rows);
+
+    const winners: AwardWinner[] = documented.map(({ category, standard }) => {
+        const result = tallyCategory(
+            category,
+            candidatesByCategory.get(category.id) ?? [],
+            tally.counts,
+            tally.castByCategory.get(category.id) ?? 0
+        );
+
+        // `tallyCategory` has already sorted by votes, so the top score is the
+        // first row. Taking everyone who matches it — rather than the single
+        // `isLeader`, which is nobody in a tie — is what lets the screen name
+        // two winners out loud instead of showing an empty stage.
+        const top = result.candidates[0]?.votes ?? 0;
+
+        return {
+            categoryId: category.id,
+            slug: category.slug,
+            title: category.title,
+            blurb: standard.blurb,
+            votesCast: result.votesCast,
+            winners: top > 0 ? result.candidates.filter((c) => c.votes === top) : [],
+        };
+    });
+
+    return { categories: winners, voters: tally.voters, totalVotes: tally.totalVotes };
 };
 
 type CampaignRow = CandidateRow & {

@@ -1,8 +1,10 @@
 "use client";
 
+import { Crown } from "lucide-react";
+
 import { baseCards, baseLinks, type FeatureCard, type NavLink } from "@/constants/navigation";
 import type { FeatureKey } from "@/config/site";
-import { useFeature } from "@/store/settings.store";
+import { useFeature, useSettingsStore } from "@/store/settings.store";
 
 /**
  * Nav and landing-page cards, resolved against the *runtime* feature flags.
@@ -22,13 +24,33 @@ const useLiveFeatures = (): Record<FeatureKey, boolean> => ({
 /** Only the links a visitor can actually open right now. */
 export const useLiveNavLinks = (): NavLink[] => {
     const live = useLiveFeatures();
+    const resultsPublic = useSettingsStore((s) => s.awardsResultsPublic);
 
-    return baseLinks
+    const links = baseLinks
         .map((link) => ({
             ...link,
             enabled: link.feature === null || live[link.feature],
         }))
         .filter((link) => link.enabled);
+
+    // The winners screen answers to publication, not to the awards flag: by the
+    // time results are read out, voting is normally closed and `awards` is off,
+    // and that is exactly when this link has to appear. It is appended here
+    // rather than added to `site.nav` because it is live for a night, not for a
+    // season — and because a link in the config file would need a fourth
+    // feature key to gate something that already has a switch.
+    if (!resultsPublic) return links;
+
+    return [
+        ...links,
+        {
+            label: "Winners",
+            href: "/awards/winners",
+            feature: null,
+            enabled: true,
+            icon: Crown,
+        },
+    ];
 };
 
 /** Landing-page feature cards, each tagged with whether it's live yet. */
