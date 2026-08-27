@@ -23,7 +23,9 @@ const plural = (count: number, word: string): string =>
     `${count.toLocaleString()} ${word}${count === 1 ? "" : "s"}`;
 
 const roster = (winner: CandidateResult): string =>
-    winner.members.map((member) => `${member.firstName} ${member.lastName}`).join(" · ");
+    winner.members
+        .map((member) => `${member.firstName} ${member.lastName}`)
+        .join(" · ");
 
 const WinnerStand = ({ award }: { award: AwardWinner }): React.JSX.Element => {
     if (award.sealed) {
@@ -51,13 +53,13 @@ const WinnerStand = ({ award }: { award: AwardWinner }): React.JSX.Element => {
             <figure className="flex flex-col items-center">
                 <WinnerPortrait winner={winner} shared={false} />
 
-                <figcaption className="mt-[2.5vh] max-w-[min(90vw,40rem)]">
+                <figcaption className="mt-[2.5vh] max-w-[min(90vw,60rem)]">
                     <p className="font-luxury text-[clamp(1.75rem,5.5vw,5rem)] leading-tight text-primary drop-shadow-[0_0_36px_hsl(var(--primary)/0.45)]">
                         {winner.displayName}
                     </p>
 
                     {winner.nickname && (
-                        <p className="mt-[0.8vh] font-elegant text-[clamp(0.95rem,2vw,2rem)] italic text-foreground/70">
+                        <p className="mt-[0.2vh] font-elegant text-[clamp(0.95rem,2vw,2rem)] italic text-foreground/70">
                             &ldquo;{winner.nickname}&rdquo;
                         </p>
                     )}
@@ -84,9 +86,12 @@ const WinnerStand = ({ award }: { award: AwardWinner }): React.JSX.Element => {
                     )}
                 >
                     <p className="font-elegant text-[clamp(0.85rem,1.5vw,1.5rem)] italic leading-relaxed text-foreground/70">
-                        A dead heat at {plural(winner.votes, "vote")} — level with{" "}
-                        {award.contenders.map((c) => c.displayName).join(" and ")}, and
-                        settled by the awards committee.
+                        A dead heat at {plural(winner.votes, "vote")} — level
+                        with{" "}
+                        {award.contenders
+                            .map((c) => c.displayName)
+                            .join(" and ")}
+                        , and settled by the awards committee.
                     </p>
                 </div>
             )}

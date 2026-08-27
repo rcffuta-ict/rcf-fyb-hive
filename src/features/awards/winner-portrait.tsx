@@ -26,7 +26,8 @@ const frameFor = (shared: boolean): string =>
             : "h-[clamp(7.5rem,26vh,17rem)] w-[clamp(7.5rem,26vh,17rem)]"
     );
 
-const GLOW = "shadow-[0_0_80px_-24px_hsl(var(--primary)/0.85)] ring-2 ring-primary/50";
+const GLOW =
+    "shadow-[0_0_80px_-24px_hsl(var(--primary)/0.85)] ring-2 ring-primary/50";
 
 const WinnerPortrait = ({
     winner,
@@ -39,7 +40,13 @@ const WinnerPortrait = ({
 
     if (winner.entryKind === "brand") {
         return (
-            <div className={cn(frame, GLOW, "grid place-items-center rounded-token bg-muted/40 p-[6%]")}>
+            <div
+                className={cn(
+                    frame,
+                    GLOW,
+                    "grid place-items-center rounded-token bg-muted/40 p-[6%]"
+                )}
+            >
                 {winner.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element -- reason: arbitrary logo host, see entry-avatar.tsx
                     <img
@@ -75,10 +82,16 @@ const WinnerPortrait = ({
                 {faces.map((member, index) => (
                     <div
                         key={member.registrationId}
-                        className={cn("relative h-full w-full", feature && index === 0 && "row-span-2")}
+                        className={cn(
+                            "relative h-full w-full",
+                            feature && index === 0 && "row-span-2"
+                        )}
                     >
                         <Image
-                            src={facePortrait(member.photoUrl, { width: 640, zoom: 0.8 })}
+                            src={facePortrait(member.photoUrl, {
+                                width: 640,
+                                zoom: 0.8,
+                            })}
                             alt=""
                             fill
                             sizes="(min-width: 1024px) 9rem, 20vw"
@@ -91,7 +104,7 @@ const WinnerPortrait = ({
     }
 
     return (
-        <div className={cn(frame, GLOW, "rounded-full")}>
+        <div className={cn(frame, GLOW, "rounded-md")}>
             <Image
                 src={facePortrait(winner.imageUrl, { width: 1000, zoom: 0.7 })}
                 alt={winner.displayName}
