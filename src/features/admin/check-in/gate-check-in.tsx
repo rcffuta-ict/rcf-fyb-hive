@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowLeft, RefreshCw, ScanLine, Search } from "lucide-react";
+import { ArrowLeft, QrCode, RefreshCw, ScanLine, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCheckInRoster } from "@/hooks/use-check-in-roster";
-import { searchPairs } from "@/lib/pair-search";
+import { searchPairs, squashTable } from "@/lib/pair-search";
 import { appToast } from "@/providers/ToastProvider";
 import type { AdminProfile } from "@/types/fyb.types";
 import CheckInCard from "./check-in-card";
@@ -16,10 +16,15 @@ import CheckInStats from "./check-in-stats";
 /**
  * The gate.
  *
- * One box, one list, one button per couple. Everybody on this screen has
- * already paid and already been emailed their invitation — the only question
- * left is whether the two people at the door are the two people on the row, so
- * nothing else competes for the space.
+ * One box, one list, one couple per row. Two jobs share it, and they happen at
+ * different times: seating is assigned ahead of the evening, and the door is
+ * worked as people arrive. That is why the table field is not part of the
+ * check-in button — a couple can be given VIP 1 in the afternoon and admitted
+ * hours later by somebody else.
+ *
+ * Everybody on this screen has already paid and already been emailed their
+ * invitation, so the only question left at the door is whether the two people
+ * standing there are the two people on the row.
  *
  * Nothing is listed until something is typed: with a few hundred approved pairs
  * an unfiltered roster is scrolling, not searching.
@@ -47,9 +52,13 @@ const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
         // The roster in hand already knows most clashes, so the common case is
         // answered without a round trip. The unique index is still the
         // authority — this only spares the operator a wasted trip to the server.
-        const wanted = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+        // Squashed, like the unique index: "VIP1" collides with "VIP 1".
+        const wanted = squashTable(value);
         const clash = roster.find(
-            (pair) => pair.intentId !== intentId && pair.tableNumber === wanted
+            (pair) =>
+                pair.intentId !== intentId &&
+                pair.tableNumber !== null &&
+                squashTable(pair.tableNumber) === wanted
         );
         if (wanted && clash) {
             appToast.error(
@@ -79,14 +88,21 @@ const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
                     <span className="eyebrow">At the door</span>
                     <h1 className="mt-1 font-luxury text-foreground">Check-in</h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        {admin.firstName} on the gate · approved pairs only
+                        {admin.firstName} on the gate · seat them now, admit them later
                     </p>
                 </div>
-                <Button variant="ghost" size="sm" asChild>
-                    <Link href="/admin">
-                        <ArrowLeft size={16} /> Dashboard
-                    </Link>
-                </Button>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <Button variant="ghost" size="sm" asChild>
+                        <Link href="/admin">
+                            <ArrowLeft size={16} /> Dashboard
+                        </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href="/admin/check-in/qr">
+                            <QrCode size={16} /> Table QR poster
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             <form

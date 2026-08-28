@@ -18,6 +18,13 @@ const digits = (value: string): string => value.replace(/\D/g, "");
 /** Codes are compared without spacing or case: "fyb pair pr7k2m" → "FYBPAIRPR7K2M". */
 const squash = (value: string): string => value.replace(/\s+/g, "").toUpperCase();
 
+/**
+ * The form a table label is judged unique by — spacing ignored, so "VIP 1" and
+ * "VIP1" are one table. Mirrors the expression the unique index is built on in
+ * migration 012; both sides must agree or the app promises seats it can't keep.
+ */
+export const squashTable = squash;
+
 const phoneMatches = (phone: string | null, query: string): boolean => {
     const typed = digits(query);
     // Fewer than four digits is a name with a number in it, not a phone.

@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 /**
  * The table a couple is seated at — shown as a label, edited in place.
  *
- * Uppercase alphanumeric — "A4", "VIP2", "12" — and one table belongs to one
- * couple, which the database enforces. Always editable, though: seating gets
+ * Uppercase letters, digits and single spaces — "VIP 1", "R1", "T12" — and one
+ * table belongs to one couple, which the database enforces (spacing included:
+ * "VIP1" cannot slip in beside "VIP 1"). Always editable, though: seating gets
  * rearranged on the night, and an organizer who cannot correct a table will
  * write the real one on their hand instead.
  *
@@ -20,7 +21,12 @@ import { Input } from "@/components/ui/input";
  */
 /** Mirrors `parseTableNumber` on the server, which stays the authority. */
 const sanitize = (raw: string): string =>
-    raw.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 12);
+    raw
+        .replace(/[^a-zA-Z0-9 ]/g, "")
+        .replace(/\s+/g, " ")
+        .replace(/^ /, "")
+        .toUpperCase()
+        .slice(0, 14);
 
 type Props = {
     tableNumber: string | null;
@@ -85,12 +91,12 @@ const TableNumberField = ({
                 value={value}
                 onChange={(e) => setValue(sanitize(e.target.value))}
                 onKeyDown={(e) => e.key === "Escape" && handleCancel()}
-                maxLength={12}
-                placeholder="Table"
+                maxLength={14}
+                placeholder="VIP 1"
                 aria-label="Table number"
                 autoCapitalize="characters"
                 autoCorrect="off"
-                className="h-9 w-24 px-3 text-sm uppercase"
+                className="h-9 w-28 px-3 text-sm uppercase"
             />
             <Button type="submit" size="sm" disabled={busy}>
                 <Check size={14} />

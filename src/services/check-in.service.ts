@@ -1,5 +1,6 @@
 import "server-only";
 
+import { squashTable } from "@/lib/pair-search";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type {
     CheckInPair,
@@ -227,8 +228,11 @@ export const clearCheckIn = async (intentId: string): Promise<CheckInWrite> => {
 
 // ─── Seating ────────────────────────────────────────────────────────────────
 
-/** Matches `fyb_pair_table_format_chk` in migration 011 — keep the two in step. */
-const TABLE_PATTERN = /^[A-Z0-9]{1,12}$/;
+/** Matches `fyb_pair_table_label_chk` in migration 012 — keep the two in step. */
+const TABLE_PATTERN = /^[A-Z0-9]+( [A-Z0-9]+)*$/;
+const TABLE_MAX = 14;
+
+
 
 export type TableInput =
     | { ok: true; value: string | null }
@@ -237,22 +241,27 @@ export type TableInput =
 /**
  * A typed label, as it will be stored.
  *
- * Case and spacing are fixed silently — "a 4", "A4" and "a4 " are one table,
+ * Case and spacing are tidied silently — "vip  1" and " VIP 1 " are one table,
  * and three spellings of one table is how two couples end up at one chair.
+ * Uniqueness goes further and ignores spaces entirely, so "VIP1" cannot be
+ * typed in beside "VIP 1" (migration 012).
  * Anything else is refused with the rule spelled out, because at the door a
  * rejected label needs to say what to type instead.
  */
 export const parseTableNumber = (raw: string): TableInput => {
-    const value = raw.replace(/\s+/g, "").toUpperCase();
+    const value = raw.trim().replace(/\s+/g, " ").toUpperCase();
     if (!value) return { ok: true, value: null };
 
-    if (value.length > 12) {
-        return { ok: false, message: "A table label can be up to 12 characters." };
+    if (value.length > TABLE_MAX) {
+        return {
+            ok: false,
+            message: `A table label can be up to ${TABLE_MAX} characters.`,
+        };
     }
     if (!TABLE_PATTERN.test(value)) {
         return {
             ok: false,
-            message: "Letters and numbers only — like A4, VIP2 or 12.",
+            message: "Letters and numbers only — like VIP 1, R1 or T12.",
         };
     }
     return { ok: true, value };
@@ -265,21 +274,30 @@ export type TableWrite =
 /** Who is sitting at this table already — for the "A4 is taken" message. */
 const describeTableHolder = async (tableNumber: string): Promise<string> => {
     const supabase = createServerSupabase();
-    const { data } = await supabase
+    // Matched on the squashed label, the same form the unique index uses —
+    // the clash may well be spelled "VIP1" where this attempt said "VIP 1".
+    const { data: rows } = await supabase
         .from("fyb_pair_intents")
         .select(
-            "code, associate_name, " +
+            "code, table_number, associate_name, " +
                 "initiator:fyb_registrations!fyb_pair_intents_initiator_registration_id_fkey(first_name, last_name), " +
                 "partner:fyb_registrations!fyb_pair_intents_partner_registration_id_fkey(first_name, last_name)"
         )
-        .eq("table_number", tableNumber)
-        .maybeSingle<{
-            code: string;
-            associate_name: string | null;
-            initiator: { first_name: string; last_name: string } | null;
-            partner: { first_name: string; last_name: string } | null;
-        }>();
+        .not("table_number", "is", null)
+        .returns<
+            {
+                code: string;
+                table_number: string;
+                associate_name: string | null;
+                initiator: { first_name: string; last_name: string } | null;
+                partner: { first_name: string; last_name: string } | null;
+            }[]
+        >();
 
+    const wanted = squashTable(tableNumber);
+    const data = (rows ?? []).find(
+        (row) => squashTable(row.table_number) === wanted
+    );
     if (!data) return "another pair";
 
     const first = data.initiator
@@ -335,8 +353,8 @@ export const setTableNumber = async (
                 message: "They're already inside — undo their check-in before clearing the table.",
             };
         }
-        if (error.message.includes("fyb_pair_table_format_chk")) {
-            return { ok: false, message: "Letters and numbers only — like A4, VIP2 or 12." };
+        if (error.message.includes("fyb_pair_table_label_chk")) {
+            return { ok: false, message: "Letters and numbers only — like VIP 1, R1 or T12." };
         }
         console.error("setTableNumber failed:", error.message);
         return { ok: false, message: "Could not save the table. Try again." };
@@ -345,4 +363,68 @@ export const setTableNumber = async (
     if (!data) return { ok: false, message: NOT_APPROVED };
 
     return { ok: true, tableNumber };
+};
+
+// ─── The public seating list ────────────────────────────────────────────────
+
+/** A seated couple, as the hall sees them. Names and a table, nothing else. */
+export type SeatedPair = {
+    tableNumber: string;
+    names: string[];
+};
+
+/**
+ * Natural order, so T2 comes before T10 and "VIP 1" sits with the VIPs.
+ * Comparing the labels as plain strings would scatter the plan across the page
+ * exactly where someone is scanning it in a hurry.
+ */
+const naturalCompare = (a: string, b: string): number =>
+    a.localeCompare(b, "en", { numeric: true, sensitivity: "base" });
+
+/**
+ * Everyone with a table, for the page behind the QR code at the door.
+ *
+ * Public — no admin session — so it carries names and a table and nothing else.
+ * No email, no phone, no arrival state: this is printed on a wall in effect,
+ * and a wall does not need to know who has already come in.
+ */
+export const getSeatedPairs = async (): Promise<SeatedPair[]> => {
+    const supabase = createServerSupabase();
+    const { data, error } = await supabase
+        .from("fyb_pair_intents")
+        .select(
+            "table_number, associate_name, " +
+                "initiator:fyb_registrations!fyb_pair_intents_initiator_registration_id_fkey(first_name, last_name), " +
+                "partner:fyb_registrations!fyb_pair_intents_partner_registration_id_fkey(first_name, last_name)"
+        )
+        .eq("status", "approved")
+        .not("table_number", "is", null)
+        .limit(2000)
+        .returns<
+            {
+                table_number: string;
+                associate_name: string | null;
+                initiator: { first_name: string; last_name: string } | null;
+                partner: { first_name: string; last_name: string } | null;
+            }[]
+        >();
+
+    if (error) {
+        console.error("getSeatedPairs failed:", error.message);
+        return [];
+    }
+
+    return (data ?? [])
+        .map((row) => ({
+            tableNumber: row.table_number,
+            names: [
+                row.initiator
+                    ? fullName(row.initiator.first_name, row.initiator.last_name)
+                    : null,
+                row.partner
+                    ? fullName(row.partner.first_name, row.partner.last_name)
+                    : row.associate_name,
+            ].filter((name): name is string => Boolean(name)),
+        }))
+        .sort((a, b) => naturalCompare(a.tableNumber, b.tableNumber));
 };
