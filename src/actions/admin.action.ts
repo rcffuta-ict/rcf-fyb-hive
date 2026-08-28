@@ -425,6 +425,10 @@ export async function revokePairApproval(
         .update({
             status: "cancelled",
             cancel_reason: `approval revoked by organizer: ${reason || "admin error"}`,
+            // Only an approved pairing may carry an arrival (see migration 010),
+            // so a revoked one gives its check-in back.
+            checked_in_at: null,
+            checked_in_by: null,
         })
         .eq("id", id)
         .eq("status", "approved");

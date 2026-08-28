@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { HeartHandshake } from "lucide-react";
+import { DoorOpen, HeartHandshake } from "lucide-react";
 
 import {
     approvePairIntent,
@@ -80,17 +81,26 @@ const PairIntentsPanel = (): React.JSX.Element => {
 
     return (
         <div className="mt-4">
-            <div className="flex flex-wrap gap-2">
-                {FILTERS.map((f) => (
-                    <Button
-                        key={f.key}
-                        size="sm"
-                        variant={filter === f.key ? "default" : "outline"}
-                        onClick={() => setFilter(f.key)}
-                    >
-                        {f.label}
-                    </Button>
-                ))}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-2">
+                    {FILTERS.map((f) => (
+                        <Button
+                            key={f.key}
+                            size="sm"
+                            variant={filter === f.key ? "default" : "outline"}
+                            onClick={() => setFilter(f.key)}
+                        >
+                            {f.label}
+                        </Button>
+                    ))}
+                </div>
+
+                {/* The door is its own screen — this is the only way in. */}
+                <Button size="sm" variant="secondary" asChild>
+                    <Link href="/admin/check-in">
+                        <DoorOpen size={14} /> Gate check-in
+                    </Link>
+                </Button>
             </div>
 
             <div className="surface mt-4 overflow-hidden p-0">

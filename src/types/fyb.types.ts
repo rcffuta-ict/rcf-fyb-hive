@@ -143,6 +143,40 @@ export type PairIntentRecord = {
     associate: AssociateDetails | null;
 };
 
+/**
+ * One half of a pair, as the gate sees them.
+ *
+ * Flattened on purpose: at the door nobody cares whether this person is a
+ * finalist or an associate — they care about a face, a name, and something to
+ * search by. `detail` carries whatever context that side has (level · unit for
+ * a finalist, the relationship for an associate).
+ */
+export type CheckInPerson = {
+    name: string;
+    detail: string;
+    email: string | null;
+    phone: string | null;
+    gender: Gender | null;
+    photoUrl: string | null;
+    isAssociate: boolean;
+};
+
+/**
+ * An approved pairing on the check-in roster.
+ *
+ * Arrival is recorded on the pair, not the person: the invitation says "no
+ * date, no entry", so the two of them are admitted together or not at all.
+ */
+export type CheckInPair = {
+    intentId: string;
+    code: string;
+    kind: PairIntentKind;
+    checkedInAt: string | null;
+    /** Display name of the admin who admitted them; null until they arrive. */
+    checkedInBy: string | null;
+    people: CheckInPerson[];
+};
+
 export type ConsentStatusEntry = {
     registrationId: string;
     status: ConsentEmailStatus;
