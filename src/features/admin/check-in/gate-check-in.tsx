@@ -90,6 +90,13 @@ const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
                     <p className="mt-1 text-sm text-muted-foreground">
                         {admin.firstName} on the gate · seat them now, admit them later
                     </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                        The check-in team works the door at{" "}
+                        <Link href="/tables" className="underline underline-offset-4">
+                            /tables
+                        </Link>{" "}
+                        — tables are assigned here only.
+                    </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
                     <Button variant="ghost" size="sm" asChild>

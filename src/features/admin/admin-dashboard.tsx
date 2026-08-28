@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import AwardsPanel from "./awards/awards-panel";
 import DashboardHeader from "./dashboard-header";
 import PairingPanel from "./pairing/pairing-panel";
-import RegistrationsPanel from "./registrations-panel";
+import RegistrationsView from "./registrations-view";
 
 /**
  * One tab per feature, each owning its own stats and settings.
@@ -56,7 +56,7 @@ const AdminDashboard = (): React.JSX.Element => {
                 ))}
             </div>
 
-            {tab === "registrations" && <RegistrationsPanel />}
+            {tab === "registrations" && <RegistrationsView />}
             {tab === "pairings" && <PairingPanel />}
             {tab === "awards" && <AwardsPanel />}
         </section>

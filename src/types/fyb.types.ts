@@ -193,6 +193,22 @@ export type RegisterResult = {
     message?: string;
 };
 
+/**
+ * Someone allowed to admit couples at the door.
+ *
+ * Either a member of the registration team on the `fyb_checkin_managers` list,
+ * or an admin — admins work the door too, and locking them out of it would mean
+ * keeping two logins on one phone. `isAdmin` is what the door page reads to
+ * decide whether the table field is theirs to touch.
+ */
+export type CheckInManager = {
+    profileId: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    isAdmin: boolean;
+};
+
 /** A verified admin (must have an existing profile + a `fyb_admins` row). */
 export type AdminProfile = {
     profileId: string;

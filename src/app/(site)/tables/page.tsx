@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import Logo from "@/components/brand/logo";
 import { site } from "@/config/site";
+import { getCurrentCheckInManager } from "@/actions/check-in-access.action";
 import TableDirectory from "@/features/tables/table-directory";
 import { getSeatedPairs } from "@/services/check-in.service";
 
@@ -11,6 +12,11 @@ import { getSeatedPairs } from "@/services/check-in.service";
  * Public and unauthenticated on purpose: it is reached by pointing a camera at
  * a poster, and a login screen at that moment is a queue. It carries names and
  * tables only — nothing that isn't already visible on a place card.
+ *
+ * It is also the door. A member of the registration team signs in here and the
+ * same rows grow a Check in button; everyone else just reads the list. One
+ * page, so the plan the guest reads and the plan the door works are the same
+ * plan.
  */
 
 export const metadata: Metadata = {
@@ -22,7 +28,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function TablesPage(): Promise<React.JSX.Element> {
-    const pairs = await getSeatedPairs();
+    const [pairs, manager] = await Promise.all([
+        getSeatedPairs(),
+        getCurrentCheckInManager(),
+    ]);
 
     return (
         <section className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
@@ -37,7 +46,7 @@ export default async function TablesPage(): Promise<React.JSX.Element> {
                 </p>
             </div>
 
-            <TableDirectory pairs={pairs} />
+            <TableDirectory pairs={pairs} manager={manager} />
 
             <p className="mt-6 text-center text-xs text-muted-foreground">
                 Can&apos;t find your name? Speak to someone at the door — they can seat you.

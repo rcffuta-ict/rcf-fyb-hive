@@ -367,10 +367,12 @@ export const setTableNumber = async (
 
 // ─── The public seating list ────────────────────────────────────────────────
 
-/** A seated couple, as the hall sees them. Names and a table, nothing else. */
+/** A seated couple, as the hall sees them. Names, a table, and whether they're in. */
 export type SeatedPair = {
+    intentId: string;
     tableNumber: string;
     names: string[];
+    checkedIn: boolean;
 };
 
 /**
@@ -384,16 +386,20 @@ const naturalCompare = (a: string, b: string): number =>
 /**
  * Everyone with a table, for the page behind the QR code at the door.
  *
- * Public — no admin session — so it carries names and a table and nothing else.
- * No email, no phone, no arrival state: this is printed on a wall in effect,
- * and a wall does not need to know who has already come in.
+ * Public — no session — so it carries names, a table and whether the couple is
+ * already inside. No email, no phone, no audit trail: this is a wall chart in
+ * effect, and a wall does not need to know who admitted whom.
+ *
+ * The same list is what a check-in manager works from, which is why the intent
+ * id rides along. It is useless without a door session — `checkInPair` checks
+ * one on every call.
  */
 export const getSeatedPairs = async (): Promise<SeatedPair[]> => {
     const supabase = createServerSupabase();
     const { data, error } = await supabase
         .from("fyb_pair_intents")
         .select(
-            "table_number, associate_name, " +
+            "id, table_number, checked_in_at, associate_name, " +
                 "initiator:fyb_registrations!fyb_pair_intents_initiator_registration_id_fkey(first_name, last_name), " +
                 "partner:fyb_registrations!fyb_pair_intents_partner_registration_id_fkey(first_name, last_name)"
         )
@@ -402,7 +408,9 @@ export const getSeatedPairs = async (): Promise<SeatedPair[]> => {
         .limit(2000)
         .returns<
             {
+                id: string;
                 table_number: string;
+                checked_in_at: string | null;
                 associate_name: string | null;
                 initiator: { first_name: string; last_name: string } | null;
                 partner: { first_name: string; last_name: string } | null;
@@ -416,7 +424,9 @@ export const getSeatedPairs = async (): Promise<SeatedPair[]> => {
 
     return (data ?? [])
         .map((row) => ({
+            intentId: row.id,
             tableNumber: row.table_number,
+            checkedIn: Boolean(row.checked_in_at),
             names: [
                 row.initiator
                     ? fullName(row.initiator.first_name, row.initiator.last_name)

@@ -26,6 +26,7 @@ an already-applied migration is safe and does nothing.
 | 010 | `010_checkin-migration.sql`        | Gate check-in: when an approved pair was admitted, by whom, and their table |
 | 011 | `011_table-assignment-migration.sql` | Tables become unique, uppercase alphanumeric, and required before check-in |
 | 012 | `012_table-label-spaces-migration.sql` | Table labels may hold spaces ("VIP 1"); uniqueness ignores them |
+| 013 | `013_checkin-managers-migration.sql` | The registration team's door roster — who may admit couples |
 
 `002` defines `set_updated_at()`, which several later files attach as a trigger.
 It is the one dependency that is not obvious from the table names, so nothing

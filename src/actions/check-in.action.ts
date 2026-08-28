@@ -1,19 +1,28 @@
 "use server";
 
 import { getCurrentAdmin } from "@/actions/admin.action";
+import { getCurrentCheckInManager } from "@/actions/check-in-access.action";
 import {
     clearCheckIn,
     getCheckInRoster,
+    getSeatedPairs,
     markCheckedIn,
     setTableNumber,
+    type SeatedPair,
 } from "@/services/check-in.service";
 import type { CheckInPair } from "@/types/fyb.types";
 
 /**
  * Gate actions.
  *
- * Every one re-checks the admin cookie: this page is used on a borrowed phone
- * at a door, which is the least controlled device the project has.
+ * Two roles reach these, and the split is the point:
+ *
+ *   • the roster and the table field are ADMIN only — seating is planned, not
+ *     rewritten at the door by whoever is holding the phone
+ *   • admitting a couple accepts a check-in manager, i.e. the registration team
+ *
+ * Every call re-checks its cookie against the database, because these run on
+ * borrowed phones at a door — the least controlled devices the project has.
  */
 
 export type CheckInResult = {
@@ -30,11 +39,17 @@ export async function loadCheckInRoster(): Promise<CheckInPair[]> {
     return getCheckInRoster();
 }
 
+/**
+ * Admit a couple. Open to the registration team, not just organizers.
+ *
+ * Whoever pressed the button is stamped on the row — that name is the audit
+ * trail, so it is taken from the verified session and never from the client.
+ */
 export async function checkInPair(intentId: string): Promise<CheckInResult> {
-    const admin = await getCurrentAdmin();
-    if (!admin) return { ok: false, message: "Not authorized." };
+    const manager = await getCurrentCheckInManager();
+    if (!manager) return { ok: false, message: "Sign in to check couples in." };
 
-    const result = await markCheckedIn(intentId, admin.profileId);
+    const result = await markCheckedIn(intentId, manager.profileId);
     if (!result.ok) return { ok: false, message: result.message };
 
     return { ok: true, message: "Checked in — let them through.", checkedInAt: result.checkedInAt };
@@ -42,8 +57,8 @@ export async function checkInPair(intentId: string): Promise<CheckInResult> {
 
 /** Undo — for the row pressed by mistake, not for sending anybody back out. */
 export async function undoCheckIn(intentId: string): Promise<CheckInResult> {
-    const admin = await getCurrentAdmin();
-    if (!admin) return { ok: false, message: "Not authorized." };
+    const manager = await getCurrentCheckInManager();
+    if (!manager) return { ok: false, message: "Sign in to undo a check-in." };
 
     const result = await clearCheckIn(intentId);
     if (!result.ok) return { ok: false, message: result.message };
@@ -59,7 +74,8 @@ export type TableResult = {
 };
 
 /**
- * Assign or change a pair's table.
+ * Assign or change a pair's table. Organizers only — a check-in manager admits
+ * couples to the seats the plan gave them, and cannot move anybody.
  *
  * Editable rather than write-once on purpose: seating gets rearranged on the
  * night, and an organizer who cannot correct a table will write the real one on
@@ -82,4 +98,15 @@ export async function assignTableNumber(
             : "Table cleared.",
         tableNumber: result.tableNumber,
     };
+}
+
+/**
+ * The public seating list, as the QR poster's page reads it.
+ *
+ * No session required — it is reached by pointing a camera at a wall. The same
+ * list backs the door: a signed-in manager gets buttons beside these rows, and
+ * every one of those buttons calls an action that checks a session of its own.
+ */
+export async function loadSeating(): Promise<SeatedPair[]> {
+    return getSeatedPairs();
 }
