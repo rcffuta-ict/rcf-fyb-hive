@@ -134,11 +134,40 @@ export type CheckInWrite =
     | { ok: false; message: string };
 
 /**
+ * Why a guarded write matched no row.
+ *
+ * Every mutation here is written as an UPDATE with its preconditions in the
+ * WHERE clause, so the database decides races rather than this code. That makes
+ * "no rows updated" the normal way a race is lost — and the operator at the door
+ * needs a sentence, not silence, so the row is read back to find out which
+ * precondition failed.
+ */
+type IntentState = {
+    status: string;
+    checked_in_at: string | null;
+    table_number: string | null;
+};
+
+const readState = async (intentId: string): Promise<IntentState | null> => {
+    const supabase = createServerSupabase();
+    const { data } = await supabase
+        .from("fyb_pair_intents")
+        .select("status, checked_in_at, table_number")
+        .eq("id", intentId)
+        .maybeSingle<IntentState>();
+    return data ?? null;
+};
+
+const NOT_APPROVED =
+    "That pairing isn't approved — check the Pairings tab before letting anyone in.";
+
+/**
  * Admit a pair.
  *
- * Guarded on `checked_in_at is null` so two people working the same door can
- * press the button at the same moment and only one write lands — the second
- * comes back as "already inside", which is exactly what the gate needs to hear.
+ * Two preconditions ride in the WHERE clause: not already inside, and seated.
+ * Both are also constraints in the database (migration 011), so a second gate
+ * pressing the same button, or one clearing the table as another admits the
+ * couple, ends as a refusal rather than as a double entry or a seatless guest.
  */
 export const markCheckedIn = async (
     intentId: string,
@@ -153,18 +182,29 @@ export const markCheckedIn = async (
         .eq("id", intentId)
         .eq("status", "approved")
         .is("checked_in_at", null)
+        .not("table_number", "is", null)
         .select("id")
         .maybeSingle<{ id: string }>();
 
     if (error) {
+        // The constraint got there first: their table was cleared between the
+        // WHERE clause and the write.
+        if (error.message.includes("fyb_pair_checkin_needs_table_chk")) {
+            return { ok: false, message: "Give them a table first — this pair has none." };
+        }
         console.error("markCheckedIn failed:", error.message);
         return { ok: false, message: "Could not check them in. Try again." };
     }
+
     if (!data) {
-        return {
-            ok: false,
-            message: "They're already inside — nothing to do.",
-        };
+        const state = await readState(intentId);
+        if (!state || state.status !== "approved") {
+            return { ok: false, message: NOT_APPROVED };
+        }
+        if (state.checked_in_at) {
+            return { ok: false, message: "They're already inside — nothing to do." };
+        }
+        return { ok: false, message: "Give them a table first — this pair has none." };
     }
 
     return { ok: true, checkedInAt };
@@ -185,29 +225,90 @@ export const clearCheckIn = async (intentId: string): Promise<CheckInWrite> => {
     return { ok: true, checkedInAt: null };
 };
 
+// ─── Seating ────────────────────────────────────────────────────────────────
+
+/** Matches `fyb_pair_table_format_chk` in migration 011 — keep the two in step. */
+const TABLE_PATTERN = /^[A-Z0-9]{1,12}$/;
+
+export type TableInput =
+    | { ok: true; value: string | null }
+    | { ok: false; message: string };
+
 /**
- * How a table label is stored, wherever it was typed.
+ * A typed label, as it will be stored.
  *
- * Upper-cased and space-collapsed so "a 4", "A4" and "a4 " are one table rather
- * than three — the seating plan is compared by eye all evening, and three
- * spellings of the same table is how two couples end up sent to one chair.
- * Blank clears the assignment.
+ * Case and spacing are fixed silently — "a 4", "A4" and "a4 " are one table,
+ * and three spellings of one table is how two couples end up at one chair.
+ * Anything else is refused with the rule spelled out, because at the door a
+ * rejected label needs to say what to type instead.
  */
-export const normalizeTableNumber = (value: string): string | null => {
-    const cleaned = value.trim().replace(/\s+/g, " ").toUpperCase();
-    return cleaned ? cleaned.slice(0, 12) : null;
+export const parseTableNumber = (raw: string): TableInput => {
+    const value = raw.replace(/\s+/g, "").toUpperCase();
+    if (!value) return { ok: true, value: null };
+
+    if (value.length > 12) {
+        return { ok: false, message: "A table label can be up to 12 characters." };
+    }
+    if (!TABLE_PATTERN.test(value)) {
+        return {
+            ok: false,
+            message: "Letters and numbers only — like A4, VIP2 or 12.",
+        };
+    }
+    return { ok: true, value };
 };
 
 export type TableWrite =
     | { ok: true; tableNumber: string | null }
     | { ok: false; message: string };
 
-/** Assign, change or clear a pair's table. Approved pairings only. */
+/** Who is sitting at this table already — for the "A4 is taken" message. */
+const describeTableHolder = async (tableNumber: string): Promise<string> => {
+    const supabase = createServerSupabase();
+    const { data } = await supabase
+        .from("fyb_pair_intents")
+        .select(
+            "code, associate_name, " +
+                "initiator:fyb_registrations!fyb_pair_intents_initiator_registration_id_fkey(first_name, last_name), " +
+                "partner:fyb_registrations!fyb_pair_intents_partner_registration_id_fkey(first_name, last_name)"
+        )
+        .eq("table_number", tableNumber)
+        .maybeSingle<{
+            code: string;
+            associate_name: string | null;
+            initiator: { first_name: string; last_name: string } | null;
+            partner: { first_name: string; last_name: string } | null;
+        }>();
+
+    if (!data) return "another pair";
+
+    const first = data.initiator
+        ? fullName(data.initiator.first_name, data.initiator.last_name)
+        : null;
+    const second = data.partner
+        ? fullName(data.partner.first_name, data.partner.last_name)
+        : data.associate_name;
+
+    const names = [first, second].filter(Boolean).join(" & ");
+    return names || data.code;
+};
+
+/**
+ * Assign, move or clear a pair's table.
+ *
+ * The unique index does the deciding. Two gates typing A4 at the same instant
+ * is not something this code can win by checking first — one write lands, the
+ * other comes back 23505, and that one is turned into the name of whoever is
+ * already sitting there.
+ */
 export const setTableNumber = async (
     intentId: string,
     value: string
 ): Promise<TableWrite> => {
-    const tableNumber = normalizeTableNumber(value);
+    const parsed = parseTableNumber(value);
+    if (!parsed.ok) return { ok: false, message: parsed.message };
+
+    const tableNumber = parsed.value;
     const supabase = createServerSupabase();
 
     const { data, error } = await supabase
@@ -219,12 +320,29 @@ export const setTableNumber = async (
         .maybeSingle<{ id: string }>();
 
     if (error) {
+        // 23505 — somebody else holds this table.
+        if (error.code === "23505" && tableNumber) {
+            const holder = await describeTableHolder(tableNumber);
+            return {
+                ok: false,
+                message: `Table ${tableNumber} is already ${holder}'s. Move them first, or pick another table.`,
+            };
+        }
+        // 23514 — the seat was pulled out from under a couple already inside.
+        if (error.message.includes("fyb_pair_checkin_needs_table_chk")) {
+            return {
+                ok: false,
+                message: "They're already inside — undo their check-in before clearing the table.",
+            };
+        }
+        if (error.message.includes("fyb_pair_table_format_chk")) {
+            return { ok: false, message: "Letters and numbers only — like A4, VIP2 or 12." };
+        }
         console.error("setTableNumber failed:", error.message);
         return { ok: false, message: "Could not save the table. Try again." };
     }
-    if (!data) {
-        return { ok: false, message: "That pairing is no longer approved." };
-    }
+
+    if (!data) return { ok: false, message: NOT_APPROVED };
 
     return { ok: true, tableNumber };
 };

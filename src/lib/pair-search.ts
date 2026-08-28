@@ -36,8 +36,8 @@ const nameMatches = (name: string, tokens: string[]): boolean => {
 
 /**
  * Table lookups are exact, and understand the word people say out loud: both
- * "table 7" and "7" pull up everyone seated there. Substring matching would be
- * wrong here — table 1 must not drag in tables 11 and 12.
+ * "table 7" and "7" find whoever holds it. Substring matching would be wrong
+ * here — table 1 must not drag in tables 11 and 12.
  */
 const tableMatches = (tableNumber: string | null, query: string): boolean => {
     if (!tableNumber) return false;

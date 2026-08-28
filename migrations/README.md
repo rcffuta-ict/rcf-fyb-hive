@@ -24,6 +24,7 @@ an already-applied migration is safe and does nothing.
 | 008 | `008_awards-entries-migration.sql`| Entry kinds: individual / clique / brand                   |
 | 009 | `009_awards-tiebreak-migration.sql` | Committee tie-breaks, and the `awards_ran` / `pairing_ran` season markers |
 | 010 | `010_checkin-migration.sql`        | Gate check-in: when an approved pair was admitted, by whom, and their table |
+| 011 | `011_table-assignment-migration.sql` | Tables become unique, uppercase alphanumeric, and required before check-in |
 
 `002` defines `set_updated_at()`, which several later files attach as a trigger.
 It is the one dependency that is not obvious from the table names, so nothing

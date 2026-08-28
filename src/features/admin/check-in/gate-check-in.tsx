@@ -44,6 +44,20 @@ const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
     };
 
     const handleSetTable = async (intentId: string, value: string): Promise<void> => {
+        // The roster in hand already knows most clashes, so the common case is
+        // answered without a round trip. The unique index is still the
+        // authority — this only spares the operator a wasted trip to the server.
+        const wanted = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+        const clash = roster.find(
+            (pair) => pair.intentId !== intentId && pair.tableNumber === wanted
+        );
+        if (wanted && clash) {
+            appToast.error(
+                `Table ${wanted} is already ${clash.people.map((p) => p.name.split(" ")[0]).join(" & ")}'s.`
+            );
+            return;
+        }
+
         const result = await setTable(intentId, value);
         if (result.ok) appToast.success(result.message);
         else appToast.error(result.message);
@@ -123,8 +137,7 @@ const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
                         <p className="mt-3 font-medium text-foreground">Search for the couple</p>
                         <p className="mt-1 text-sm text-muted-foreground">
                             Either of their names, either email, either phone number, the
-                            code on their invitation — or a table number, to see everyone
-                            seated there.
+                            code on their invitation — or a table, to see whose it is.
                         </p>
                     </div>
                 )}

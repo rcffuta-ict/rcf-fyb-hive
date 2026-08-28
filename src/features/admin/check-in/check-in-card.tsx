@@ -27,6 +27,11 @@ type Props = {
  * One couple, as the gate sees them: both faces, the code off their email, and
  * a single button. Already-admitted pairs keep the same card but lose the
  * button — the only thing left to do with them is undo a mistake.
+ *
+ * A pair with no table cannot be checked in. The card says so and leads with
+ * the table field instead, so the operator is never left guessing why the door
+ * button is dead. The database refuses the same thing (migration 011), which is
+ * what makes it true when two gates are working at once.
  */
 const CheckInCard = ({
     pair,
@@ -36,6 +41,7 @@ const CheckInCard = ({
     onSetTable,
 }: Props): React.JSX.Element => {
     const arrived = Boolean(pair.checkedInAt);
+    const seated = Boolean(pair.tableNumber);
 
     return (
         <div className="border-b border-border p-4 last:border-0">
@@ -66,6 +72,7 @@ const CheckInCard = ({
                 <TableNumberField
                     tableNumber={pair.tableNumber}
                     busy={busy}
+                    emphasize={!seated && !arrived}
                     onSave={(value) => onSetTable(pair.intentId, value)}
                 />
 
@@ -82,8 +89,10 @@ const CheckInCard = ({
                 ) : (
                     <Button
                         size="lg"
-                        disabled={busy}
+                        variant={seated ? "default" : "outline"}
+                        disabled={busy || !seated}
                         onClick={() => onCheckIn(pair.intentId)}
+                        title={seated ? undefined : "Give them a table first"}
                         className="min-w-40"
                     >
                         {busy ? (
@@ -99,7 +108,9 @@ const CheckInCard = ({
             <p className="mt-2 text-xs text-muted-foreground">
                 {arrived && pair.checkedInBy
                     ? `Admitted by ${pair.checkedInBy}`
-                    : "Both of them come in together — no date, no entry."}
+                    : !seated
+                      ? "Assign their table to open the door button."
+                      : "Both of them come in together — no date, no entry."}
             </p>
         </div>
     );

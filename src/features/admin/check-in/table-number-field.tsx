@@ -9,17 +9,33 @@ import { Input } from "@/components/ui/input";
 /**
  * The table a couple is seated at — shown as a label, edited in place.
  *
- * Free text, because rooms are laid out as "A4" and "VIP 2" as often as "12",
- * and always editable: seating gets rearranged on the night, and an organizer
- * who cannot correct a table will write the real one on their hand instead.
+ * Uppercase alphanumeric — "A4", "VIP2", "12" — and one table belongs to one
+ * couple, which the database enforces. Always editable, though: seating gets
+ * rearranged on the night, and an organizer who cannot correct a table will
+ * write the real one on their hand instead.
+ *
+ * The field sanitises as you type rather than scolding on submit. Anything that
+ * cannot be part of a label simply never appears, so the only save that can be
+ * refused is one that lost a race for the table — which is worth a sentence.
  */
+/** Mirrors `parseTableNumber` on the server, which stays the authority. */
+const sanitize = (raw: string): string =>
+    raw.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 12);
+
 type Props = {
     tableNumber: string | null;
     busy: boolean;
+    /** Draws the unseated state as the thing to do next, not an afterthought. */
+    emphasize?: boolean;
     onSave: (value: string) => void;
 };
 
-const TableNumberField = ({ tableNumber, busy, onSave }: Props): React.JSX.Element => {
+const TableNumberField = ({
+    tableNumber,
+    busy,
+    emphasize = false,
+    onSave,
+}: Props): React.JSX.Element => {
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState(tableNumber ?? "");
 
@@ -46,8 +62,8 @@ const TableNumberField = ({ tableNumber, busy, onSave }: Props): React.JSX.Eleme
     if (!editing) {
         return (
             <Button
-                variant="outline"
-                size="sm"
+                variant={emphasize ? "default" : "outline"}
+                size={emphasize ? "lg" : "sm"}
                 disabled={busy}
                 onClick={handleOpen}
                 title={tableNumber ? "Change table" : "Assign a table"}
@@ -67,7 +83,7 @@ const TableNumberField = ({ tableNumber, busy, onSave }: Props): React.JSX.Eleme
             <Input
                 autoFocus
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
+                onChange={(e) => setValue(sanitize(e.target.value))}
                 onKeyDown={(e) => e.key === "Escape" && handleCancel()}
                 maxLength={12}
                 placeholder="Table"

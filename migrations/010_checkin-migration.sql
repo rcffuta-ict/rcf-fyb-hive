@@ -41,6 +41,8 @@ begin
 end $$;
 
 -- ── Seating ─────────────────────────────────────────────────────────────
+-- NOTE: superseded by 011_table-assignment-migration.sql, which makes a table
+-- unique, uppercase-alphanumeric, and required before check-in. Kept as it ran.
 -- Text, not an integer: rooms get laid out as "A4" and "VIP 2" as often as
 -- "12", and a number would force the organizers to fight the schema on the
 -- afternoon they are least able to. Deliberately NOT unique — a table seats
