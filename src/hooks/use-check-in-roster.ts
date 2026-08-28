@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 
 import {
+    assignTableNumber,
     checkInPair,
     loadCheckInRoster,
     undoCheckIn,
     type CheckInResult,
+    type TableResult,
 } from "@/actions/check-in.action";
 import type { CheckInPair } from "@/types/fyb.types";
 
@@ -14,9 +16,9 @@ import type { CheckInPair } from "@/types/fyb.types";
  * The gate's copy of the approved roster.
  *
  * Fetched once and held in memory so searching is instant and survives the
- * venue's wifi. Only the two mutations go back to the server, and each one
- * patches its own row in place rather than refetching everything — a reload
- * mid-queue would lose the search the operator is standing in.
+ * venue's wifi. Only the mutations go back to the server, and each one patches
+ * its own row in place rather than refetching everything — a reload mid-queue
+ * would lose the search the operator is standing in.
  */
 export type CheckInRoster = {
     roster: CheckInPair[];
@@ -25,15 +27,15 @@ export type CheckInRoster = {
     refresh: () => void;
     checkIn: (intentId: string) => Promise<CheckInResult>;
     undo: (intentId: string) => Promise<CheckInResult>;
+    setTable: (intentId: string, value: string) => Promise<TableResult>;
 };
 
 export const useCheckInRoster = (adminName: string): CheckInRoster => {
     const [roster, setRoster] = useState<CheckInPair[]>([]);
     const [loading, setLoading] = useState(true);
     const [busyId, setBusyId] = useState<string | null>(null);
-
     // Bumped by `refresh` so the fetch stays entirely inside the effect — the
-    // only state written outside it is by the two mutations below.
+    // only state written outside it is by the mutations below.
     const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
@@ -57,12 +59,13 @@ export const useCheckInRoster = (adminName: string): CheckInRoster => {
         setReloadKey((key) => key + 1);
     }, []);
 
+    /** Run one mutation, then fold its result into that row and nothing else. */
     const run = useCallback(
-        async (
+        async <T extends { ok: boolean }>(
             intentId: string,
-            action: () => Promise<CheckInResult>,
-            by: string | null
-        ): Promise<CheckInResult> => {
+            action: () => Promise<T>,
+            patch: (result: T) => Partial<CheckInPair>
+        ): Promise<T> => {
             setBusyId(intentId);
             const result = await action();
             setBusyId(null);
@@ -71,11 +74,7 @@ export const useCheckInRoster = (adminName: string): CheckInRoster => {
                 setRoster((current) =>
                     current.map((pair) =>
                         pair.intentId === intentId
-                            ? {
-                                  ...pair,
-                                  checkedInAt: result.checkedInAt ?? null,
-                                  checkedInBy: result.checkedInAt ? by : null,
-                              }
+                            ? { ...pair, ...patch(result) }
                             : pair
                     )
                 );
@@ -90,7 +89,19 @@ export const useCheckInRoster = (adminName: string): CheckInRoster => {
         loading,
         busyId,
         refresh,
-        checkIn: (intentId) => run(intentId, () => checkInPair(intentId), adminName),
-        undo: (intentId) => run(intentId, () => undoCheckIn(intentId), null),
+        checkIn: (intentId) =>
+            run(intentId, () => checkInPair(intentId), (result) => ({
+                checkedInAt: result.checkedInAt ?? null,
+                checkedInBy: adminName,
+            })),
+        undo: (intentId) =>
+            run(intentId, () => undoCheckIn(intentId), () => ({
+                checkedInAt: null,
+                checkedInBy: null,
+            })),
+        setTable: (intentId, value) =>
+            run(intentId, () => assignTableNumber(intentId, value), (result) => ({
+                tableNumber: result.tableNumber ?? null,
+            })),
     };
 };

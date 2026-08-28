@@ -37,6 +37,7 @@ type RosterRow = {
     code: string;
     kind: PairIntentKind;
     checked_in_at: string | null;
+    table_number: string | null;
     associate_name: string | null;
     associate_email: string | null;
     associate_phone: string | null;
@@ -51,7 +52,7 @@ const PERSON_COLUMNS =
     "first_name, last_name, email, phone_number, gender, level, unit, photo_url";
 
 const ROSTER_SELECT =
-    "id, code, kind, checked_in_at, " +
+    "id, code, kind, checked_in_at, table_number, " +
     "associate_name, associate_email, associate_phone, associate_gender, associate_relationship, " +
     `initiator:fyb_registrations!fyb_pair_intents_initiator_registration_id_fkey(${PERSON_COLUMNS}), ` +
     `partner:fyb_registrations!fyb_pair_intents_partner_registration_id_fkey(${PERSON_COLUMNS}), ` +
@@ -95,6 +96,7 @@ const toPair = (row: RosterRow): CheckInPair | null => {
         checkedInBy: row.checked_in_admin
             ? fullName(row.checked_in_admin.first_name, row.checked_in_admin.last_name)
             : null,
+        tableNumber: row.table_number,
         people: [toPerson(row.initiator), other],
     };
 };
@@ -181,4 +183,48 @@ export const clearCheckIn = async (intentId: string): Promise<CheckInWrite> => {
         return { ok: false, message: "Could not undo. Try again." };
     }
     return { ok: true, checkedInAt: null };
+};
+
+/**
+ * How a table label is stored, wherever it was typed.
+ *
+ * Upper-cased and space-collapsed so "a 4", "A4" and "a4 " are one table rather
+ * than three — the seating plan is compared by eye all evening, and three
+ * spellings of the same table is how two couples end up sent to one chair.
+ * Blank clears the assignment.
+ */
+export const normalizeTableNumber = (value: string): string | null => {
+    const cleaned = value.trim().replace(/\s+/g, " ").toUpperCase();
+    return cleaned ? cleaned.slice(0, 12) : null;
+};
+
+export type TableWrite =
+    | { ok: true; tableNumber: string | null }
+    | { ok: false; message: string };
+
+/** Assign, change or clear a pair's table. Approved pairings only. */
+export const setTableNumber = async (
+    intentId: string,
+    value: string
+): Promise<TableWrite> => {
+    const tableNumber = normalizeTableNumber(value);
+    const supabase = createServerSupabase();
+
+    const { data, error } = await supabase
+        .from("fyb_pair_intents")
+        .update({ table_number: tableNumber })
+        .eq("id", intentId)
+        .eq("status", "approved")
+        .select("id")
+        .maybeSingle<{ id: string }>();
+
+    if (error) {
+        console.error("setTableNumber failed:", error.message);
+        return { ok: false, message: "Could not save the table. Try again." };
+    }
+    if (!data) {
+        return { ok: false, message: "That pairing is no longer approved." };
+    }
+
+    return { ok: true, tableNumber };
 };

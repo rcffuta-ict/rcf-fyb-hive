@@ -34,6 +34,17 @@ const nameMatches = (name: string, tokens: string[]): boolean => {
     return tokens.every((token) => haystack.includes(token));
 };
 
+/**
+ * Table lookups are exact, and understand the word people say out loud: both
+ * "table 7" and "7" pull up everyone seated there. Substring matching would be
+ * wrong here — table 1 must not drag in tables 11 and 12.
+ */
+const tableMatches = (tableNumber: string | null, query: string): boolean => {
+    if (!tableNumber) return false;
+    const asked = squash(query.replace(/^\s*tables?\s*/i, ""));
+    return asked.length > 0 && squash(tableNumber) === asked;
+};
+
 export const pairMatches = (pair: CheckInPair, rawQuery: string): boolean => {
     const query = rawQuery.trim();
     if (!query) return false;
@@ -42,6 +53,7 @@ export const pairMatches = (pair: CheckInPair, rawQuery: string): boolean => {
     const tokens = lower.split(/\s+/).filter(Boolean);
 
     if (squash(pair.code).includes(squash(query))) return true;
+    if (tableMatches(pair.tableNumber, query)) return true;
 
     return pair.people.some(
         (person) =>

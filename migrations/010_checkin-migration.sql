@@ -10,6 +10,10 @@
 -- Check-in lives on the intent rather than on a person because the invitation
 -- says "no date, no entry" — the pair is what walks in, so the pair is what is
 -- marked. One row, one arrival, no half-admitted couples.
+--
+-- The table number rides along for the same reason: a couple is seated
+-- together, so seating is a property of the pair, not of two people who would
+-- then have to be kept in step by hand.
 -- ════════════════════════════════════════════════════════════════════════
 
 alter table public.fyb_pair_intents
@@ -35,3 +39,28 @@ begin
             check (checked_in_at is null or status = 'approved');
     end if;
 end $$;
+
+-- ── Seating ─────────────────────────────────────────────────────────────
+-- Text, not an integer: rooms get laid out as "A4" and "VIP 2" as often as
+-- "12", and a number would force the organizers to fight the schema on the
+-- afternoon they are least able to. Deliberately NOT unique — a table seats
+-- several couples — and nullable, since seating is assigned when the plan
+-- exists, which may be after the pairing was approved.
+alter table public.fyb_pair_intents
+    add column if not exists table_number text;
+
+do $$
+begin
+    if not exists (
+        select 1 from pg_constraint where conname = 'fyb_pair_table_number_chk'
+    ) then
+        alter table public.fyb_pair_intents
+            add constraint fyb_pair_table_number_chk
+            check (table_number is null or char_length(table_number) between 1 and 12);
+    end if;
+end $$;
+
+-- "Who is on table 7" — the question asked from the floor, not the door.
+create index if not exists fyb_pair_table_number_idx
+    on public.fyb_pair_intents (table_number)
+    where table_number is not null;

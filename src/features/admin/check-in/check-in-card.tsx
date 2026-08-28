@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { CheckInPair } from "@/types/fyb.types";
 import CheckInFace from "./check-in-face";
+import TableNumberField from "./table-number-field";
 
 /** Wall-clock arrival, in the timezone the door is standing in. */
 const timeFmt = new Intl.DateTimeFormat("en-NG", {
@@ -19,6 +20,7 @@ type Props = {
     busy: boolean;
     onCheckIn: (intentId: string) => void;
     onUndo: (intentId: string) => void;
+    onSetTable: (intentId: string, value: string) => void;
 };
 
 /**
@@ -26,7 +28,13 @@ type Props = {
  * a single button. Already-admitted pairs keep the same card but lose the
  * button — the only thing left to do with them is undo a mistake.
  */
-const CheckInCard = ({ pair, busy, onCheckIn, onUndo }: Props): React.JSX.Element => {
+const CheckInCard = ({
+    pair,
+    busy,
+    onCheckIn,
+    onUndo,
+    onSetTable,
+}: Props): React.JSX.Element => {
     const arrived = Boolean(pair.checkedInAt);
 
     return (
@@ -52,11 +60,14 @@ const CheckInCard = ({ pair, busy, onCheckIn, onUndo }: Props): React.JSX.Elemen
             </div>
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs text-muted-foreground">
-                    {arrived && pair.checkedInBy
-                        ? `Admitted by ${pair.checkedInBy}`
-                        : "Both of them come in together — no date, no entry."}
-                </p>
+                {/* Seating sits next to the door button, because the two things
+                    said to an arriving couple are "you're in" and "you're on
+                    table 7" — splitting them across screens splits the sentence. */}
+                <TableNumberField
+                    tableNumber={pair.tableNumber}
+                    busy={busy}
+                    onSave={(value) => onSetTable(pair.intentId, value)}
+                />
 
                 {arrived ? (
                     <Button
@@ -84,6 +95,12 @@ const CheckInCard = ({ pair, busy, onCheckIn, onUndo }: Props): React.JSX.Elemen
                     </Button>
                 )}
             </div>
+
+            <p className="mt-2 text-xs text-muted-foreground">
+                {arrived && pair.checkedInBy
+                    ? `Admitted by ${pair.checkedInBy}`
+                    : "Both of them come in together — no date, no entry."}
+            </p>
         </div>
     );
 };

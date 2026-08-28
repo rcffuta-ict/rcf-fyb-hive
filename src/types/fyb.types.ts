@@ -174,6 +174,8 @@ export type CheckInPair = {
     checkedInAt: string | null;
     /** Display name of the admin who admitted them; null until they arrive. */
     checkedInBy: string | null;
+    /** Where they're seated. Free text ("12", "A4", "VIP 2"); null until assigned. */
+    tableNumber: string | null;
     people: CheckInPerson[];
 };
 

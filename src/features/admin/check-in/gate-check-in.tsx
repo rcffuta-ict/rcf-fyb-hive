@@ -28,7 +28,7 @@ const MIN_QUERY = 2;
 
 const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
     const [query, setQuery] = useState("");
-    const { roster, loading, busyId, refresh, checkIn, undo } = useCheckInRoster(
+    const { roster, loading, busyId, refresh, checkIn, undo, setTable } = useCheckInRoster(
         `${admin.firstName} ${admin.lastName}`.trim()
     );
 
@@ -39,6 +39,12 @@ const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
 
     const handleCheckIn = async (intentId: string): Promise<void> => {
         const result = await checkIn(intentId);
+        if (result.ok) appToast.success(result.message);
+        else appToast.error(result.message);
+    };
+
+    const handleSetTable = async (intentId: string, value: string): Promise<void> => {
+        const result = await setTable(intentId, value);
         if (result.ok) appToast.success(result.message);
         else appToast.error(result.message);
     };
@@ -82,7 +88,7 @@ const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
                     autoFocus
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Name, email, phone or pair code…"
+                    placeholder="Name, email, phone, code or table…"
                     className="h-14 pl-12 pr-24 text-lg"
                     // Gate phones: no autocorrect turning a surname into a word.
                     autoCapitalize="none"
@@ -116,8 +122,9 @@ const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
                         <ScanLine size={28} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 font-medium text-foreground">Search for the couple</p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Either of their names, either email, either phone number, or the
-                            code on their invitation.
+                            Either of their names, either email, either phone number, the
+                            code on their invitation — or a table number, to see everyone
+                            seated there.
                         </p>
                     </div>
                 )}
@@ -139,6 +146,7 @@ const GateCheckIn = ({ admin }: { admin: AdminProfile }): React.JSX.Element => {
                         busy={busyId === pair.intentId}
                         onCheckIn={(id) => void handleCheckIn(id)}
                         onUndo={(id) => void handleUndo(id)}
+                        onSetTable={(id, value) => void handleSetTable(id, value)}
                     />
                 ))}
             </div>
