@@ -49,8 +49,8 @@ const StaffBar = ({ manager }: { manager: CheckInManager | null }): React.JSX.El
 
     if (manager) {
         return (
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-2 rounded-token border border-primary/30 bg-primary/5 px-4 py-2.5">
-                <p className="text-sm text-foreground">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-token border border-primary/30 bg-primary/5 px-3 py-2">
+                <p className="text-xs text-foreground sm:text-sm">
                     <ShieldCheck size={14} className="mr-1.5 inline text-primary" />
                     Checking in as{" "}
                     <span className="font-semibold">

@@ -36,20 +36,35 @@ export default async function TablesPage(): Promise<React.JSX.Element> {
     const pairs = manager ? [] : await getSeatedPairs();
 
     return (
-        <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+        <section className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-12">
+            {/* The door view trims its own header on a phone: the search box and
+                the first pair of faces are what has to be on screen. */}
             <div className="text-center">
-                <Logo size={56} href={null} className="justify-center" />
-                <span className="eyebrow mt-4 block">{site.event.title}</span>
-                <h1 className="mt-1 font-luxury text-foreground">
+                <Logo
+                    size={56}
+                    href={null}
+                    className={manager ? "hidden justify-center sm:inline-flex" : "justify-center"}
+                />
+                <span className={manager ? "eyebrow hidden sm:mt-4 sm:block" : "eyebrow mt-4 block"}>
+                    {site.event.title}
+                </span>
+                <h1 className="mt-1 font-luxury text-2xl text-foreground sm:text-4xl">
                     {manager ? "Check-in" : "Find your table"}
                 </h1>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-1 hidden text-sm text-muted-foreground sm:mt-2 sm:block">
                     {manager
                         ? "Search the couple in front of you, then let them through."
                         : pairs.length > 0
                           ? `${pairs.length} ${pairs.length === 1 ? "couple" : "couples"} seated so far. Search your name.`
                           : "Seating is still being arranged."}
                 </p>
+                {!manager && (
+                    <p className="mt-1 text-sm text-muted-foreground sm:hidden">
+                        {pairs.length > 0
+                            ? `${pairs.length} seated so far. Search your name.`
+                            : "Seating is still being arranged."}
+                    </p>
+                )}
             </div>
 
             <StaffBar manager={manager} />

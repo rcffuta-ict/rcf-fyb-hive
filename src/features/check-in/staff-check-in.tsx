@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { RefreshCw, ScanLine, Search } from "lucide-react";
+import { RefreshCw, ScanLine, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +22,17 @@ import CheckInStats from "./check-in-stats";
  *
  * Nothing is listed until something is typed: with a few hundred couples an
  * unfiltered roster is scrolling, not searching.
+ *
+ * Built for a phone held in one hand, because that is what the registration
+ * team will actually be holding — the search bar sticks to the top of the
+ * screen so it is reachable without scrolling back up between couples, the
+ * matches are capped so the first one is on screen with the photos visible,
+ * and every control is a thumb-sized target.
  */
 const MIN_QUERY = 2;
+
+/** A phone shows one card at a time; a long list of maybes is just scrolling. */
+const MAX_RESULTS = 6;
 
 const StaffCheckIn = ({ manager }: { manager: CheckInManager }): React.JSX.Element => {
     const [query, setQuery] = useState("");
@@ -32,7 +41,10 @@ const StaffCheckIn = ({ manager }: { manager: CheckInManager }): React.JSX.Eleme
     );
 
     const results = useMemo(
-        () => (query.trim().length < MIN_QUERY ? [] : searchPairs(roster, query)),
+        () =>
+            query.trim().length < MIN_QUERY
+                ? []
+                : searchPairs(roster, query, MAX_RESULTS),
         [roster, query]
     );
 
@@ -53,32 +65,59 @@ const StaffCheckIn = ({ manager }: { manager: CheckInManager }): React.JSX.Eleme
 
     return (
         <>
-            <div className="relative mt-4" role="search">
-                <Search
-                    size={18}
-                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                    autoFocus
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Name, email, phone, code or table…"
-                    className="h-14 pl-12 pr-14 text-lg"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                />
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={loading}
-                    onClick={refresh}
-                    className="absolute right-2 top-1/2 -translate-y-1/2"
-                    title="Reload the roster"
-                >
-                    <RefreshCw size={16} className={loading ? "animate-spin" : undefined} />
-                </Button>
+            {/* Sticky, because between couples the gate looks down at a phone
+                that is already scrolled halfway into a card. */}
+            <div
+                role="search"
+                className="sticky top-0 z-20 -mx-4 mt-4 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:-mx-6 sm:px-6"
+            >
+                <div className="relative">
+                    <Search
+                        size={18}
+                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <Input
+                        autoFocus
+                        type="search"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Name, phone, code or table…"
+                        // 16px or larger, or iOS zooms the whole page on focus.
+                        className="h-14 pl-12 pr-24 text-lg [&::-webkit-search-cancel-button]:hidden"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        enterKeyHint="search"
+                    />
+                    <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center">
+                        {query && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setQuery("")}
+                                title="Clear"
+                                className="h-11 w-11"
+                            >
+                                <X size={18} />
+                            </Button>
+                        )}
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={loading}
+                            onClick={refresh}
+                            title="Reload the roster"
+                            className="h-11 w-11"
+                        >
+                            <RefreshCw
+                                size={18}
+                                className={loading ? "animate-spin" : undefined}
+                            />
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <CheckInStats roster={roster} />

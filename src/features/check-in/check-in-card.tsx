@@ -22,7 +22,12 @@ type Props = {
 };
 
 /**
- * One couple at the door: both faces, their table, and one button.
+ * One couple at the door: two large photographs, their table, and one button.
+ *
+ * The pictures lead. Whoever is on the gate is matching faces against two
+ * people standing in front of them — a name in a list is something anyone can
+ * claim, so the portraits get the width and everything else is arranged under
+ * them.
  *
  * There is no table field here on purpose. Seating is an organizer's job done
  * ahead of the evening; the door admits people to the seats the plan gave them.
@@ -35,9 +40,19 @@ const CheckInCard = ({ pair, busy, onCheckIn, onUndo }: Props): React.JSX.Elemen
     const seated = Boolean(pair.tableNumber);
 
     return (
-        <div className="border-b border-border p-4 last:border-0">
-            <div className="flex items-center justify-between gap-3">
-                <p className="font-mono text-sm font-bold tracking-wider text-secondary">
+        <div className="border-b border-border p-4 last:border-0 sm:p-5">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {pair.people.map((person) => (
+                    <CheckInFace
+                        key={`${pair.intentId}-${person.name}`}
+                        person={person}
+                        variant="portrait"
+                    />
+                ))}
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="font-mono text-xs font-bold tracking-wider text-secondary">
                     {pair.code}
                 </p>
                 {arrived ? (
@@ -50,16 +65,10 @@ const CheckInCard = ({ pair, busy, onCheckIn, onUndo }: Props): React.JSX.Elemen
                 )}
             </div>
 
-            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-                {pair.people.map((person) => (
-                    <CheckInFace key={`${pair.intentId}-${person.name}`} person={person} />
-                ))}
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 {seated ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-token bg-accent/60 px-3 py-1.5 text-sm font-bold text-primary">
-                        <Armchair size={15} /> Table {pair.tableNumber}
+                    <span className="inline-flex items-center justify-center gap-1.5 rounded-token bg-accent/60 px-3 py-2 text-base font-bold text-primary sm:py-1.5 sm:text-sm">
+                        <Armchair size={16} /> Table {pair.tableNumber}
                     </span>
                 ) : (
                     <Badge variant="warning">No table yet</Badge>
@@ -68,12 +77,13 @@ const CheckInCard = ({ pair, busy, onCheckIn, onUndo }: Props): React.JSX.Elemen
                 {arrived ? (
                     <Button
                         variant="ghost"
-                        size="sm"
+                        size="lg"
                         disabled={busy}
                         onClick={() => onUndo(pair.intentId)}
                         title="Wrong couple admitted on this row"
+                        className="h-12 w-full sm:w-auto"
                     >
-                        <Undo2 size={14} /> Undo
+                        <Undo2 size={16} /> Undo
                     </Button>
                 ) : (
                     <Button
@@ -82,7 +92,7 @@ const CheckInCard = ({ pair, busy, onCheckIn, onUndo }: Props): React.JSX.Elemen
                         disabled={busy || !seated}
                         onClick={() => onCheckIn(pair.intentId)}
                         title={seated ? undefined : "An organizer must seat them first"}
-                        className="min-w-40"
+                        className="h-14 w-full text-base sm:h-11 sm:w-auto sm:min-w-40"
                     >
                         {busy ? (
                             <Loader2 size={16} className="animate-spin" />

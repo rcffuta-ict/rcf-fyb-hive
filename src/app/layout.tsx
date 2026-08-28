@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cinzel, Playfair_Display, Cormorant_Garamond, Poppins, Inter } from "next/font/google";
 
 import ConsoleWarning from "@/components/layout/console-warning";
@@ -51,6 +51,18 @@ const inter = Inter({
  *
  * Defined in `@/lib/site-url`, shared with the printed table QR code.
  */
+
+/**
+ * Zoom stays available on purpose. The check-in team works this app on phones
+ * and the thing they are reading is a photograph of a face — pinching into it
+ * is the whole job, and a locked `maximum-scale` would take that away.
+ */
+export const viewport: Viewport = {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    themeColor: "#550B18",
+};
 
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
