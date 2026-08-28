@@ -32,10 +32,17 @@ export type CheckInResult = {
     checkedInAt?: string | null;
 };
 
-/** The full approved roster. Loaded once; the gate filters it locally. */
+/**
+ * The full approved roster. Loaded once; both screens filter it locally.
+ *
+ * Open to the check-in team as well as organizers — it is what the door
+ * searches. It carries contact details, which is why it needs a session at all:
+ * the public seating list (`loadSeating`) is the one with no session and no
+ * contacts.
+ */
 export async function loadCheckInRoster(): Promise<CheckInPair[]> {
-    const admin = await getCurrentAdmin();
-    if (!admin) return [];
+    const manager = await getCurrentCheckInManager();
+    if (!manager) return [];
     return getCheckInRoster();
 }
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { DoorOpen, HeartHandshake } from "lucide-react";
+import { Armchair, HeartHandshake } from "lucide-react";
 
 import {
     approvePairIntent,
@@ -95,10 +95,10 @@ const PairIntentsPanel = (): React.JSX.Element => {
                     ))}
                 </div>
 
-                {/* The door is its own screen — this is the only way in. */}
+                {/* Seating is its own screen — this is the only way in. */}
                 <Button size="sm" variant="secondary" asChild>
                     <Link href="/admin/check-in">
-                        <DoorOpen size={14} /> Gate check-in
+                        <Armchair size={14} /> Seating plan
                     </Link>
                 </Button>
             </div>

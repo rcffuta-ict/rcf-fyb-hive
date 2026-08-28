@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogOut, ShieldCheck } from "lucide-react";
 
@@ -16,12 +17,8 @@ import type { CheckInManager } from "@/types/fyb.types";
  * page in a doorway should see a seating list, not a login form. Signed in, it
  * becomes the bar that says whose name will be stamped on every arrival.
  */
-type Props = {
-    manager: CheckInManager | null;
-    onChange: () => void;
-};
-
-const StaffBar = ({ manager, onChange }: Props): React.JSX.Element => {
+const StaffBar = ({ manager }: { manager: CheckInManager | null }): React.JSX.Element => {
+    const router = useRouter();
     const [open, setOpen] = useState(false);
     const [email, setEmail] = useState("");
     const [busy, setBusy] = useState(false);
@@ -39,13 +36,15 @@ const StaffBar = ({ manager, onChange }: Props): React.JSX.Element => {
         setOpen(false);
         setEmail("");
         appToast.success(`Signed in — arrivals will be stamped ${result.manager?.firstName}.`);
-        onChange();
+        // The page decides guest-view vs door-view on the server, so the sign-in
+        // has to go back there rather than flip a flag in the browser.
+        router.refresh();
     };
 
     const handleSignOut = async (): Promise<void> => {
         await checkInLogout();
         appToast.success("Signed out.");
-        onChange();
+        router.refresh();
     };
 
     if (manager) {

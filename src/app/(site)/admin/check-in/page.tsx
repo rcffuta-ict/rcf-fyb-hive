@@ -2,28 +2,27 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { getCurrentAdmin } from "@/actions/admin.action";
-import GateCheckIn from "@/features/admin/check-in/gate-check-in";
+import SeatingWorkbench from "@/features/admin/seating/seating-workbench";
 
 /**
- * Gate check-in, on its own route rather than as a dashboard tab.
+ * The seating plan — organizers only.
  *
- * Whoever works the door is holding a phone in one hand for the whole evening,
- * and every other admin control is a distraction (or a mistake) at that moment.
- * Unauthenticated visitors go to `/admin` to sign in, which is where the login
- * form lives — there is no second one here to keep in step.
+ * The two jobs live on two pages because they are done by different people at
+ * different times: seating is planned here in one sitting, and the door is
+ * worked at `/tables` by the registration team as couples arrive. Nothing on
+ * this page admits anybody, and nothing on that one moves a table.
  */
 
 export const metadata: Metadata = {
-    title: "Gate check-in",
+    title: "Seating plan",
     robots: { index: false, follow: false },
 };
 
-// The roster changes as couples arrive; a cached one is a queue at the door.
 export const dynamic = "force-dynamic";
 
-export default async function CheckInPage(): Promise<React.JSX.Element> {
+export default async function SeatingPage(): Promise<React.JSX.Element> {
     const admin = await getCurrentAdmin();
     if (!admin) redirect("/admin");
 
-    return <GateCheckIn admin={admin} />;
+    return <SeatingWorkbench admin={admin} />;
 }

@@ -13,8 +13,8 @@ const CheckInStats = ({ roster }: { roster: CheckInPair[] }): React.JSX.Element 
     const unseated = roster.filter((pair) => !pair.tableNumber).length;
 
     const tiles = [
-        { label: "Pairs expected", value: roster.length, Icon: HeartHandshake },
-        { label: "Pairs inside", value: arrived.length, Icon: DoorOpen },
+        { label: "Couples expected", value: roster.length, Icon: HeartHandshake },
+        { label: "Couples inside", value: arrived.length, Icon: DoorOpen },
         { label: "Guests inside", value: heads, Icon: Users },
         { label: "No table yet", value: unseated, Icon: Armchair },
     ];

@@ -55,7 +55,7 @@ export default async function TableQrPage(): Promise<React.JSX.Element> {
                 </div>
                 <Button variant="ghost" size="sm" asChild>
                     <Link href="/admin/check-in">
-                        <ArrowLeft size={16} /> Check-in
+                        <ArrowLeft size={16} /> Seating
                     </Link>
                 </Button>
             </div>
